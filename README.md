@@ -29,7 +29,6 @@ Optionally download one of the [releases](https://github.com/sheerun/vim-polyglo
 - [c/c++](https://github.com/vim-jp/cpp-vim) (syntax)
 - [clojure](https://github.com/guns/vim-clojure-static) (syntax, indent, autoload, ftplugin, ftdetect)
 - [coffee-script](https://github.com/kchmck/vim-coffee-script) (syntax, indent, compiler, autoload, ftplugin, ftdetect)
-- [*coloresque](https://github.com/gorodinskiy/vim-coloresque) (syntax)
 - [csv](https://github.com/chrisbra/csv.vim) (syntax, ftplugin, ftdetect)
 - [cucumber](https://github.com/tpope/vim-cucumber) (syntax, indent, compiler, ftplugin, ftdetect)
 - [dockerfile](https://github.com/honza/dockerfile.vim) (syntax, ftdetect)
@@ -78,6 +77,7 @@ Optionally download one of the [releases](https://github.com/sheerun/vim-polyglo
 - [twig](https://github.com/beyondwords/vim-twig) (syntax, ftplugin, ftdetect)
 - [xls](https://github.com/vim-scripts/XSLT-syntax) (syntax)
 - [yard](https://github.com/sheerun/vim-yardoc) (syntax)
+- [css-color](https://github.com/ap/vim-css-color) (autoload, syntax)
 
 **Note**: Languages with a '*' prepended were either added or changed by this fork.
 

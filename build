@@ -73,7 +73,6 @@ PACKS="
   c/c++:vim-jp/cpp-vim
   clojure:guns/vim-clojure-static
   coffee-script:kchmck/vim-coffee-script
-  coloresque:gorodinskiy/vim-coloresque
   csv:chrisbra/csv.vim
   cucumber:tpope/vim-cucumber
   dockerfile:honza/dockerfile.vim
@@ -122,6 +121,7 @@ PACKS="
   twig:beyondwords/vim-twig
   xls:vim-scripts/XSLT-syntax
   yard:sheerun/vim-yardoc
+  css-color:ap/vim-css-color
 "
 
 rm -rf tmp
