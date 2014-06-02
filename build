@@ -66,11 +66,14 @@ concat_ftdetect() {
 }
 
 PACKS="
+  afterc:vim-scripts/aftersyntaxc.vim
   arduino:sudar/vim-arduino-syntax
+  aspnet:vim-scripts/aspnet.vim--Abshire
   c++11:octol/vim-cpp-enhanced-highlight
   c/c++:vim-jp/cpp-vim
   clojure:guns/vim-clojure-static
   coffee-script:kchmck/vim-coffee-script
+  coloresque:gorodinskiy/vim-coloresque
   csv:chrisbra/csv.vim
   cucumber:tpope/vim-cucumber
   dockerfile:honza/dockerfile.vim
@@ -86,11 +89,12 @@ PACKS="
   jade:digitaltoad/vim-jade
   jasmine:glanotte/vim-jasmine
   javascript:pangloss/vim-javascript
-  json:leshill/vim-json
+  jquery:phongnh/vim-jquery
+  json:elzr/vim-json
   jst:briancollins/vim-jst
   latex:LaTeX-Box-Team/LaTeX-Box
   less:groenewege/vim-less
-  markdown:tpope/vim-markdown
+  markdown:plasticboy/vim-markdown
   nginx:mutewinter/nginx.vim
   ocaml:jrk/vim-ocaml
   octave:vim-scripts/octave.vim--
@@ -108,6 +112,7 @@ PACKS="
   scala:derekwyatt/vim-scala
   slim:slim-template/vim-slim
   stylus:wavded/vim-stylus
+  systemd:kurayama/systemd-vim-syntax
   textile:timcharper/textile.vim
   tmux:acustodioo/vim-tmux
   tomdoc:duwanis/tomdoc.vim
@@ -117,7 +122,6 @@ PACKS="
   twig:beyondwords/vim-twig
   xls:vim-scripts/XSLT-syntax
   yard:sheerun/vim-yardoc
-  css-color:ap/vim-css-color
 "
 
 rm -rf tmp

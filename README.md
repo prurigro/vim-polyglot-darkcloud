@@ -1,9 +1,6 @@
-# vim-polyglot [![Build Status][travis-img-url]][travis-url]
+# vim-polyglot (darkcloud fork) #
 
-[travis-img-url]: https://travis-ci.org/sheerun/vim-polyglot.png
-[travis-url]: https://travis-ci.org/sheerun/vim-polyglot
-
-A collection of language packs for Vim.
+A collection of language packs for Vim, including unique selections for [darkcloud-vimconfig](https://github.com/prurigro/darkcloud-vimconfig)
 
 > One to rule them all, one to find them, one to bring them all and in the darkness bind them.
 
@@ -25,11 +22,14 @@ Optionally download one of the [releases](https://github.com/sheerun/vim-polyglo
 
 ## Language packs
 
+- [*afterc](https://github.com/vim-scripts/aftersyntaxc.vim) (syntax)
 - [arduino](https://github.com/sudar/vim-arduino-syntax) (syntax, indent, ftdetect)
+- [*aspnet](https://github.com/vim-scripts/aspnet.vim--Abshire) (syntax)
 - [c++11](https://github.com/octol/vim-cpp-enhanced-highlight) (syntax)
 - [c/c++](https://github.com/vim-jp/cpp-vim) (syntax)
 - [clojure](https://github.com/guns/vim-clojure-static) (syntax, indent, autoload, ftplugin, ftdetect)
 - [coffee-script](https://github.com/kchmck/vim-coffee-script) (syntax, indent, compiler, autoload, ftplugin, ftdetect)
+- [*coloresque](https://github.com/gorodinskiy/vim-coloresque) (syntax)
 - [csv](https://github.com/chrisbra/csv.vim) (syntax, ftplugin, ftdetect)
 - [cucumber](https://github.com/tpope/vim-cucumber) (syntax, indent, compiler, ftplugin, ftdetect)
 - [dockerfile](https://github.com/honza/dockerfile.vim) (syntax, ftdetect)
@@ -45,11 +45,12 @@ Optionally download one of the [releases](https://github.com/sheerun/vim-polyglo
 - [jade](https://github.com/digitaltoad/vim-jade) (syntax, indent, ftplugin, ftdetect)
 - [jasmine](https://github.com/glanotte/vim-jasmine) (syntax, ftdetect)
 - [javascript](https://github.com/pangloss/vim-javascript) (syntax, indent, ftdetect)
-- [json](https://github.com/leshill/vim-json) (syntax, ftdetect)
+- [*jquery](https://github.com/phongnh/vim-jquery) (syntax)
+- [*json](https://github.com/elzr/vim-json) (syntax, indent, ftplugin, ftdetect)
 - [jst](https://github.com/briancollins/vim-jst) (syntax, indent, ftdetect)
 - [latex](https://github.com/LaTeX-Box-Team/LaTeX-Box) (syntax, indent, ftplugin)
 - [less](https://github.com/groenewege/vim-less) (syntax, indent, ftplugin, ftdetect)
-- [markdown](https://github.com/tpope/vim-markdown) (syntax, ftplugin, ftdetect)
+- [*markdown](https://github.com/plasticboy/vim-markdown) (syntax, indent, ftplugin, ftdetect)
 - [nginx](https://github.com/mutewinter/nginx.vim) (syntax, ftdetect)
 - [ocaml](https://github.com/jrk/vim-ocaml) (syntax, indent, ftplugin)
 - [octave](https://github.com/vim-scripts/octave.vim--) (syntax)
@@ -67,6 +68,7 @@ Optionally download one of the [releases](https://github.com/sheerun/vim-polyglo
 - [scala](https://github.com/derekwyatt/vim-scala) (syntax, indent, ftplugin, ftdetect)
 - [slim](https://github.com/slim-template/vim-slim) (syntax, indent, ftdetect)
 - [stylus](https://github.com/wavded/vim-stylus) (syntax, indent, ftplugin, ftdetect)
+- [*systemd](https://github.com/kurayama/systemd-vim-syntax) (syntax, ftdetect)
 - [textile](https://github.com/timcharper/textile.vim) (syntax, ftplugin, ftdetect)
 - [tmux](https://github.com/acustodioo/vim-tmux) (syntax, ftdetect)
 - [tomdoc](https://github.com/duwanis/tomdoc.vim) (syntax)
@@ -76,7 +78,8 @@ Optionally download one of the [releases](https://github.com/sheerun/vim-polyglo
 - [twig](https://github.com/beyondwords/vim-twig) (syntax, ftplugin, ftdetect)
 - [xls](https://github.com/vim-scripts/XSLT-syntax) (syntax)
 - [yard](https://github.com/sheerun/vim-yardoc) (syntax)
-- [css-color](https://github.com/ap/vim-css-color) (autoload, syntax)
+
+**Note**: Languages with a '*' prepended were either added or changed by this fork.
 
 ## Contributing
 
@@ -87,7 +90,6 @@ Feel free to add your language, and send pull-request.
 ## License
 
 See linked repositories for detailed license information.
-
 
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/sheerun/vim-polyglot/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 
