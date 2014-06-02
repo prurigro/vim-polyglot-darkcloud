@@ -61,26 +61,17 @@ fun! s:SelectJavascript()
 endfun
 au BufNewFile,BufRead * call s:SelectJavascript()
 autocmd BufNewFile,BufRead *.json set filetype=json
-augroup json_autocmd
-  autocmd!
-  autocmd FileType json setlocal autoindent
-  autocmd FileType json setlocal formatoptions=tcq2l
-  autocmd FileType json setlocal foldmethod=syntax
-augroup END
+autocmd BufNewFile,BufRead *.jsonp set filetype=json
 au BufNewFile,BufRead *.ejs		set filetype=jst
 au BufNewFile,BufRead *.jst  		set filetype=jst
 au BufNewFile,BufRead *.hamljs set filetype=jst
 autocmd BufNewFile,BufRead *.less setf less
-autocmd BufNewFile,BufRead *.markdown,*.md,*.mdown,*.mkd,*.mkdn
-      \ if &ft =~# '^\%(conf\|modula2\)$' |
-      \   set ft=markdown |
-      \ else |
-      \   setf markdown |
-      \ endif
 autocmd BufRead *.html
     \ if getline(1) =~ '^\(%\|<[%&].*>\)' |
     \     set filetype=mason |
     \ endif
+au BufRead,BufNewFile *.{md,mdown,mkd,mkdn,markdown,mdwn}   set filetype=mkd
+au BufRead,BufNewFile *.{md,mdown,mkd,mkdn,markdown,mdwn}.{des3,des,bf,bfa,aes,idea,cast,rc2,rc4,rc5,desx} set filetype=mkd
 if has("autocmd")
   au  BufNewFile,BufRead *.mustache,*.handlebars,*.hbs,*.hogan,*.hulk,*.hjs set filetype=html syntax=mustache | runtime! ftplugin/mustache.vim ftplugin/mustache*.vim ftplugin/mustache/*.vim
 endif
@@ -127,6 +118,14 @@ au BufRead,BufNewFile * call s:DetectScala()
 autocmd BufNewFile,BufRead *.slim set filetype=slim
 autocmd BufNewFile,BufReadPost *.styl set filetype=stylus
 autocmd BufNewFile,BufReadPost *.stylus set filetype=stylus
+au BufNewFile,BufRead *.automount set filetype=systemd
+au BufNewFile,BufRead *.mount     set filetype=systemd
+au BufNewFile,BufRead *.path      set filetype=systemd
+au BufNewFile,BufRead *.service   set filetype=systemd
+au BufNewFile,BufRead *.socket    set filetype=systemd
+au BufNewFile,BufRead *.swap      set filetype=systemd
+au BufNewFile,BufRead *.target    set filetype=systemd
+au BufNewFile,BufRead *.timer     set filetype=systemd
 au BufRead,BufNewFile *.textile set filetype=textile
 autocmd BufNewFile,BufRead .tmux.conf*,tmux.conf* setf tmux
 autocmd BufNewFile,BufRead *.toml set filetype=toml
