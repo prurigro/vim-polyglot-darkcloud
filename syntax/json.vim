@@ -19,7 +19,7 @@ syntax match   jsonNoise           /\%(:\|,\)/
 
 " Syntax: Strings
 " Separated into a match and region because a region by itself is always greedy
-syn match  jsonStringMatch /"[^\"]\+"\ze[[:blank:]\r\n]*[,}\]]/ contains=jsonString
+syn match  jsonStringMatch /"\([^"]\|\\\"\)\+"\ze[[:blank:]\r\n]*[,}\]]/ contains=jsonString
 if has('conceal')
 	syn region  jsonString oneline matchgroup=jsonQuote start=/"/  skip=/\\\\\|\\"/  end=/"/ concealends contains=jsonEscape contained
 else
@@ -49,6 +49,7 @@ syn match   jsonNumber    "-\=\<\%(0\|[1-9]\d*\)\%(\.\d\+\)\=\%([eE][-+]\=\d\+\)
 if (!exists("g:vim_json_warnings") || g:vim_json_warnings==1)
 	" Syntax: Strings should always be enclosed with quotes.
 	syn match   jsonNoQuotesError  "\<[[:alpha:]]\+\>"
+	syn match   jsonTripleQuotesError  /"""/
 
 	" Syntax: An integer part of 0 followed by other digits is not allowed.
 	syn match   jsonNumError  "-\=\<0\d\.\d*\>"
@@ -119,6 +120,7 @@ if version >= 508 || !exists("did_json_syn_inits")
 	  HiLink jsonMissingCommaError      Error
 	  HiLink jsonStringSQError        	Error
 	  HiLink jsonNoQuotesError        	Error
+	  HiLink jsonTripleQuotesError     	Error
   endif
   HiLink jsonQuote           Quote
   HiLink jsonNoise           Noise

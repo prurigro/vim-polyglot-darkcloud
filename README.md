@@ -22,11 +22,11 @@ Optionally download one of the [releases](https://github.com/sheerun/vim-polyglo
 
 ## Language packs
 
-- [*afterc](https://github.com/vim-scripts/aftersyntaxc.vim) (syntax)
 - [arduino](https://github.com/sudar/vim-arduino-syntax) (syntax, indent, ftdetect)
 - [*aspnet](https://github.com/vim-scripts/aspnet.vim--Abshire) (syntax)
 - [c++11](https://github.com/octol/vim-cpp-enhanced-highlight) (syntax)
 - [c/c++](https://github.com/vim-jp/cpp-vim) (syntax)
+- [c-extensions](https://github.com/kergoth/aftersyntaxc.vim) (syntax)
 - [clojure](https://github.com/guns/vim-clojure-static) (syntax, indent, autoload, ftplugin, ftdetect)
 - [coffee-script](https://github.com/kchmck/vim-coffee-script) (syntax, indent, compiler, autoload, ftplugin, ftdetect)
 - [csv](https://github.com/chrisbra/csv.vim) (syntax, ftplugin, ftdetect)
@@ -40,7 +40,8 @@ Optionally download one of the [releases](https://github.com/sheerun/vim-polyglo
 - [haml](https://github.com/tpope/vim-haml) (syntax, indent, compiler, ftplugin, ftdetect)
 - [handlebars](https://github.com/mustache/vim-mustache-handlebars) (syntax, ftplugin, ftdetect)
 - [haskell](https://github.com/travitch/hasksyn) (syntax, indent, ftplugin)
-- [html5](https://github.com/othree/html5.vim) (syntax, indent, autoload)
+- [haxe](https://github.com/yaymukund/vim-haxe) (syntax, ftdetect)
+- [html5](https://github.com/othree/html5.vim) (syntax, indent, autoload, ftplugin)
 - [jade](https://github.com/digitaltoad/vim-jade) (syntax, indent, ftplugin, ftdetect)
 - [jasmine](https://github.com/glanotte/vim-jasmine) (syntax, ftdetect)
 - [javascript](https://github.com/pangloss/vim-javascript) (syntax, indent, ftdetect)
@@ -49,6 +50,7 @@ Optionally download one of the [releases](https://github.com/sheerun/vim-polyglo
 - [jst](https://github.com/briancollins/vim-jst) (syntax, indent, ftdetect)
 - [latex](https://github.com/LaTeX-Box-Team/LaTeX-Box) (syntax, indent, ftplugin)
 - [less](https://github.com/groenewege/vim-less) (syntax, indent, ftplugin, ftdetect)
+- [liquid](https://github.com/tpope/vim-liquid) (syntax, indent, ftplugin, ftdetect)
 - [*markdown](https://github.com/plasticboy/vim-markdown) (syntax, indent, ftplugin, ftdetect)
 - [nginx](https://github.com/mutewinter/nginx.vim) (syntax, ftdetect)
 - [ocaml](https://github.com/jrk/vim-ocaml) (syntax, indent, ftplugin)
@@ -67,7 +69,7 @@ Optionally download one of the [releases](https://github.com/sheerun/vim-polyglo
 - [scala](https://github.com/derekwyatt/vim-scala) (syntax, indent, ftplugin, ftdetect)
 - [slim](https://github.com/slim-template/vim-slim) (syntax, indent, ftdetect)
 - [stylus](https://github.com/wavded/vim-stylus) (syntax, indent, ftplugin, ftdetect)
-- [*systemd](https://github.com/kurayama/systemd-vim-syntax) (syntax, ftdetect)
+- [systemd](https://github.com/kurayama/systemd-vim-syntax) (syntax, ftdetect)
 - [textile](https://github.com/timcharper/textile.vim) (syntax, ftplugin, ftdetect)
 - [tmux](https://github.com/acustodioo/vim-tmux) (syntax, ftdetect)
 - [tomdoc](https://github.com/duwanis/tomdoc.vim) (syntax)
@@ -79,7 +81,7 @@ Optionally download one of the [releases](https://github.com/sheerun/vim-polyglo
 - [yard](https://github.com/sheerun/vim-yardoc) (syntax)
 - [css-color](https://github.com/ap/vim-css-color) (autoload, syntax)
 
-**Note**: Languages with a '*' prepended were either added or changed by this fork.
+**Note**: Languages with a * before their name were either added or changed in this fork.
 
 ## Contributing
 
@@ -90,6 +92,3 @@ Feel free to add your language, and send pull-request.
 ## License
 
 See linked repositories for detailed license information.
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/sheerun/vim-polyglot/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-
