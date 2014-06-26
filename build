@@ -2,137 +2,139 @@
 
 set -E
 
-DIRS="syntax indent compiler autoload ftplugin ftdetect after/syntax after/indent after/ftplugin after/ftdetect"
+DIRS="after/ftdetect after/ftplugin after/indent after/syntax autoload compiler ftdetect ftplugin indent plugin syntax"
+
+TMPFOLDER="./tmp"
+GITSOURCE="https://github.com"
 
 download() {
-  for pack in $1; do
-    path="$(printf "$pack" | cut -d ':' -f 2)"
-    dir="tmp/$(printf "$path" | cut -d '/' -f 2)"
-    rm -rf "$dir"
-    (git clone -q --recursive "https://github.com/$path.git" "$dir" && printf '.') &
-  done
-
-  wait
+    for pack in $1; do
+        path="$(printf "$pack" | cut -d ':' -f 2)"
+        dir="${TMPFOLDER}/$(printf "$path" | cut -d '/' -f 2)"
+        rm -rf "$dir"
+        (git clone -q --recursive "${GITSOURCE}/${path}.git" "$dir" && printf '.') &
+    done
+    wait
 }
 
 extract() {
-  printf "\n"
-  for pack in $1; do
-    name="$(printf "$pack" | cut -d ':' -f 1)"
-    path="$(printf "$pack" | cut -d ':' -f 2)"
-    dir="tmp/$(printf "$path" | cut -d '/' -f 2)"
-    printf -- "- [$name](https://github.com/$path) ("
+    printf "\n"
+    for pack in $1; do
+        name="$(printf "$pack" | cut -d ':' -f 1)"
+        path="$(printf "$pack" | cut -d ':' -f 2)"
+        dir="${TMPFOLDER}/$(printf "$path" | cut -d '/' -f 2)"
+        printf -- "- [${name}](${GITSOURCE}/${path}) ("
 
-    subdirs=""
-    for subdir in $DIRS; do
-      if [ -d "$dir/$subdir" ]; then
-        base="$(basename "$subdir")"
-        if [[ "$subdirs" != *"$base"* ]]; then
-          subdirs="$subdirs, $base"
-        fi
+        subdirs=""
+        for subdir in $DIRS; do
+            if [ -d "$dir/$subdir" ]; then
+                base="$(basename "$subdir")"
+                [[ "$subdirs" != *"$base"* ]] && subdirs="$subdirs, $base"
+                copy_dir "$dir" "$subdir"
+            fi
+        done
 
-        copy_dir "$dir" "$subdir"
-      fi
+        printf "${subdirs##, })\n"
     done
+}
 
+extract_pluginwarn() {
+    # Warn about plugins with "/plugin" directory
+    for pack in $1; do
+        name="$(printf "$pack" | cut -d ':' -f 1)"
+        path="$(printf "$pack" | cut -d ':' -f 2)"
+        dir="${TMPFOLDER}/$(printf "$path" | cut -d '/' -f 2)"
 
-    printf "${subdirs##, })\n"
-  done
-
-  for pack in $1; do
-    name="$(printf "$pack" | cut -d ':' -f 1)"
-    path="$(printf "$pack" | cut -d ':' -f 2)"
-    dir="tmp/$(printf "$path" | cut -d '/' -f 2)"
-
-    if [ -d "$dir/plugin" ]; then
-      printf "Possible error (plugin directory exists): $path\n"
-    fi
-  done
+        if [ -d "${dir}/plugin" ]; then
+            printf "Possible error (plugin directory exists): $path\n"
+        fi
+    done
 }
 
 copy_dir() {
-  for file in $(find "$1/$2" -name '*.vim'); do
-    file_path="$(dirname "${file##$1/}")"
-    mkdir -p "$file_path"
-    touch "$file_path/$(basename "$file")"
-    cat $file >> $file_path/$(basename "$file")
-  done
+    for file in $(find "${1}/${2}" -name '*.vim'); do
+        file_path="$(dirname "${file##$1/}")"
+        mkdir -p "$file_path"
+        touch "${file_path}/$(basename "$file")"
+        cat $file >> ${file_path}/$(basename "$file")
+    done
 }
 
 concat_ftdetect() {
-  cat ftdetect/* | grep -E '^[^"]' > tmp/polyglot.vim
-  rm -f ftdetect/*
-  mv tmp/polyglot.vim ftdetect/
+    cat ftdetect/* | grep -E '^[^"]' > ${TMPFOLDER}/polyglot.vim
+    rm -f ftdetect/*
+    mv ${TMPFOLDER}/polyglot.vim ftdetect/
 }
 
 PACKS="
-  arduino:sudar/vim-arduino-syntax
-  aspnet:vim-scripts/aspnet.vim--Abshire
-  c++11:octol/vim-cpp-enhanced-highlight
-  c/c++:vim-jp/cpp-vim
-  c-extensions:kergoth/aftersyntaxc.vim
-  clojure:guns/vim-clojure-static
-  coffee-script:kchmck/vim-coffee-script
-  csv:chrisbra/csv.vim
-  cucumber:tpope/vim-cucumber
-  dockerfile:honza/dockerfile.vim
-  elixir:elixir-lang/vim-elixir
-  emberscript:heartsentwined/vim-ember-script
-  erlang:oscarh/vimerl
-  git:tpope/vim-git
-  go:jnwhiteh/vim-golang
-  haml:tpope/vim-haml
-  handlebars:mustache/vim-mustache-handlebars
-  haskell:travitch/hasksyn
-  haxe:yaymukund/vim-haxe
-  html5:othree/html5.vim
-  jade:digitaltoad/vim-jade
-  jasmine:glanotte/vim-jasmine
-  javascript:pangloss/vim-javascript
-  jquery:phongnh/vim-jquery
-  json:elzr/vim-json
-  jst:briancollins/vim-jst
-  latex:LaTeX-Box-Team/LaTeX-Box
-  less:groenewege/vim-less
-  liquid:tpope/vim-liquid
-  markdown:plasticboy/vim-markdown
-  nginx:mutewinter/nginx.vim
-  ocaml:jrk/vim-ocaml
-  octave:vim-scripts/octave.vim--
-  opencl:petRUShka/vim-opencl
-  perl:vim-perl/vim-perl
-  php:StanAngeloff/php.vim
-  puppet:rodjek/vim-puppet
-  protobuf:uarun/vim-protobuf
-  python:mitsuhiko/vim-python-combined
-  r-lang:vim-scripts/R.vim
-  rspec:sheerun/rspec.vim
-  ruby:vim-ruby/vim-ruby
-  rust:wting/rust.vim
-  sbt:derekwyatt/vim-sbt
-  scala:derekwyatt/vim-scala
-  slim:slim-template/vim-slim
-  stylus:wavded/vim-stylus
-  systemd:kurayama/systemd-vim-syntax
-  textile:timcharper/textile.vim
-  tmux:acustodioo/vim-tmux
-  tomdoc:duwanis/tomdoc.vim
-  typescript:leafgarland/typescript-vim
-  vbnet:vim-scripts/vbnet.vim
-  toml:cespare/vim-toml
-  twig:beyondwords/vim-twig
-  xls:vim-scripts/XSLT-syntax
-  yard:sheerun/vim-yardoc
-  css-color:ap/vim-css-color
+    arduino:sudar/vim-arduino-syntax
+    aspnet:vim-scripts/aspnet.vim--Abshire
+    c++11:octol/vim-cpp-enhanced-highlight
+    c/c++:vim-jp/cpp-vim
+    c-extensions:kergoth/aftersyntaxc.vim
+    clojure:guns/vim-clojure-static
+    coffee-script:kchmck/vim-coffee-script
+    csv:chrisbra/csv.vim
+    cucumber:tpope/vim-cucumber
+    dockerfile:honza/dockerfile.vim
+    elixir:elixir-lang/vim-elixir
+    emberscript:heartsentwined/vim-ember-script
+    erlang:oscarh/vimerl
+    git:tpope/vim-git
+    go:jnwhiteh/vim-golang
+    haml:tpope/vim-haml
+    handlebars:mustache/vim-mustache-handlebars
+    haskell:travitch/hasksyn
+    haxe:yaymukund/vim-haxe
+    html5:othree/html5.vim
+    jade:digitaltoad/vim-jade
+    jasmine:glanotte/vim-jasmine
+    javascript:pangloss/vim-javascript
+    jquery:phongnh/vim-jquery
+    json:elzr/vim-json
+    jst:briancollins/vim-jst
+    latex:LaTeX-Box-Team/LaTeX-Box
+    less:groenewege/vim-less
+    liquid:tpope/vim-liquid
+    markdown:plasticboy/vim-markdown
+    nginx:mutewinter/nginx.vim
+    ocaml:jrk/vim-ocaml
+    octave:vim-scripts/octave.vim--
+    opencl:petRUShka/vim-opencl
+    perl:vim-perl/vim-perl
+    php:StanAngeloff/php.vim
+    puppet:rodjek/vim-puppet
+    protobuf:uarun/vim-protobuf
+    python:mitsuhiko/vim-python-combined
+    r-lang:vim-scripts/R.vim
+    rspec:sheerun/rspec.vim
+    ruby:vim-ruby/vim-ruby
+    rust:wting/rust.vim
+    sbt:derekwyatt/vim-sbt
+    scala:derekwyatt/vim-scala
+    slim:slim-template/vim-slim
+    stylus:wavded/vim-stylus
+    systemd:kurayama/systemd-vim-syntax
+    textile:timcharper/textile.vim
+    tmux:acustodioo/vim-tmux
+    tomdoc:duwanis/tomdoc.vim
+    typescript:leafgarland/typescript-vim
+    vbnet:vim-scripts/vbnet.vim
+    toml:cespare/vim-toml
+    twig:beyondwords/vim-twig
+    xls:vim-scripts/XSLT-syntax
+    yard:sheerun/vim-yardoc
+    css-color:ap/vim-css-color
 "
 
-rm -rf tmp
+rm -rf "$TMPFOLDER"
 rm -rf $DIRS
-mkdir tmp
+mkdir "$TMPFOLDER"
 
 printf "Downloading packs..."
 download "$PACKS"
 extract "$PACKS"
+# extract_pluginwarn "$PACKS"
 concat_ftdetect
 
-rm -rf tmp
+rm -rf "$TMPFOLDER"

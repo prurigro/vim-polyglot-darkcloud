@@ -47,12 +47,12 @@
 
 " For each level, contains the regexp that matches at that level only.
 let s:levelRegexpDict = {
-    \ 1: '\v^(\s*#[^#]|.+\n\=+$)',
-    \ 2: '\v^(\s*##[^#]|.+\n-+$)',
-    \ 3: '\v^\s*###[^#]',
-    \ 4: '\v^\s*####[^#]',
-    \ 5: '\v^\s*#####[^#]',
-    \ 6: '\v^\s*######[^#]'
+    \ 1: '\v^(#[^#]|.+\n\=+$)',
+    \ 2: '\v^(##[^#]|.+\n-+$)',
+    \ 3: '\v^###[^#]',
+    \ 4: '\v^####[^#]',
+    \ 5: '\v^#####[^#]',
+    \ 6: '\v^######[^#]'
 \ }
 
 " Maches any header level of any type.
@@ -60,7 +60,7 @@ let s:levelRegexpDict = {
 " This could be deduced from `s:levelRegexpDict`, but it is more
 " efficient to have a single regexp for this.
 "
-let s:headersRegexp = '\v^(\s*#|.+\n(\=+|-+)$)'
+let s:headersRegexp = '\v^(#|.+\n(\=+|-+)$)'
 
 " Returns the line number of the first header before `line`, called the
 " current header.
@@ -358,6 +358,43 @@ function! s:MapNormVis(rhs,lhs)
     execute 'vn <buffer><silent> ' . a:rhs . ' <esc>:call <sid>VisMove(''' . a:lhs . ''')<cr>'
 endfunction
 
+" Convert Setex headers in range `line1 .. line2` to Atx.
+" Returns the number of conversions.
+function! s:SetexToAtx(line1, line2)
+    let l:originalNumLines = line('$')
+    execute 'silent! ' . a:line1 . ',' . a:line2 . 'substitute/\v(.*\S.*)\n\=+$/# \1/'
+    execute 'silent! ' . a:line1 . ',' . a:line2 . 'substitute/\v(.*\S.*)\n-+$/## \1/'
+    return l:originalNumLines - line('$')
+endfunction
+
+" If `a:1` is 0, decrease the level of all headers in range `line1 .. line2`.
+" Otherwise, increase the level. `a:1` defaults to `0`.
+function! s:HeaderDecrease(line1, line2, ...)
+    if a:0 > 0
+        let l:increase = a:1
+    else
+        let l:increase = 0
+    endif
+    if l:increase
+        let l:forbiddenLevel = 6
+        let l:replaceLevels = [5, 1]
+        let l:levelDelta = 1
+    else
+        let l:forbiddenLevel = 1
+        let l:replaceLevels = [2, 6]
+        let l:levelDelta = -1
+    endif
+    for l:line in range(a:line1, a:line2)
+        if join(getline(l:line, l:line + 1), "\n") =~ s:levelRegexpDict[l:forbiddenLevel]
+            echomsg 'There is an h' . l:forbiddenLevel . ' at line ' . l:line . '. Aborting.'
+            return
+        endif
+    endfor
+    let l:numSubstitutions = s:SetexToAtx(a:line1, a:line2)
+    for l:level in range(replaceLevels[0], replaceLevels[1], -l:levelDelta)
+        execute 'silent! ' . a:line1 . ',' . (a:line2 - l:numSubstitutions) . 'substitute/' . s:levelRegexpDict[l:level] . '/' . repeat('#', l:level + l:levelDelta) . '\1/g'
+    endfor
+endfunction
 
 call <sid>MapNormVis('<Plug>(Markdown_MoveToNextHeader)', '<sid>Markdown_MoveToNextHeader')
 call <sid>MapNormVis('<Plug>(Markdown_MoveToPreviousHeader)', '<sid>Markdown_MoveToPreviousHeader')
@@ -368,24 +405,26 @@ call <sid>MapNormVis('<Plug>(Markdown_MoveToParentHeader)', '<sid>Markdown_MoveT
 " Menmonic: Current
 call <sid>MapNormVis('<Plug>(Markdown_MoveToCurHeader)', '<sid>Markdown_MoveToCurHeader')
 
-if ! exists('g:vim_markdown_no_default_key_mappings')
-\ || !g:vim_markdown_no_default_key_mappings
-    nmap ]] <Plug>(Markdown_MoveToNextHeader)
-    nmap [[ <Plug>(Markdown_MoveToPreviousHeader)
-    nmap ][ <Plug>(Markdown_MoveToNextSiblingHeader)
-    nmap [] <Plug>(Markdown_MoveToPreviousSiblingHeader)
-    nmap ]u <Plug>(Markdown_MoveToParentHeader)
-    nmap ]c <Plug>(Markdown_MoveToCurHeader)
+if !get(g:, 'vim_markdown_no_default_key_mappings', 0)
+    nmap <buffer> ]] <Plug>(Markdown_MoveToNextHeader)
+    nmap <buffer> [[ <Plug>(Markdown_MoveToPreviousHeader)
+    nmap <buffer> ][ <Plug>(Markdown_MoveToNextSiblingHeader)
+    nmap <buffer> [] <Plug>(Markdown_MoveToPreviousSiblingHeader)
+    nmap <buffer> ]u <Plug>(Markdown_MoveToParentHeader)
+    nmap <buffer> ]c <Plug>(Markdown_MoveToCurHeader)
 
-    vmap ]] <Plug>(Markdown_MoveToNextHeader)
-    vmap [[ <Plug>(Markdown_MoveToPreviousHeader)
-    vmap ][ <Plug>(Markdown_MoveToNextSiblingHeader)
-    vmap [] <Plug>(Markdown_MoveToPreviousSiblingHeader)
-    vmap ]u <Plug>(Markdown_MoveToParentHeader)
-    vmap ]c <Plug>(Markdown_MoveToCurHeader)
+    vmap <buffer> ]] <Plug>(Markdown_MoveToNextHeader)
+    vmap <buffer> [[ <Plug>(Markdown_MoveToPreviousHeader)
+    vmap <buffer> ][ <Plug>(Markdown_MoveToNextSiblingHeader)
+    vmap <buffer> [] <Plug>(Markdown_MoveToPreviousSiblingHeader)
+    vmap <buffer> ]u <Plug>(Markdown_MoveToParentHeader)
+    vmap <buffer> ]c <Plug>(Markdown_MoveToCurHeader)
 endif
 
 command! -buffer Toc call s:Markdown_Toc()
 command! -buffer Toch call s:Markdown_Toc('horizontal')
 command! -buffer Tocv call s:Markdown_Toc('vertical')
 command! -buffer Toct call s:Markdown_Toc('tab')
+command! -buffer -range=% SetexToAtx call s:SetexToAtx(<line1>, <line2>)
+command! -buffer -range=% HeaderDecrease call s:HeaderDecrease(<line1>, <line2>)
+command! -buffer -range=% HeaderIncrease call s:HeaderDecrease(<line1>, <line2>, 1)
