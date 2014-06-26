@@ -1,3 +1,4 @@
+au BufNewFile,BufRead *archversion.conf set filetype=archversion
 au BufRead,BufNewFile *.ino,*.pde set filetype=arduino
 autocmd BufNewFile,BufRead *.clj,*.cljs,*.edn setlocal filetype=clojure
 autocmd BufNewFile,BufRead *.coffee set filetype=coffee

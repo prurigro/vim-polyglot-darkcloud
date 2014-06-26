@@ -67,6 +67,7 @@ concat_ftdetect() {
 }
 
 PACKS="
+    archversion:prurigro/vim-archversion
     arduino:sudar/vim-arduino-syntax
     aspnet:vim-scripts/aspnet.vim--Abshire
     c++11:octol/vim-cpp-enhanced-highlight
