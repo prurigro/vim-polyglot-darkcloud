@@ -146,9 +146,9 @@ function! LatexBox_FoldLevel(lnum)
 
     " Fold preamble
     if g:LatexBox_fold_preamble == 1
-        if line =~# '\s*\\documentclass'
+        if line =~# s:notcomment . s:notbslash . '\s*\\documentclass'
             return ">1"
-        elseif line =~# '^\s*\\begin\s*{\s*document\s*}'
+        elseif line =~# s:notcomment . s:notbslash . '\s*\\begin\s*{\s*document\s*}'
             return "0"
         endif
     endif

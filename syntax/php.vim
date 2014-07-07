@@ -33,11 +33,18 @@
 "       (Statements) in your code.
 "
 " Options:  php_sql_query = 1  for SQL syntax highlighting inside strings (default: 0)
+"           php_sql_heredoc = 1 for SQL syntax highlighting inside heredocs (default: 1)
+"           b:sql_type_override = 'postgresql' for PostgreSQL syntax highlighting in current buffer (default: 'mysql')
+"           g:sql_type_default = 'postgresql' to set global SQL syntax highlighting language default (default: 'mysql')"
 "           php_html_in_strings = 1  for HTML syntax highlighting inside strings (default: 0)
+"           php_html_in_heredoc = 1 for HTML syntax highlighting inside heredocs (default: 1)
+"           php_html_load = 1 for loading the HTML syntax at all.  Overwrites php_html_in_strings and php_html_in_heredoc (default: 1)
 "           php_parent_error_close = 1  for highlighting parent error ] or ) (default: 0)
 "           php_parent_error_open = 1  for skipping an php end tag,
 "                                      if there exists an open ( or [ without a closing one (default: 0)
-"           php_folding = 1  for folding classes and functions
+"           php_folding = 1  for folding try/catch, classes, and functions based on indent, finds a } with an indent matching
+"                            the structure.
+"                         2  for folding all { } pairs. (see known bugs ii)
 "           php_sync_method = x
 "                             x=-1 to sync by search ( default )
 "                             x>0 to sync at least x lines backwards
@@ -51,12 +58,6 @@
 "           g:php_syntax_extensions_enabled
 "           g:php_syntax_extensions_disabled  A list of extension names (lowercase) for which built-in functions,
 "                                             constants, classes and interfaces is enabled / disabled.
-"
-" Note:
-" Setting php_folding=1 will match a closing } by comparing the indent
-" before the class or function keyword with the indent of a matching }.
-" Setting php_folding=2 will match all of pairs of {,} ( see known
-" bugs ii )
 "
 " Known Bugs:
 "  - setting  php_parent_error_close  on  and  php_parent_error_open  off
@@ -83,10 +84,31 @@ if !exists("main_syntax")
   let main_syntax = 'php'
 endif
 
-runtime! syntax/html.vim
-unlet! b:current_syntax
-" HTML syntax file turns on spelling for all top level words, we attempt to turn off
-syntax spell default
+if !exists("php_html_load")
+  let php_html_load=1
+endif
+
+if (exists("php_html_load") && php_html_load)
+  if !exists("php_html_in_heredoc")
+    let php_html_in_heredoc=1
+  endif
+
+  runtime! syntax/html.vim
+  unlet! b:current_syntax
+  " HTML syntax file turns on spelling for all top level words, we attempt to turn off
+  syntax spell default
+
+  syn cluster htmlPreproc add=phpRegion
+else
+  " If it is desired that the HTML syntax file not be loaded at all, set the options for highlighting it in string
+  " and heredocs to false.
+  let php_html_in_strings=0
+  let php_html_in_heredoc=0
+endif
+
+if (exists("php_html_in_strings") && php_html_in_strings)
+  syn cluster phpAddStrings add=@htmlTop
+endif
 
 " Set sync method if none declared
 if ( ! exists("php_sync_method") || php_sync_method == 1)
@@ -97,25 +119,25 @@ if ( ! exists("php_sync_method") || php_sync_method == 1)
   endif
 endif
 
-syn cluster htmlPreproc add=phpRegion
-
-" Use MySQL as the default SQL syntax file.
-" See https://github.com/StanAngeloff/php.vim/pull/1
-if !exists('b:sql_type_override') && !exists('g:sql_type_default')
-  let b:sql_type_override='mysql'
-endif
-syn include @sqlTop syntax/sql.vim
-
-syn sync clear
-unlet! b:current_syntax
-syn cluster sqlTop remove=sqlString,sqlComment
-
-if (exists("php_sql_query") && php_sql_query)
-  syn cluster phpAddStrings contains=@sqlTop
+if !exists("php_sql_heredoc")
+  let php_sql_heredoc=1
 endif
 
-if (exists("php_html_in_strings") && php_html_in_strings)
-  syn cluster phpAddStrings add=@htmlTop
+if ((exists("php_sql_query") && php_sql_query) || (exists("php_sql_heredoc") && php_sql_heredoc))
+  " Use MySQL as the default SQL syntax file.
+  " See https://github.com/StanAngeloff/php.vim/pull/1
+  if !exists('b:sql_type_override') && !exists('g:sql_type_default')
+    let b:sql_type_override='mysql'
+  endif
+  syn include @sqlTop syntax/sql.vim
+
+  syn sync clear
+  unlet! b:current_syntax
+  syn cluster sqlTop remove=sqlString,sqlComment
+
+  if (exists("php_sql_query") && php_sql_query)
+    syn cluster phpAddStrings contains=@sqlTop
+  endif
 endif
 
 syn case match
@@ -568,14 +590,18 @@ else
 endif
 
 " HereDoc
-  syn case match
-  syn region phpHereDoc matchgroup=Delimiter start="\(<<<\)\@<=\z(\I\i*\)$" end="^\z1\(;\=$\)\@=" contained contains=@Spell,phpIdentifier,phpIdentifierSimply,phpIdentifierComplex,phpSpecialChar,phpMethodsVar,phpStrEsc keepend extend
-  syn region phpHereDoc matchgroup=Delimiter start=+\(<<<\)\@<="\z(\I\i*\)"$+ end="^\z1\(;\=$\)\@=" contained contains=@Spell,phpIdentifier,phpIdentifierSimply,phpIdentifierComplex,phpSpecialChar,phpMethodsVar,phpStrEsc keepend extend
-" including HTML,JavaScript,SQL even if not enabled via options
+syn case match
+syn region phpHereDoc matchgroup=Delimiter start="\(<<<\)\@<=\z(\I\i*\)$" end="^\z1\(;\=$\)\@=" contained contains=@Spell,phpIdentifier,phpIdentifierSimply,phpIdentifierComplex,phpSpecialChar,phpMethodsVar,phpStrEsc keepend extend
+syn region phpHereDoc matchgroup=Delimiter start=+\(<<<\)\@<="\z(\I\i*\)"$+ end="^\z1\(;\=$\)\@=" contained contains=@Spell,phpIdentifier,phpIdentifierSimply,phpIdentifierComplex,phpSpecialChar,phpMethodsVar,phpStrEsc keepend extend
+" including HTML,JavaScript,SQL if enabled via options
+if (exists("php_html_in_heredoc") && php_html_in_heredoc)
   syn region phpHereDoc matchgroup=Delimiter start="\(<<<\)\@<=\z(\(\I\i*\)\=\(html\)\c\(\i*\)\)$" end="^\z1\(;\=$\)\@="  contained contains=@htmlTop,phpIdentifier,phpIdentifierSimply,phpIdentifierComplex,phpSpecialChar,phpMethodsVar,phpStrEsc keepend extend
-  syn region phpHereDoc matchgroup=Delimiter start="\(<<<\)\@<=\z(\(\I\i*\)\=\(sql\)\c\(\i*\)\)$" end="^\z1\(;\=$\)\@=" contained contains=@sqlTop,phpIdentifier,phpIdentifierSimply,phpIdentifierComplex,phpSpecialChar,phpMethodsVar,phpStrEsc keepend extend
   syn region phpHereDoc matchgroup=Delimiter start="\(<<<\)\@<=\z(\(\I\i*\)\=\(javascript\)\c\(\i*\)\)$" end="^\z1\(;\=$\)\@="  contained contains=@htmlJavascript,phpIdentifierSimply,phpIdentifier,phpIdentifierComplex,phpSpecialChar,phpMethodsVar,phpStrEsc keepend extend
-  syn case ignore
+endif
+if (exists("php_sql_heredoc") && php_sql_heredoc)
+  syn region phpHereDoc matchgroup=Delimiter start="\(<<<\)\@<=\z(\(\I\i*\)\=\(sql\)\c\(\i*\)\)$" end="^\z1\(;\=$\)\@=" contained contains=@sqlTop,phpIdentifier,phpIdentifierSimply,phpIdentifierComplex,phpSpecialChar,phpMethodsVar,phpStrEsc keepend extend
+endif
+syn case ignore
 
 " NowDoc
   syn region phpNowDoc matchgroup=Delimiter start=+\(<<<\)\@<='\z(\I\i*\)'$+ end="^\z1\(;\=$\)\@=" contained keepend extend
