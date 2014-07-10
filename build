@@ -38,19 +38,6 @@ extract() {
     done
 }
 
-extract_pluginwarn() {
-    # Warn about plugins with "/plugin" directory
-    for pack in $1; do
-        name="$(printf "$pack" | cut -d ':' -f 1)"
-        path="$(printf "$pack" | cut -d ':' -f 2)"
-        dir="${TMPFOLDER}/$(printf "$path" | cut -d '/' -f 2)"
-
-        if [ -d "${dir}/plugin" ]; then
-            printf "Possible error (plugin directory exists): $path\n"
-        fi
-    done
-}
-
 copy_dir() {
     for file in $(find "${1}/${2}" -name '*.vim'); do
         file_path="$(dirname "${file##$1/}")"
@@ -64,6 +51,17 @@ concat_ftdetect() {
     cat ftdetect/* | grep -E '^[^"]' > ${TMPFOLDER}/polyglot.vim
     rm -f ftdetect/*
     mv ${TMPFOLDER}/polyglot.vim ftdetect/
+}
+
+backup() {
+    BACKUPDIRS="after autoload compiler ftdetect ftplugin indent plugin syntax"
+    backfolder="_oldpacks_backup"
+
+    [[ -d "$backfolder" ]] && printf "Error (backup directory '$backfolder' exists)" && exit 1
+    install -d "$backfolder"
+    for subdir in $BACKUPDIRS; do
+        mv "$subdir" "${backfolder}/${subdir}"
+    done
 }
 
 PACKS="
@@ -128,14 +126,18 @@ PACKS="
     css-color:ap/vim-css-color
 "
 
+# backup current setup
+backup
+
+# setup fresh temp folder
 rm -rf "$TMPFOLDER"
-rm -rf $DIRS
 mkdir "$TMPFOLDER"
 
+# download/setup latest packs
 printf "Downloading packs..."
 download "$PACKS"
 extract "$PACKS"
-# extract_pluginwarn "$PACKS"
 concat_ftdetect
 
+# remove temp folder
 rm -rf "$TMPFOLDER"
