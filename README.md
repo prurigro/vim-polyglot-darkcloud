@@ -22,7 +22,7 @@ Optionally download one of the [releases](https://github.com/sheerun/vim-polyglo
 
 ## Language packs
 
-- [archversion](https://github.com/prurigro/vim-archversion) (syntax, ftplugin, ftdetect)
+- [*archversion](https://github.com/prurigro/vim-archversion) (syntax, ftplugin, ftdetect)
 - [arduino](https://github.com/sudar/vim-arduino-syntax) (syntax, indent, ftdetect)
 - [*aspnet](https://github.com/vim-scripts/aspnet.vim--Abshire) (syntax)
 - [c++11](https://github.com/octol/vim-cpp-enhanced-highlight) (syntax)
