@@ -1,6 +1,6 @@
 # vim-polyglot (darkcloud fork) #
 
-A collection of language packs for Vim, including unique selections for [darkcloud-vimconfig](https://github.com/prurigro/darkcloud-vimconfig)
+A collection of language packs for Vim. This fork includes a customized set of language packages (unique items marked with a * below), an updated build script and the inclusion of the plugin folder for applicable packs.
 
 > One to rule them all, one to find them, one to bring them all and in the darkness bind them.
 
