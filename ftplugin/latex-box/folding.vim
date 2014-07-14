@@ -1,18 +1,16 @@
 " Folding support for LaTeX
+
 "
 " Options
-" g:LatexBox_Folding       - Turn on/off folding
-" g:LatexBox_fold_text     - Turn on/off LatexBox fold text function
-" g:LatexBox_fold_preamble - Turn on/off folding of preamble
-" g:LatexBox_fold_parts    - Define parts (eq. appendix, frontmatter) to fold
-" g:LatexBox_fold_sections - Define section levels to fold
-" g:LatexBox_fold_envs     - Turn on/off folding of environments
+" g:LatexBox_Folding         - Turn on/off folding
+" g:LatexBox_fold_text       - Turn on/off LatexBox fold text function
+" g:LatexBox_fold_preamble   - Turn on/off folding of preamble
+" g:LatexBox_fold_parts      - Define parts (eq. appendix, frontmatter) to fold
+" g:LatexBox_fold_sections   - Define section levels to fold
+" g:LatexBox_fold_envs       - Turn on/off folding of environments
+" g:LatexBox_fold_toc        - Turn on/off folding of TOC
+" g:LatexBox_fold_toc_levels - Set max TOC fold level
 "
-
-if !exists('g:LatexBox_Folding') || g:LatexBox_Folding == 0
-    finish
-endif
-
 " {{{1 Initialize options to default values.
 if !exists('g:LatexBox_fold_text')
     let g:LatexBox_fold_text=1
@@ -48,6 +46,12 @@ if !exists('g:LatexBox_fold_toc')
 endif
 if !exists('g:LatexBox_fold_toc_levels')
     let g:LatexBox_fold_toc_levels=1
+endif
+
+" }}}1
+
+if !exists('g:LatexBox_Folding') || g:LatexBox_Folding == 0
+    finish
 endif
 
 " {{{1 Set folding options for vim
