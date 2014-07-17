@@ -73,8 +73,10 @@ PACKS="
     c-extensions:kergoth/aftersyntaxc.vim
     clojure:guns/vim-clojure-static
     coffee-script:kchmck/vim-coffee-script
+    css:JulesWang/css.vim
     csv:chrisbra/csv.vim
     cucumber:tpope/vim-cucumber
+    cython:tshirtman/vim-cython
     dockerfile:honza/dockerfile.vim
     elixir:elixir-lang/vim-elixir
     emberscript:heartsentwined/vim-ember-script
@@ -113,6 +115,7 @@ PACKS="
     scala:derekwyatt/vim-scala
     slim:slim-template/vim-slim
     stylus:wavded/vim-stylus
+    swift:toyamarinyon/vim-swift
     systemd:kurayama/systemd-vim-syntax
     textile:timcharper/textile.vim
     tmux:acustodioo/vim-tmux
