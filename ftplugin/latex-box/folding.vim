@@ -12,6 +12,9 @@
 " g:LatexBox_fold_toc_levels - Set max TOC fold level
 "
 " {{{1 Initialize options to default values.
+if !exists('g:LatexBox_Folding')
+	let g:LatexBox_Folding=0
+endif
 if !exists('g:LatexBox_fold_text')
     let g:LatexBox_fold_text=1
 endif
@@ -47,30 +50,45 @@ endif
 if !exists('g:LatexBox_fold_toc_levels')
     let g:LatexBox_fold_toc_levels=1
 endif
-
+if !exists('g:LatexBox_fold_automatic')
+	let g:LatexBox_fold_automatic=1
+endif
 " }}}1
 
-if !exists('g:LatexBox_Folding') || g:LatexBox_Folding == 0
+if g:LatexBox_Folding == 0
     finish
 endif
 
 " {{{1 Set folding options for vim
-setl foldmethod=expr
 setl foldexpr=LatexBox_FoldLevel(v:lnum)
 if g:LatexBox_fold_text == 1
     setl foldtext=LatexBox_FoldText()
 endif
-"
-" The foldexpr function returns "=" for most lines, which means it can become
-" slow for large files.  The following is a hack that is based on this reply to
-" a discussion on the Vim Developer list:
-" http://permalink.gmane.org/gmane.editors.vim.devel/14100
-"
-augroup FastFold
-    autocmd!
-    autocmd InsertEnter *.tex setlocal foldmethod=manual
-    autocmd InsertLeave *.tex setlocal foldmethod=expr
-augroup end
+if g:LatexBox_fold_automatic == 1
+    setl foldmethod=expr
+
+	"
+	" The foldexpr function returns "=" for most lines, which means it can become
+	" slow for large files.  The following is a hack that is based on this reply to
+	" a discussion on the Vim Developer list:
+	" http://permalink.gmane.org/gmane.editors.vim.devel/14100
+	"
+	augroup FastFold
+		autocmd!
+		autocmd InsertEnter *.tex setlocal foldmethod=manual
+		autocmd InsertLeave *.tex setlocal foldmethod=expr
+	augroup end
+else
+	setl foldmethod=manual
+endif
+
+function! LatexBox_FoldOnDemand()
+	setl foldmethod=expr
+	normal! zx
+	setl foldmethod=manual
+endfunction
+
+command! LatexFold  call LatexBox_FoldOnDemand()
 
 " {{{1 LatexBox_FoldLevel help functions
 

@@ -39,6 +39,7 @@
 "           php_html_in_strings = 1  for HTML syntax highlighting inside strings (default: 0)
 "           php_html_in_heredoc = 1 for HTML syntax highlighting inside heredocs (default: 1)
 "           php_html_load = 1 for loading the HTML syntax at all.  Overwrites php_html_in_strings and php_html_in_heredoc (default: 1)
+"           php_ignore_phpdoc = 0 for not highlighting parts of phpDocs
 "           php_parent_error_close = 1  for highlighting parent error ] or ) (default: 0)
 "           php_parent_error_open = 1  for skipping an php end tag,
 "                                      if there exists an open ( or [ without a closing one (default: 0)
@@ -574,16 +575,16 @@ endif
 syn match phpCommentStar contained "^\s*\*[^/]"me=e-1
 syn match phpCommentStar contained "^\s*\*$"
 
-if !exists("php_ignore_phpdoc")
+if !exists("php_ignore_phpdoc") || !php_ignore_phpdoc
   syn case ignore
 
-  syn region phpDocComment   start="/\*\*" end="\*/" keepend contains=phpCommentTitle,phpDocTags,phpTodo,@Spell,phpDocIdentifier
+  syn region phpDocComment   start="/\*\*" end="\*/" keepend contains=phpCommentTitle,phpDocTags,phpTodo,@Spell
   syn region phpCommentTitle contained matchgroup=phpDocComment start="/\*\*" matchgroup=phpCommmentTitle keepend end="\.$" end="\.[ \t\r<&]"me=e-1 end="[^{]@"me=s-2,he=s-1 end="\*/"me=s-1,he=s-1 contains=phpCommentStar,phpTodo,phpDocTags,@Spell containedin=phpDocComment
 
   syn region phpDocTags  start="{@\(example\|id\|internal\|inheritdoc\|link\|source\|toc\|tutorial\)" end="}" containedin=phpDocComment
-  syn match  phpDocTags  "@\(abstract\|access\|author\|category\|copyright\|deprecated\|example\|exception\|filesource\|final\|global\|id\|ignore\|inheritdoc\|internal\|license\|link\|magic\|method\|name\|package\|param\|property\|return\|see\|since\|source\|static\|staticvar\|subpackage\|throws\|toc\|todo\|tutorial\|uses\|var\|version\)\s\+\S" contains=phpDocParam,phpDocIdentifier containedin=phpDocComment
-  syn match  phpDocParam "\s[^$]\S*" contained
-  syn match  phpDocIdentifier contained "\<$\h\w*\>"
+  syn match phpDocTags "@\%(abstract\|access\|author\|category\|copyright\|deprecated\|example\|exception\|filesource\|final\|global\|id\|ignore\|inheritdoc\|internal\|license\|link\|magic\|method\|name\|package\|param\|property\|return\|see\|since\|source\|static\|staticvar\|subpackage\|throws\|toc\|todo\|tutorial\|uses\|var\|version\)" containedin=phpDocComment nextgroup=phpDocParam,phpDocIdentifier skipwhite
+  syn match phpDocParam "\s\+\zs\%(\h\w*|\?\)\+" nextgroup=phpDocIdentifier skipwhite
+  syn match phpDocIdentifier "\s\+\zs$\h\w*"
 
   syn case match
 endif
