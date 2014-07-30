@@ -9,10 +9,12 @@ GITSOURCE="https://github.com"
 
 download() {
     for pack in $1; do
-        path="$(printf "$pack" | cut -d ':' -f 2)"
+        path="$(printf "$pack" | cut -d ':' -f 2 | cut -d '#' -f 1)"
         dir="${TMPFOLDER}/$(printf "$path" | cut -d '/' -f 2)"
+        [[ $(grep '#' <<< $pack) ]] \
+            && branch="$(printf "$pack" | cut -d '#' -f 2)" || branch="master"
         rm -rf "$dir"
-        (git clone -q --recursive "${GITSOURCE}/${path}.git" "$dir" && printf '.') &
+        (git clone -b "$branch" -q --recursive "${GITSOURCE}/${path}.git" "$dir" && printf '.') &
     done
     wait
 }
@@ -20,10 +22,12 @@ download() {
 extract() {
     printf "\n"
     for pack in $1; do
-        name="$(printf "$pack" | cut -d ':' -f 1)"
-        path="$(printf "$pack" | cut -d ':' -f 2)"
+        name="$(printf "$pack" | cut -d ':' -f 1 | cut -d '#' -f 1)"
+        path="$(printf "$pack" | cut -d ':' -f 2 | cut -d '#' -f 1)"
         dir="${TMPFOLDER}/$(printf "$path" | cut -d '/' -f 2)"
-        printf -- "- [${name}](${GITSOURCE}/${path}) ("
+        [[ $(grep '#' <<< $pack) ]] \
+            && branch="$(printf "$pack" | cut -d '#' -f 2)" || branch="master"
+        printf -- "- [${name}](${GITSOURCE}/${path}#branch=${branch}) ("
 
         subdirs=""
         for subdir in $DIRS; do
@@ -97,7 +101,7 @@ PACKS="
     latex:LaTeX-Box-Team/LaTeX-Box
     less:groenewege/vim-less
     liquid:tpope/vim-liquid
-    markdown:plasticboy/vim-markdown
+    markdown:prurigro/vim-markdown-concealed#codeblock-fixes
     nginx:mutewinter/nginx.vim
     ocaml:jrk/vim-ocaml
     octave:vim-scripts/octave.vim--
