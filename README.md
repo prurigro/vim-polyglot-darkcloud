@@ -41,7 +41,7 @@ Optionally download one of the [releases](https://github.com/sheerun/vim-polyglo
 - [emblem](https://github.com/heartsentwined/vim-emblem) (syntax, indent, ftplugin, ftdetect)
 - [erlang](https://github.com/oscarh/vimerl) (syntax, indent, compiler, autoload, ftplugin)
 - [git](https://github.com/tpope/vim-git) (syntax, indent, ftplugin, ftdetect)
-- [go](https://github.com/fatih/vim-go) (syntax, indent, compiler, autoload, ftplugin, ftdetect, plugin)
+- [go](https://github.com/fatih/vim-go) (syntax, indent, ftdetect)
 - [haml](https://github.com/tpope/vim-haml) (syntax, indent, compiler, ftplugin, ftdetect)
 - [handlebars](https://github.com/mustache/vim-mustache-handlebars) (syntax, ftplugin, ftdetect)
 - [haskell](https://github.com/travitch/hasksyn) (syntax, indent, ftplugin)

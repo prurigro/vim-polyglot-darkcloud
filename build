@@ -3,6 +3,7 @@
 set -E
 
 DIRS="after/ftdetect after/ftplugin after/indent after/syntax autoload compiler ftdetect ftplugin indent plugin syntax"
+DIRS_BASIC="after/ftdetect after/indent after/syntax ftdetect indent syntax"
 
 TMPFOLDER="./tmp"
 GITSOURCE="https://github.com"
@@ -25,12 +26,12 @@ extract() {
         name="$(printf "$pack" | cut -d ':' -f 1 | cut -d '#' -f 1)"
         path="$(printf "$pack" | cut -d ':' -f 2 | cut -d '#' -f 1)"
         dir="${TMPFOLDER}/$(printf "$path" | cut -d '/' -f 2)"
-        [[ $(grep '#' <<< $pack) ]] \
-            && branch="$(printf "$pack" | cut -d '#' -f 2)" || branch="master"
+        [[ $(grep '#' <<< $pack) ]] && branch="$(printf "$pack" | cut -d '#' -f 2)" || branch="master"
+        directories="DIRS$(printf "$pack" | cut -d ':' -f 3 | cut -d '#' -f 1)"
         printf -- "- [${name}](${GITSOURCE}/${path}#branch=${branch}) ("
 
         subdirs=""
-        for subdir in $DIRS; do
+        for subdir in ${!directories}; do
             if [ -d "$dir/$subdir" ]; then
                 base="$(basename "$subdir")"
                 [[ "$subdirs" != *"$base"* ]] && subdirs="$subdirs, $base"
@@ -88,7 +89,7 @@ PACKS="
     emblem:heartsentwined/vim-emblem
     erlang:oscarh/vimerl
     git:tpope/vim-git
-    go:fatih/vim-go
+    go:fatih/vim-go:_BASIC
     haml:tpope/vim-haml
     handlebars:mustache/vim-mustache-handlebars
     haskell:travitch/hasksyn
