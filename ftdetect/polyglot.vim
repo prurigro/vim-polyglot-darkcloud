@@ -1,5 +1,6 @@
 au BufNewFile,BufRead *archversion.conf set filetype=archversion
 au BufRead,BufNewFile *.ino,*.pde set filetype=arduino
+autocmd BufRead,BufNewFile *.blade.php set filetype=blade
 autocmd BufNewFile,BufRead *.clj,*.cljs,*.edn setlocal filetype=clojure
 autocmd BufNewFile,BufRead *.coffee set filetype=coffee
 autocmd BufNewFile,BufRead *Cakefile set filetype=coffee
@@ -18,6 +19,8 @@ au BufRead,BufNewFile *.ex,*.exs set filetype=elixir
 au FileType elixir setl sw=2 sts=2 et iskeyword+=!,?
 autocmd BufNewFile,BufRead *.em set filetype=ember-script
 autocmd FileType ember-script set tabstop=2|set shiftwidth=2|set expandtab
+autocmd BufNewFile,BufRead *.emblem set filetype=emblem
+autocmd FileType emblem set tabstop=2|set shiftwidth=2|set expandtab
 autocmd BufNewFile,BufRead *.git/{,modules/**/}{COMMIT_EDIT,TAG_EDIT,MERGE_,}MSG set ft=gitcommit
 autocmd BufNewFile,BufRead *.git/config,.gitconfig,.gitmodules set ft=gitconfig
 autocmd BufNewFile,BufRead */.config/git/config                set ft=gitconfig
@@ -36,6 +39,21 @@ autocmd BufNewFile,BufRead *
       \ if getline(1) =~ '^From \x\{40\} Mon Sep 17 00:00:00 2001$' |
       \   set filetype=gitsendemail |
       \ endif
+let s:current_fileformats = ''
+let s:current_fileencodings = ''
+function! s:gofiletype_pre()
+  let s:current_fileformats = &g:fileformats
+  let s:current_fileencodings = &g:fileencodings
+  set fileencodings=utf-8 fileformats=unix
+  setlocal filetype=go
+endfunction
+function! s:gofiletype_post()
+  let &g:fileformats = s:current_fileformats
+  let &g:fileencodings = s:current_fileencodings
+endfunction
+au BufNewFile *.go setlocal filetype=go fileencoding=utf-8 fileformat=unix
+au BufRead *.go call s:gofiletype_pre()
+au BufReadPost *.go call s:gofiletype_post()
 autocmd BufNewFile,BufRead *.haml,*.hamlbars,*.hamlc setf haml
 autocmd BufNewFile,BufRead *.sass setf sass
 autocmd BufNewFile,BufRead *.scss setf scss
