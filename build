@@ -71,6 +71,7 @@ backup() {
 PACKS="
     archversion:prurigro/vim-archversion
     arduino:sudar/vim-arduino-syntax
+    blade:xsbeats/vim-blade
     aspnet:vim-scripts/aspnet.vim--Abshire
     c++11:octol/vim-cpp-enhanced-highlight
     c/c++:vim-jp/cpp-vim
@@ -84,9 +85,10 @@ PACKS="
     dockerfile:honza/dockerfile.vim
     elixir:elixir-lang/vim-elixir
     emberscript:heartsentwined/vim-ember-script
+    emblem:heartsentwined/vim-emblem
     erlang:oscarh/vimerl
     git:tpope/vim-git
-    go:jnwhiteh/vim-golang
+    go:fatih/vim-go
     haml:tpope/vim-haml
     handlebars:mustache/vim-mustache-handlebars
     haskell:travitch/hasksyn

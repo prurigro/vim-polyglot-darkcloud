@@ -4,7 +4,7 @@ A collection of language packs for Vim. This fork includes a customized set of l
 
 > One to rule them all, one to find them, one to bring them all and in the darkness bind them.
 
-- It **won't affect your startup time**, as scripts are loaded only on demand\*. 
+- It **won't affect your startup time**, as scripts are loaded only on demand\*.
 - It **installs 50+ times faster** than 50+ packages it consist of.
 - Solid syntax and indentation support. Only the best language packs.
 - All unnecessary files are ignored (like enormous documentation from php support).
@@ -25,21 +25,23 @@ Optionally download one of the [releases](https://github.com/sheerun/vim-polyglo
 - [*archversion](https://github.com/prurigro/vim-archversion) (syntax, ftplugin, ftdetect)
 - [arduino](https://github.com/sudar/vim-arduino-syntax) (syntax, indent, ftdetect)
 - [*aspnet](https://github.com/vim-scripts/aspnet.vim--Abshire) (syntax)
+- [blade](https://github.com/xsbeats/vim-blade) (syntax, indent, ftdetect)
 - [c++11](https://github.com/octol/vim-cpp-enhanced-highlight) (syntax)
 - [c/c++](https://github.com/vim-jp/cpp-vim) (syntax)
 - [c-extensions](https://github.com/kergoth/aftersyntaxc.vim) (syntax)
 - [clojure](https://github.com/guns/vim-clojure-static) (syntax, indent, autoload, ftplugin, ftdetect)
 - [coffee-script](https://github.com/kchmck/vim-coffee-script) (syntax, indent, compiler, autoload, ftplugin, ftdetect)
-- [*css](https://github.com/JulesWang/css.vim) (syntax)
+- [css](https://github.com/JulesWang/css.vim) (syntax)
 - [csv](https://github.com/chrisbra/csv.vim) (syntax, ftplugin, ftdetect, plugin)
 - [cucumber](https://github.com/tpope/vim-cucumber) (syntax, indent, compiler, ftplugin, ftdetect)
 - [*cython](https://github.com/tshirtman/vim-cython) (syntax, ftplugin, plugin)
 - [dockerfile](https://github.com/honza/dockerfile.vim) (syntax, ftdetect, plugin)
 - [elixir](https://github.com/elixir-lang/vim-elixir) (syntax, indent, compiler, ftplugin, ftdetect)
 - [emberscript](https://github.com/heartsentwined/vim-ember-script) (syntax, indent, ftplugin, ftdetect)
+- [emblem](https://github.com/heartsentwined/vim-emblem) (syntax, indent, ftplugin, ftdetect)
 - [erlang](https://github.com/oscarh/vimerl) (syntax, indent, compiler, autoload, ftplugin)
 - [git](https://github.com/tpope/vim-git) (syntax, indent, ftplugin, ftdetect)
-- [go](https://github.com/jnwhiteh/vim-golang) (syntax, indent, compiler, autoload, ftplugin, ftdetect, plugin)
+- [go](https://github.com/fatih/vim-go) (syntax, indent, compiler, autoload, ftplugin, ftdetect, plugin)
 - [haml](https://github.com/tpope/vim-haml) (syntax, indent, compiler, ftplugin, ftdetect)
 - [handlebars](https://github.com/mustache/vim-mustache-handlebars) (syntax, ftplugin, ftdetect)
 - [haskell](https://github.com/travitch/hasksyn) (syntax, indent, ftplugin)
@@ -67,12 +69,12 @@ Optionally download one of the [releases](https://github.com/sheerun/vim-polyglo
 - [r-lang](https://github.com/vim-scripts/R.vim) (syntax, ftplugin)
 - [rspec](https://github.com/sheerun/rspec.vim) (syntax, ftdetect)
 - [ruby](https://github.com/vim-ruby/vim-ruby) (syntax, indent, compiler, autoload, ftplugin, ftdetect)
-- [rust](https://github.com/wting/rust.vim) (syntax, indent, compiler, ftplugin, ftdetect, plugin)
+- [rust](https://github.com/wting/rust.vim) (syntax, indent, compiler, autoload, ftplugin, ftdetect, plugin)
 - [sbt](https://github.com/derekwyatt/vim-sbt) (syntax, ftdetect)
 - [scala](https://github.com/derekwyatt/vim-scala) (syntax, indent, ftplugin, ftdetect, plugin)
 - [slim](https://github.com/slim-template/vim-slim) (syntax, indent, ftdetect)
 - [stylus](https://github.com/wavded/vim-stylus) (syntax, indent, ftplugin, ftdetect)
-- [*swift](https://github.com/toyamarinyon/vim-swift) (syntax, indent, ftdetect)
+- [swift](https://github.com/toyamarinyon/vim-swift) (syntax, indent, ftdetect)
 - [systemd](https://github.com/kurayama/systemd-vim-syntax) (syntax, ftdetect)
 - [textile](https://github.com/timcharper/textile.vim) (syntax, ftplugin, ftdetect)
 - [tmux](https://github.com/acustodioo/vim-tmux) (syntax, ftdetect)
