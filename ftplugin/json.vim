@@ -1,3 +1,9 @@
+" Vim syntax file
+" Language:	JSON
+" Maintainer:	Eli Parra <eli@elzr.com>
+" Last Change:	2014-05-20 added warning toggle
+" Part of the Better JSON for VIM plugin https://github.com/elzr/vim-json
+
 "uncomment to enable folding of `{...}` and `[...]` blocks
 "setlocal foldmethod=syntax
 
