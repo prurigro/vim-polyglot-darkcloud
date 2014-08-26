@@ -1,8 +1,7 @@
 " Vim syntax file
 " Language:	JSON
-" Maintainer:	Eli Parra <eli@elzr.com>
-" Last Change:	2014-08-24
-" Part of the Better JSON for VIM plugin https://github.com/elzr/vim-json
+" Maintainer:	Eli Parra <eli@elzr.com> https://github.com/elzr/vim-json
+" Last Change:	2014-08-24 HiLink to hi def link
 
 if !exists("main_syntax")
   if version < 600
