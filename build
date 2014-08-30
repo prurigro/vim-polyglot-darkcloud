@@ -6,6 +6,7 @@ DIRS="after/ftdetect after/ftplugin after/indent after/syntax autoload compiler 
 DIRS_BASIC="after/ftdetect after/indent after/syntax ftdetect indent syntax"
 
 TMPFOLDER="./tmp"
+BACKFOLDER="_oldpacks_backup"
 GITSOURCE="https://github.com"
 
 download() {
@@ -60,12 +61,14 @@ concat_ftdetect() {
 
 backup() {
     BACKUPDIRS="after autoload compiler ftdetect ftplugin indent plugin syntax"
-    backfolder="_oldpacks_backup"
 
-    [[ -d "$backfolder" ]] && printf "Error (backup directory '$backfolder' exists)" && exit 1
-    install -d "$backfolder"
+    [[ -d "$BACKFOLDER" ]] && printf "Error, backup directory already exists: ${BACKFOLDER}\n" && exit 1
+    install -d "$BACKFOLDER"
+    printf "Backing up current packs to: ${BACKFOLDER}\n"
     for subdir in $BACKUPDIRS; do
-        mv "$subdir" "${backfolder}/${subdir}"
+        [[ -d $subdir ]] \
+            && mv "$subdir" "${BACKFOLDER}/${subdir}" \
+            || printf "Error, could not backup missing directory: ${subdir}\n"
     done
 }
 
