@@ -193,26 +193,31 @@ function! LatexBox_FoldLevel(lnum)
     endif
 
     " Fold environments
-    if line =~# s:envbeginpattern
-        if g:LatexBox_fold_envs == 1
-            return "a1"
-        else
-            let env = matchstr(line,'\\begin\*\?{\zs\w*\*\?\ze}')
-            if index(g:LatexBox_fold_envs_force, env) >= 0
+    if line =~# s:envbeginpattern && line =~# s:envendpattern
+        " If the begin and end pattern are on the same line , do not fold
+        return "="
+    else
+        if line =~# s:envbeginpattern
+            if g:LatexBox_fold_envs == 1
                 return "a1"
             else
-                return "="
+                let env = matchstr(line,'\\begin\*\?{\zs\w*\*\?\ze}')
+                if index(g:LatexBox_fold_envs_force, env) >= 0
+                    return "a1"
+                else
+                    return "="
+                endif
             endif
-        endif
-    elseif line =~# s:envendpattern
-        if g:LatexBox_fold_envs == 1
-            return "s1"
-        else
-            let env = matchstr(line,'\\end\*\?{\zs\w*\*\?\ze}')
-            if index(g:LatexBox_fold_envs_force, env) >= 0
+        elseif line =~# s:envendpattern
+            if g:LatexBox_fold_envs == 1
                 return "s1"
             else
-                return "="
+                let env = matchstr(line,'\\end\*\?{\zs\w*\*\?\ze}')
+                if index(g:LatexBox_fold_envs_force, env) >= 0
+                    return "s1"
+                else
+                    return "="
+                endif
             endif
         endif
     endif
