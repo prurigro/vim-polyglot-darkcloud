@@ -19,6 +19,12 @@ au BufRead,BufNewFile *.eex set filetype=eelixir
 au FileType eelixir setl sw=2 sts=2 et iskeyword+=!,?
 au BufRead,BufNewFile *.ex,*.exs set filetype=elixir
 au FileType elixir setl sw=2 sts=2 et iskeyword+=!,?
+function! s:DetectElixir()
+    if getline(1) =~ '^#!.*\<elixir\>'
+        set filetype=elixir
+    endif
+endfunction
+autocmd BufNewFile,BufRead * call s:DetectElixir()
 autocmd BufNewFile,BufRead *.em set filetype=ember-script
 autocmd FileType ember-script set tabstop=2|set shiftwidth=2|set expandtab
 autocmd BufNewFile,BufRead *.emblem set filetype=emblem

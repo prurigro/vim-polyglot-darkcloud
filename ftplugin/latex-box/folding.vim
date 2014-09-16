@@ -156,7 +156,7 @@ let s:notcomment = '\%(\%(\\\@<!\%(\\\\\)*\)\@<=%.*\)\@<!'
 let s:envbeginpattern = s:notcomment . s:notbslash . '\\begin\s*{.\{-}}'
 let s:envendpattern = s:notcomment . s:notbslash . '\\end\s*{.\{-}}'
 let s:foldparts = '^\s*\\\%(' . join(g:LatexBox_fold_parts, '\|') . '\)'
-let s:folded = '\(% Fake\|\\\(document\|begin\|end\|'
+let s:folded = '\(% Fake\|\\\(document\|begin\|end\|paragraph\|'
             \ . 'front\|main\|back\|app\|sub\|section\|chapter\|part\)\)'
 
 function! LatexBox_FoldLevel(lnum)
