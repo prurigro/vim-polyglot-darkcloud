@@ -177,7 +177,9 @@ function! LatexBox_Latexmk(force)
 		let cmd = 'cd ' . texroot . ' && '
 	endif
 	let cmd .= env . ' latexmk'
-	let cmd .= ' -' . g:LatexBox_output_type
+	if g:LatexBox_output_type != ''
+		let cmd .= ' -' . g:LatexBox_output_type
+	endif
 	let cmd .= ' -quiet '
 	let cmd .= g:LatexBox_latexmk_options
 	if a:force

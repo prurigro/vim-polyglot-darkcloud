@@ -293,7 +293,7 @@ function! LatexBox_FoldText_title()
     endif
 
     " Parts, sections and fakesections
-    let sections = '\(\(sub\)*section\|part\|chapter\)'
+    let sections = '\(\(sub\)*\(section\|paragraph\)\|part\|chapter\)'
     let secpat1 = '^\s*\\' . sections . '\*\?\s*{'
     let secpat2 = '^\s*\\' . sections . '\*\?\s*\['
     if line =~ '\\frontmatter'
