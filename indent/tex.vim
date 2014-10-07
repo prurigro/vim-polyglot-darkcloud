@@ -114,7 +114,7 @@ endfunction
 
 " autocmd to call indent after completion
 " 7.3.598
-if v:version > 702 || (v:version == 702 && has('patch598'))
+if v:version > 703 || (v:version == 703 && has('patch598'))
 	augroup LatexBox_Completion
 		autocmd!
 		autocmd CompleteDone <buffer> call Latexbox_CallIndent()
