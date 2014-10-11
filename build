@@ -117,7 +117,7 @@ PACKS="
     puppet:rodjek/vim-puppet
     protobuf:uarun/vim-protobuf
     python:mitsuhiko/vim-python-combined
-    r-lang:vim-scripts/R.vim
+    r-lang:jcfaria/Vim-R-plugin
     rspec:sheerun/rspec.vim
     ruby:vim-ruby/vim-ruby
     rust:wting/rust.vim

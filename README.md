@@ -66,7 +66,7 @@ Optionally download one of the [releases](https://github.com/sheerun/vim-polyglo
 - [puppet](https://github.com/rodjek/vim-puppet) (syntax, indent, ftplugin, ftdetect)
 - [protobuf](https://github.com/uarun/vim-protobuf) (syntax, ftdetect)
 - [python](https://github.com/mitsuhiko/vim-python-combined) (syntax, indent)
-- [r-lang](https://github.com/vim-scripts/R.vim) (syntax, ftplugin)
+- [*r-lang](https://github.com/jcfaria/Vim-R-plugin) (syntax, indent, ftplugin, ftdetect)
 - [rspec](https://github.com/sheerun/rspec.vim) (syntax, ftdetect)
 - [ruby](https://github.com/vim-ruby/vim-ruby) (syntax, indent, compiler, autoload, ftplugin, ftdetect)
 - [rust](https://github.com/wting/rust.vim) (syntax, indent, compiler, autoload, ftplugin, ftdetect, plugin)

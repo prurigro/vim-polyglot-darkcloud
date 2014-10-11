@@ -1,7 +1,8 @@
 " Vim filetype plugin file
-" Language: R help file
+" Language: reStructuredText documentation format with R code
 " Maintainer: Jakson Alves de Aquino <jalvesaq@gmail.com>
 " Last Change:	Wed Jul 09, 2014  06:23PM
+" Original work by Alex Zvoleff
 
 " Only do this when not yet done for this buffer
 if exists("b:did_ftplugin")
@@ -14,6 +15,9 @@ let b:did_ftplugin = 1
 let s:cpo_save = &cpo
 set cpo&vim
 
+setlocal comments=fb:*,fb:-,fb:+,n:> commentstring=>\ %s
+setlocal formatoptions+=tcqln
+setlocal formatlistpat=^\\s*\\d\\+\\.\\s\\+\\\|^\\s*[-*+]\\s\\+
 setlocal iskeyword=@,48-57,_,.
 
 if has("gui_win32") && !exists("b:browsefilter")
@@ -21,7 +25,11 @@ if has("gui_win32") && !exists("b:browsefilter")
         \ "All Files (*.*)\t*.*\n"
 endif
 
-let b:undo_ftplugin = "setl isk< | unlet! b:browsefilter"
+if exists('b:undo_ftplugin')
+  let b:undo_ftplugin .= " | setl cms< com< fo< flp< isk< | unlet! b:browsefilter"
+else
+  let b:undo_ftplugin = "setl cms< com< fo< flp< isk< | unlet! b:browsefilter"
+endif
 
 let &cpo = s:cpo_save
 unlet s:cpo_save

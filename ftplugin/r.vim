@@ -1,33 +1,7 @@
-" ftplugin for R files
-"
-" Author: Iago Mosqueira <i.mosqueira@ic.ac.uk>
-" Author: Johannes Ranke <jranke@uni-bremen.de>
-" Author: Fernando Henrique Ferraz Pereira da Rosa <feferraz@ime.usp.br>
-" Maintainer: Johannes Ranke <jranke@uni-bremen.de>
-" Last Change: 2007 Nov 21
-" SVN: $Id: r.vim 75 2007-11-21 13:34:02Z ranke $
-"
-" Code written in vim is sent to R through a perl pipe
-" [funnel.pl, by Larry Clapp <vim@theclapp.org>], as individual lines,
-" blocks, or the whole file.
-
-" Press <F2> to open a new xterm with a new R interpreter listening
-" to its standard input (you can type R commands into the xterm)
-" as well as to code pasted from within vim.
-"
-" After selecting a visual block, 'r' sends it to the R interpreter
-"
-" In insert mode, <M-Enter> sends the active line to R and moves to the next
-" line (write and process mode).
-"
-" Maps:
-"       <F2>		Start a listening R interpreter in new xterm
-"       <F3>		Start a listening R-devel interpreter in new xterm
-"       <F4>		Start a listening R --vanilla interpreter in new xterm
-"       <F5>        Run current file
-"       <F9>        Run line under cursor
-"       r	        Run visual block
-"       <M-Enter>   Write and process
+" Vim filetype plugin file
+" Language: R
+" Maintainer: Jakson Alves de Aquino <jalvesaq@gmail.com>
+" Last Change:	Sun Feb 23, 2014  04:07PM
 
 " Only do this when not yet done for this buffer
 if exists("b:did_ftplugin")
@@ -37,33 +11,21 @@ endif
 " Don't load another plugin for this buffer
 let b:did_ftplugin = 1
 
-" Disable backup for .r-pipe
-setl backupskip=.*pipe
+let s:cpo_save = &cpo
+set cpo&vim
 
-" Set tabstop so it is compatible with the emacs edited code. Personally, I
-" prefer shiftwidth=2, which I have in my .vimrc anyway
-set expandtab
-set shiftwidth=4
-set tabstop=8
+setlocal iskeyword=@,48-57,_,.
+setlocal formatoptions-=t
+setlocal commentstring=#\ %s
+setlocal comments=:#',:###,:##,:#
 
-" Start a listening R interpreter in new xterm
-noremap <buffer> <F2> :!xterm -T 'R' -e funnel.pl ~/.r-pipe "R && echo -e 'Interpreter has finished. Exiting. Goodbye.\n'"&<CR><CR>
+if has("gui_win32") && !exists("b:browsefilter")
+  let b:browsefilter = "R Source Files (*.R)\t*.R\n" .
+        \ "Files that include R (*.Rnw *.Rd *.Rmd *.Rrst)\t*.Rnw;*.Rd;*.Rmd;*.Rrst\n" .
+        \ "All Files (*.*)\t*.*\n"
+endif
 
-" Start a listening R-devel interpreter in new xterm
-noremap <buffer> <F3> :!xterm -T 'R' -e funnel.pl ~/.r-pipe "R-devel && echo 'Interpreter has finished. Exiting. Goodbye.'"&<CR><CR>
+let b:undo_ftplugin = "setl cms< com< fo< isk< | unlet! b:browsefilter"
 
-" Start a listening R --vanilla interpreter in new xterm
-noremap <buffer> <F4> :!xterm -T 'R' -e funnel.pl ~/.r-pipe "R -vanilla && echo 'Interpreter has finished. Exiting. Goodbye.'"&<CR><CR>
-
-" Send line under cursor to R
-noremap <buffer> <F9> :execute line(".") 'w >> ~/.r-pipe'<CR>
-inoremap <buffer> <F9> <Esc> :execute line(".") 'w >> ~/.r-pipe'<CR>
-
-" Send visual selected block to R
-vnoremap <buffer> r :w >> ~/.r-pipe<CR>
-
-" Write and process mode (somehow mapping <C-Enter> does not work)
-inoremap <M-Enter> <Esc>:execute line(".") 'w >> ~/.r-pipe'<CR>o
-
-" Send current file to R
-noremap <buffer> <F5> :execute '1 ,' line("$") 'w >> ~/.r-pipe' <CR><CR>
+let &cpo = s:cpo_save
+unlet s:cpo_save
