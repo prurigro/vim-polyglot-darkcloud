@@ -128,7 +128,7 @@ PACKS="
     swift:toyamarinyon/vim-swift
     systemd:kurayama/systemd-vim-syntax
     textile:timcharper/textile.vim
-    tmux:acustodioo/vim-tmux
+    tmux:tejr/vim-tmux
     tomdoc:duwanis/tomdoc.vim
     typescript:leafgarland/typescript-vim
     vbnet:vim-scripts/vbnet.vim
