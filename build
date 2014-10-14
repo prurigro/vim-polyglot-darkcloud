@@ -107,7 +107,7 @@ PACKS="
     latex:LaTeX-Box-Team/LaTeX-Box
     less:groenewege/vim-less
     liquid:tpope/vim-liquid
-    markdown:prurigro/vim-markdown-concealed#codeblock-fixes
+    markdown:plasticboy/vim-markdown
     nginx:mutewinter/nginx.vim
     ocaml:jrk/vim-ocaml
     octave:vim-scripts/octave.vim--
