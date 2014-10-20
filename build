@@ -125,6 +125,7 @@ PACKS="
     scala:derekwyatt/vim-scala
     slim:slim-template/vim-slim
     stylus:wavded/vim-stylus
+    svg:vim-scripts/svg.vim
     swift:toyamarinyon/vim-swift
     systemd:kurayama/systemd-vim-syntax
     textile:timcharper/textile.vim

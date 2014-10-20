@@ -77,11 +77,10 @@ endfunction
 " knit the current buffer content
 function! RKnitRnw()
     update
-    call RSetWD()
     if g:vimrplugin_synctex == "none"
-        call g:SendCmdToR('vim.interlace.rnoweb("' . expand("%:t") . '", buildpdf = FALSE, synctex = FALSE)')
+        call g:SendCmdToR('vim.interlace.rnoweb("' . expand("%:t") . '", rnwdir = "' . expand("%:p:h") . '", buildpdf = FALSE, synctex = FALSE)')
     else
-        call g:SendCmdToR('vim.interlace.rnoweb("' . expand("%:t") . '", buildpdf = FALSE)')
+        call g:SendCmdToR('vim.interlace.rnoweb("' . expand("%:t") . '", rnwdir = "' . expand("%:p:h") . '", buildpdf = FALSE)')
     endif
 endfunction
 
@@ -98,8 +97,7 @@ function! RMakePDF(bibtex, knit)
         endif
     endif
     update
-    call RSetWD()
-    let pdfcmd = "vim.interlace.rnoweb('" . expand("%:t") . "'"
+    let pdfcmd = 'vim.interlace.rnoweb("' . expand("%:t") . '", rnwdir = "' . expand("%:p:h") . '"'
 
     if a:knit == 0
         let pdfcmd = pdfcmd . ', knit = FALSE'
@@ -173,12 +171,14 @@ endfunction
 " Sweave the current buffer content
 function! RSweave()
     update
-    call RSetWD()
+    let scmd = 'vim.interlace.rnoweb("' . expand("%:t") . '", rnwdir = "' . expand("%:p:h") . '", knit = FALSE, buildpdf = FALSE'
     if exists("g:vimrplugin_sweaveargs")
-        call g:SendCmdToR('Sweave("' . expand("%:t") . '", ' . g:vimrplugin_sweaveargs . ')')
-    else
-        call g:SendCmdToR('Sweave("' . expand("%:t") . '")')
+        let scmd .= ', ' . g:vimrplugin_sweaveargs
     endif
+    if g:vimrplugin_synctex == "none"
+        let scmd .= ", synctex = FALSE"
+    endif
+    call g:SendCmdToR(scmd . ')')
 endfunction
 
 function! ROpenPDF()
@@ -269,6 +269,7 @@ call RCreateMaps("ni",  '<Plug>RSendChunk',   'cc', ':call b:SendChunkToR("silen
 call RCreateMaps("ni",  '<Plug>RESendChunk',  'ce', ':call b:SendChunkToR("echo", "stay")')
 call RCreateMaps("ni",  '<Plug>RDSendChunk',  'cd', ':call b:SendChunkToR("silent", "down")')
 call RCreateMaps("ni",  '<Plug>REDSendChunk', 'ca', ':call b:SendChunkToR("echo", "down")')
+call RCreateMaps("ni",  '<Plug>RSyncFor',     'gp', ':call SyncTeX_forward()')
 nmap <buffer><silent> gn :call RnwNextChunk()<CR>
 nmap <buffer><silent> gN :call RnwPreviousChunk()<CR>
 
@@ -280,46 +281,84 @@ endif
 "==========================================================================
 " SyncTeX support:
 
+" See http://www.stats.uwo.ca/faculty/murdoch/9864/Sweave.pdf page 25
+function! SyncTeX_readconc(basenm)
+    let texidx = 0
+    let rnwidx = 0
+    let ntexln = len(readfile(a:basenm . ".tex"))
+    let lstexln = range(1, ntexln)
+    let lsrnwf = range(1, ntexln)
+    let lsrnwl = range(1, ntexln)
+    let conc = readfile(a:basenm . "-concordance.tex")
+    let idx = 0
+    let maxidx = len(conc)
+    while idx < maxidx && texidx < ntexln && conc[idx] =~ "Sconcordance"
+        let texf = substitute(conc[idx], '\\Sconcordance{concordance:\(.\{-}\):.*', '\1', "g")
+        let rnwf = substitute(conc[idx], '\\Sconcordance{concordance:.\{-}:\(.\{-}\):.*', '\1', "g")
+        let idx += 1
+        let concnum = ""
+        while idx < maxidx && conc[idx] !~ "Sconcordance"
+            let concnum = concnum . conc[idx]
+            let idx += 1
+        endwhile
+        let concnum = substitute(concnum, '%', '', 'g')
+        let concnum = substitute(concnum, '}', '', '')
+        let concl = split(concnum)
+        let ii = 0
+        let maxii = len(concl) - 2
+        let rnwl = str2nr(concl[0])
+        let lsrnwl[texidx] = rnwl
+        let lsrnwf[texidx] = rnwf
+        let texidx += 1
+        while ii < maxii && texidx < ntexln
+            let ii += 1
+            let lnrange = range(1, concl[ii])
+            let ii += 1
+            for iii in lnrange
+                if  texidx >= ntexln
+                    break
+                endif
+                let rnwl += concl[ii]
+                let lsrnwl[texidx] = rnwl
+                let lsrnwf[texidx] = rnwf
+                let texidx += 1
+            endfor
+        endwhile
+    endwhile
+    return {"texlnum": lstexln, "rnwfile": lsrnwf, "rnwline": lsrnwl}
+endfunction
+
 function! SyncTeX_backward(fname, ln)
     let basenm = substitute(a:fname, "\....$", "", "") " Delete extension
     let basenm = substitute(basenm, 'file://', '', '') " Evince
     let basenm = substitute(basenm, '/\./', '/', '')   " Okular
     if filereadable(basenm . "-concordance.tex")
-        let conc = join(readfile(basenm . "-concordance.tex"), "")
-        let rnwf = substitute(basenm, '\(.*\)/.*', '\1/', '') . substitute(conc, '\\Sconcordance{concordance:.\{-}:\(.*\):%.*', '\1', "g")
-        let conc = substitute(conc, '\\Sconcordance{.*:%', "", "g")
-        let conc = substitute(conc, "%", " ", "g")
-        let conc = substitute(conc, "}", "", "")
-        let concl = split(conc)
-
-        " See http://www.stats.uwo.ca/faculty/murdoch/9864/Sweave.pdf page 25
-        let idx = 0
-        let maxidx = len(concl) - 2
-        let texln = concl[0]
-        let rnwln = 1
-        let eureka = 0
-        while rnwln < a:ln && idx < maxidx && eureka == 0
-            let idx += 1
-            let lnrange = range(1, concl[idx])
-            let idx += 1
-            for iii in lnrange
-                let rnwln += concl[idx]
-                let texln += 1
-                if texln >= a:ln
-                    let eureka = 1
-                    break
-                endif
-            endfor
-        endwhile
-    else
-        if filereadable(basenm . "Rnw") || filereadable(basenm . "rnw")
-            call RWarningMsg('SyncTeX [Vim-R-plugin]: "' . basenm . '-concordance.tex" not found.')
+        let concdata = SyncTeX_readconc(basenm)
+        let texlnum = concdata["texlnum"]
+        let rnwfile = concdata["rnwfile"]
+        let rnwline = concdata["rnwline"]
+        let rnwln = 0
+        for ii in range(len(texlnum))
+            if texlnum[ii] >= a:ln
+                let rnwf = rnwfile[ii]
+                let rnwln = rnwline[ii]
+                break
+            endif
+        endfor
+        if rnwln == 0
+            call RWarningMsg("Could not find Rnoweb source line.")
             return
         endif
-        " Jump to LaTeX source since there is no Rnoweb file
-        let rnwf = a:fname
-        let rnwln = a:ln
+    else
+        if filereadable(basenm . ".Rnw") || filereadable(basenm . ".rnw")
+            call RWarningMsg('SyncTeX [Vim-R-plugin]: "' . basenm . '-concordance.tex" not found.')
+            return
+        else
+            call RWarningMsg('Could not find "' . basenm . '.Rnw".')
+        endif
     endif
+
+    let rnwf = substitute(rnwf, '.*/', '', '')
 
     if bufname("%") != rnwf
         if bufloaded(rnwf)
@@ -338,68 +377,112 @@ function! SyncTeX_backward(fname, ln)
     endif
 endfunction
 
-function! SyncTeX_forward(fname, ln)
-    let basenm = substitute(a:fname, "\....$", "", "")
+function! SyncTeX_forward()
+    let basenm = expand("%:t:r")
+    let lnum = 0
+    let rnwf = bufname("%")
+
     if filereadable(basenm . "-concordance.tex")
-        let conc = join(readfile(basenm . "-concordance.tex"), "")
-        let conc = substitute(conc, '\\Sconcordance{.*:%', "", "g")
-        let conc = substitute(conc, "%", " ", "g")
-        let conc = substitute(conc, "}", "", "")
-        let concl = split(conc)
-        let idx = 0
-        let maxidx = len(concl) - 2
-        let texln = concl[0]
-        let rnwln = 1
-        let eureka = 0
-        while rnwln < a:ln && idx < maxidx && eureka == 0
-            let idx += 1
-            let lnrange = range(1, concl[idx])
-            let idx += 1
-            for iii in lnrange
-                let rnwln += concl[idx]
-                let texln += 1
-                if rnwln >= a:ln
-                    let eureka = 1
-                    break
-                endif
-            endfor
-        endwhile
+        let lnum = line(".")
     else
-        if &filetype == "rnoweb"
-            call RWarningMsg('SyncTeX [Vim-R-plugin]: "' . basenm . '-concordance.tex" not found.')
-            return
-        elseif &filetype == "tex"
-            " No conversion needed
-            let texln = a:ln
+        let ischild = search('% *!Rnw *root *=', 'bwn')
+        if ischild
+            let mfile = substitute(getline(ischild), '.*% *!Rnw *root *= *\(.*\) *', '\1', '')
+            let basenm = substitute(mfile, "\....$", "", "")
+            if filereadable(basenm . "-concordance.tex")
+                let mlines = readfile(mfile)
+                for ii in range(len(mlines))
+                    " Sweave has detailed child information
+                    if mlines[ii] =~ 'SweaveInput.*' . bufname("%")
+                        let lnum = line(".")
+                        break
+                    endif
+                    " Knitr does not include detailed child information
+                    if mlines[ii] =~ '<<.*child *= *["' . "']" . bufname("%") . '["' . "']"
+                        let lnum = ii + 1
+                        let rnwf = mfile
+                        break
+                    endif
+                endfor
+                if lnum == 0
+                    call RWarningMsg('Could not find "child=' . bufname("%") . '" in ' . mfile . '.')
+                    return
+                endif
+            else
+                call RWarningMsg('SyncTeX [Vim-R-plugin]: "' . basenm . '-concordance.tex" not found.')
+                return
+            endif
         else
+            call RWarningMsg('SyncTeX [Vim-R-plugin]: "' . basenm . '-concordance.tex" not found.')
             return
         endif
     endif
-    if g:vimrplugin_synctex == "okular"
-        call system("okular --unique " . expand("%:r") . ".pdf#src:" . texln . expand("%:p:h") . "/./" . expand("%:r") . ".tex 2> /dev/null >/dev/null &")
-    elseif g:vimrplugin_synctex == "evince"
-        call system("python " . g:rplugin_home . "/r-plugin/synctex_evince_forward.py " . expand("%:r") . ".pdf " . texln . " " . expand("%:r") . ".tex &")
-        if g:rplugin_has_wmctrl
-            call system("wmctrl -a '" . expand("%:t:r") . ".pdf'")
+
+    let concdata = SyncTeX_readconc(basenm)
+    let texlnum = concdata["texlnum"]
+    let rnwfile = concdata["rnwfile"]
+    let rnwline = concdata["rnwline"]
+    let texln = 0
+    for ii in range(len(texlnum))
+        if rnwfile[ii] =~ rnwf && rnwline[ii] >= lnum
+            let texln = texlnum[ii]
+            break
         endif
+    endfor
+
+    if texln == 0
+        call RWarningMsg("Error: did not find LaTeX line.")
+        return
+    endif
+
+    if g:vimrplugin_synctex == "okular"
+        call system("okular --unique " . basenm . ".pdf#src:" . texln . expand("%:p:h") . "/./" . basenm . ".tex 2> /dev/null >/dev/null &")
+    elseif g:vimrplugin_synctex == "evince"
+        call system("python " . g:rplugin_home . "/r-plugin/synctex_evince_forward.py " . basenm . ".pdf " . texln . " " . basenm . ".tex 2> /dev/null >/dev/null &")
+        if g:rplugin_has_wmctrl
+            call system("wmctrl -a '" . basenm . ".pdf'")
+        endif
+    elseif g:vimrplugin_synctex = "skim"
+        " This command is based on Skim wiki (not tested)
+        call system("/Applications/Skim.app/Contents/SharedSupport/displayline " . texln . " '" . basenm . ".pdf' 2> /dev/null >/dev/null &")
     else
         call RWarningMsg('SyncTeX support for "' . g:vimrplugin_synctex . '" not implemented yet.')
     endif
 endfunction
 
-function! SyncTeX_SetPID(pid)
-    let g:rplugin_synctexpid = a:pid
+function! SyncTeX_SetPID(spid)
+    exe 'autocmd VimLeave * call system("kill ' . a:spid . '")'
 endfunction
 
-function! Kill_SyncTeX()
-    if g:rplugin_synctexpid
-        call system("kill " . g:rplugin_synctexpid)
+function! Run_SyncTeX()
+    if $DISPLAY == "" || g:vimrplugin_synctex == "none" || exists("b:did_synctex")
+        return
+    endif
+    let b:did_synctex = 1
+
+    if executable("wmctrl")
+        let g:rplugin_has_wmctrl = 1
+    endif
+    if g:vimrplugin_synctex == "evince"
+        if has("nvim")
+            let g:rplugin_stx_job = jobstart("synctex", "python", [g:rplugin_home . "/r-plugin/synctex_evince_backward.py", expand("%:r") . ".pdf", "nvim"])
+            autocmd JobActivity synctex call Handle_SyncTeX_backward()
+        else
+            if v:servername != ""
+                call system("python " . g:rplugin_home . "/r-plugin/synctex_evince_backward.py '" . expand("%:r") . ".pdf' " . v:servername . " &")
+            endif
+        endif
+    elseif g:vimrplugin_synctex == "okular" && has("nvim") && !exists("g:rplugin_okular_search")
+        let g:rplugin_okular_search = 1
+        call writefile([], $VIMRPLUGIN_TMPDIR . "/okular_search")
+        let g:rplugin_stx_job = jobstart("synctex", "tail", ["-f", $VIMRPLUGIN_TMPDIR . "/okular_search"])
+        autocmd JobActivity synctex call Handle_SyncTeX_backward()
+        autocmd VimLeave * call delete($VIMRPLUGIN_TMPDIR . "/okular_search")
     endif
 endfunction
 
 function! Handle_SyncTeX_backward()
     if v:job_data[1] == 'stdout'
-        let g:lastjobdata = v:job_data[2]
         let fname = substitute(v:job_data[2], '|.*', '', '') 
         if g:vimrplugin_synctex == "okular"
             let fname = substitute(fname, '/\./', '/', '')
@@ -412,6 +495,8 @@ function! Handle_SyncTeX_backward()
         let g:rplugin_stx_job = 0
     endif
 endfunction
+
+call Run_SyncTeX()
 
 call RSourceOtherScripts()
 
