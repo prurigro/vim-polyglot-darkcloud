@@ -35,10 +35,3 @@ syn region lessStyle start=+<style [^>]*type *=[^>]*text/less[^>]*>+ keepend end
 if exists("s:pre_less_cur_syn")
    let b:current_syntax = s:pre_less_cur_syn
 endif
-" Language:     Colorful CSS Color Preview
-" Author:       Aristotle Pagaltzis <pagaltzis@gmx.de>
-
-if !( has('gui_running') || &t_Co==256 ) | finish | endif
-
-" default html syntax should already be including the css syntax
-syn cluster colorableGroup add=htmlString,htmlCommentPart
