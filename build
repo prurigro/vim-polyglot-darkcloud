@@ -132,9 +132,10 @@ PACKS="
     textile:timcharper/textile.vim
     tmux:tejr/vim-tmux
     tomdoc:duwanis/tomdoc.vim
+    toml:cespare/vim-toml
     typescript:leafgarland/typescript-vim
     vbnet:vim-scripts/vbnet.vim
-    toml:cespare/vim-toml
+    vm:lepture/vim-velocity
     twig:beyondwords/vim-twig
     xls:vim-scripts/XSLT-syntax
     yard:sheerun/vim-yardoc
