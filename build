@@ -9,6 +9,13 @@ TMPFOLDER="./tmp"
 BACKFOLDER="_oldpacks_backup"
 GITSOURCE="https://github.com"
 
+function cleanup_and_exit() {
+    # remove temp folder
+    [[ -d "$TMPFOLDER" ]] && rm -rf "$TMPFOLDER"
+    echo -e "$1"
+    exit $2
+}
+
 download() {
     for pack in $1; do
         path="$(printf "$pack" | cut -d ':' -f 2 | cut -d '#' -f 1)"
@@ -16,7 +23,9 @@ download() {
         [[ $(grep '#' <<< $pack) ]] \
             && branch="$(printf "$pack" | cut -d '#' -f 2)" || branch="master"
         rm -rf "$dir"
-        (git clone -b "$branch" -q --recursive "${GITSOURCE}/${path}.git" "$dir" && printf '.') &
+        while [ ! -d "$dir" ]; do
+            git clone -b "$branch" -q --recursive "${GITSOURCE}/${path}.git" "$dir" && printf '.'
+        done
     done
     wait
 }
@@ -62,7 +71,8 @@ concat_ftdetect() {
 backup() {
     BACKUPDIRS="after autoload compiler ftdetect ftplugin indent plugin syntax"
 
-    [[ -d "$BACKFOLDER" ]] && printf "Error, backup directory already exists: ${BACKFOLDER}\n" && exit 1
+    [[ -d "$BACKFOLDER" ]] \
+        && cleanup_and_exit "Error, backup directory already exists: ${BACKFOLDER}" 1
     install -d "$BACKFOLDER"
     printf "Backing up current packs to: ${BACKFOLDER}\n"
     for subdir in $BACKUPDIRS; do
@@ -154,5 +164,4 @@ download "$PACKS"
 extract "$PACKS"
 concat_ftdetect
 
-# remove temp folder
-rm -rf "$TMPFOLDER"
+cleanup_and_exit '\nDone!' 0
