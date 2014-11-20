@@ -1,4 +1,5 @@
 au BufNewFile,BufRead *archversion.conf set filetype=archversion
+au BufNewFile,BufRead *packages.conf set filetype=archversion
 au BufRead,BufNewFile *.ino,*.pde set filetype=arduino
 au BufNewFile,BufRead *.blade.php set filetype=blade
 autocmd BufNewFile,BufRead *.clj,*.cljs,*.edn setlocal filetype=clojure
