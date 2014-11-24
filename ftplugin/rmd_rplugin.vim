@@ -80,10 +80,14 @@ function! RMakeRmd(t)
         endif
     endif
 
+    let rmddir = expand("%:p:h")
+    if has("win32") || has("win64")
+        let rmddir = substitute(rnwdir, '\\', '/', 'g')
+    endif
     if a:t == "default"
-        let rcmd = 'vim.interlace.rmd("' . expand("%:t") . '", rmddir = "' . expand("%:p:h") . '"'
+        let rcmd = 'vim.interlace.rmd("' . expand("%:t") . '", rmddir = "' . rmddir . '"'
     else
-        let rcmd = 'vim.interlace.rmd("' . expand("%:t") . '", outform = "' . a:t .'", rmddir = "' . expand("%:p:h") . '"'
+        let rcmd = 'vim.interlace.rmd("' . expand("%:t") . '", outform = "' . a:t .'", rmddir = "' . rmddir . '"'
     endif
     if (g:vimrplugin_openhtml  == 0 && a:t == "html_document") || (g:vimrplugin_openpdf == 0 && (a:t == "pdf_document" || a:t == "beamer_presentation"))
         let rcmd .= ", view = FALSE"
@@ -107,7 +111,7 @@ function! SendRmdChunkToR(e, m)
     endif
     if a:m == "down"
         call RmdNextChunk()
-    endif  
+    endif
 endfunction
 
 let b:IsInRCode = function("RmdIsInRCode")
