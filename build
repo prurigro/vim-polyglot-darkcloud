@@ -144,6 +144,7 @@ PACKS="
     tomdoc:duwanis/tomdoc.vim
     toml:cespare/vim-toml
     typescript:leafgarland/typescript-vim
+    vala:tkztmk/vim-vala
     vbnet:vim-scripts/vbnet.vim
     vm:lepture/vim-velocity
     twig:beyondwords/vim-twig

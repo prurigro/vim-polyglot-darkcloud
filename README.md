@@ -83,6 +83,7 @@ Optionally download one of the [releases](https://github.com/sheerun/vim-polyglo
 - [tomdoc](https://github.com/duwanis/tomdoc.vim) (syntax)
 - [toml](https://github.com/cespare/vim-toml) (syntax, ftdetect)
 - [typescript](https://github.com/leafgarland/typescript-vim) (syntax, compiler, ftplugin, ftdetect)
+- [vala](https://github.com/tkztmk/vim-vala) (syntax, indent, ftdetec)
 - [vbnet](https://github.com/vim-scripts/vbnet.vim) (syntax)
 - [vm](https://github.com/lepture/vim-velocity) (syntax, indent, ftdetect)
 - [twig](https://github.com/beyondwords/vim-twig) (syntax, ftplugin, ftdetect)
