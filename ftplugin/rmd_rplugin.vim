@@ -146,6 +146,7 @@ call RCreateMaps("n",  '<Plug>RPreviousRChunk', 'gN', ':call b:PreviousRChunk()'
 
 " Menu R
 if has("gui_running")
+    runtime r-plugin/gui_running.vim
     call MakeRMenu()
 endif
 
@@ -155,6 +156,5 @@ let g:rplugin_has_soffice = 0
 call RSetPDFViewer()
 
 call RSourceOtherScripts()
-
 
 let b:undo_ftplugin .= " | unlet! b:IsInRCode b:SourceLines b:PreviousRChunk b:NextRChunk b:SendChunkToR"

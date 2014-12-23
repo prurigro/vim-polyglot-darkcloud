@@ -91,7 +91,7 @@ endfunction
 function! RKnitRmCache()
     let lnum = search('\<cache\.path\>\s*=', 'bnwc')
     if lnum == 0
-        let pathdir = "cache"
+        let pathdir = "cache/"
     else
         let pathregexpr = '.*\<cache\.path\>\s*=\s*[' . "'" . '"]\(.\{-}\)[' . "'" . '"].*'
         let pathdir = substitute(getline(lnum), pathregexpr, '\1', '')
@@ -278,6 +278,7 @@ call RCreateMaps("n",  '<Plug>RPreviousRChunk', 'gN', ':call b:PreviousRChunk()'
 
 " Menu R
 if has("gui_running")
+    runtime r-plugin/gui_running.vim
     call MakeRMenu()
 endif
 
@@ -566,7 +567,9 @@ function! SyncTeX_forward(...)
         endif
         call system("wmctrl -a '" . basenm . ".pdf'")
     elseif g:rplugin_pdfviewer == "sumatra"
-        call RWarningMsg("Support for Sumatra not implemented yet.")
+        if g:rplugin_sumatra_path != "" || FindSumatra()
+            silent exe '!start "' . g:rplugin_sumatra_path . '" -reuse-instance -forward-search ' . basenm . '.tex ' . texln . ' -inverse-search "gvim --servername ' . v:servername . " --remote-expr SyncTeX_backward('%f',%l)" . '" "' . basenm . '.pdf"'
+        endif
     elseif g:rplugin_pdfviewer == "skim"
         " This command is based on Skim wiki (not tested)
         call system("/Applications/Skim.app/Contents/SharedSupport/displayline " . texln . " '" . basenm . ".pdf' 2> /dev/null >/dev/null &")
@@ -609,10 +612,10 @@ function! Run_SyncTeX()
         endif
     elseif has("nvim") && (g:rplugin_pdfviewer == "okular" || g:rplugin_pdfviewer == "zathura") && !exists("g:rplugin_tail_follow")
         let g:rplugin_tail_follow = 1
-        call writefile([], $VIMRPLUGIN_TMPDIR . "/" . g:rplugin_pdfviewer . "_search")
-        call jobstart("RnwSyncTeX", "tail", ["-f", $VIMRPLUGIN_TMPDIR . "/" . g:rplugin_pdfviewer . "_search"])
+        call writefile([], g:rplugin_tmpdir . "/" . g:rplugin_pdfviewer . "_search")
+        call jobstart("RnwSyncTeX", "tail", ["-f", g:rplugin_tmpdir . "/" . g:rplugin_pdfviewer . "_search"])
         autocmd JobActivity RnwSyncTeX call ROnJobActivity()
-        autocmd VimLeave * call delete($VIMRPLUGIN_TMPDIR . "/" . g:rplugin_pdfviewer . "_search") | call delete($VIMRPLUGIN_TMPDIR . "/synctex_back.sh")
+        autocmd VimLeave * call delete(g:rplugin_tmpdir . "/" . g:rplugin_pdfviewer . "_search") | call delete(g:rplugin_tmpdir . "/synctex_back.sh")
     endif
     exe "cd " . substitute(olddir, ' ', '\\ ', 'g')
 endfunction
