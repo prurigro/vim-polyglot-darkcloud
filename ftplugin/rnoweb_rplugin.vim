@@ -1,5 +1,5 @@
 
-if exists("g:disable_r_ftplugin")
+if exists("g:disable_r_ftplugin") || has("nvim")
     finish
 endif
 
@@ -541,12 +541,7 @@ function! SyncTeX_forward(...)
     if g:rplugin_pdfviewer == "okular"
         call system("okular --unique " . basenm . ".pdf#src:" . texln . substitute(expand("%:p:h"), ' ', '\\ ', 'g') . "/./" . substitute(basenm, ' ', '\\ ', 'g') . ".tex 2> /dev/null >/dev/null &")
     elseif g:rplugin_pdfviewer == "evince"
-        if has("nvim")
-            call jobstart("RnwSyncFor", "python", [g:rplugin_home . "/r-plugin/synctex_evince_forward.py",  basenm . ".pdf", string(texln), basenm . ".tex"])
-            autocmd JobActivity RnwSyncFor call ROnJobActivity()
-        else
-            call system("python " . g:rplugin_home . "/r-plugin/synctex_evince_forward.py '" . basenm . ".pdf' " . texln . " '" . basenm . ".tex' 2> /dev/null >/dev/null &")
-        endif
+        call system("python " . g:rplugin_home . "/r-plugin/synctex_evince_forward.py '" . basenm . ".pdf' " . texln . " '" . basenm . ".tex' 2> /dev/null >/dev/null &")
         if g:rplugin_has_wmctrl
             call system("wmctrl -a '" . basenm . ".pdf'")
         endif
@@ -571,8 +566,8 @@ function! SyncTeX_forward(...)
             silent exe '!start "' . g:rplugin_sumatra_path . '" -reuse-instance -forward-search ' . basenm . '.tex ' . texln . ' -inverse-search "gvim --servername ' . v:servername . " --remote-expr SyncTeX_backward('%f',%l)" . '" "' . basenm . '.pdf"'
         endif
     elseif g:rplugin_pdfviewer == "skim"
-        " This command is based on Skim wiki (not tested)
-        call system("/Applications/Skim.app/Contents/SharedSupport/displayline " . texln . " '" . basenm . ".pdf' 2> /dev/null >/dev/null &")
+        " This command is based on macvim-skim
+        call system(g:macvim_skim_app_path . '/Contents/SharedSupport/displayline -r ' . texln . ' "' . basenm . '.pdf" "' . basenm . '.tex" 2> /dev/null >/dev/null &')
     else
         call RWarningMsg('SyncTeX support for "' . g:rplugin_pdfviewer . '" not implemented.')
     endif
@@ -599,23 +594,12 @@ function! Run_SyncTeX()
         if basedir != '.'
             exe "cd " . substitute(basedir, ' ', '\\ ', 'g')
         endif
-        if has("nvim")
-            call jobstart("RnwSyncTeX", "python", [g:rplugin_home . "/r-plugin/synctex_evince_backward.py", basenm . ".pdf", "nvim"])
-            autocmd JobActivity RnwSyncTeX call ROnJobActivity()
-        else
-            if v:servername != ""
-                call system("python " . g:rplugin_home . "/r-plugin/synctex_evince_backward.py '" . basenm . ".pdf' " . v:servername . " &")
-            endif
+        if v:servername != ""
+            call system("python " . g:rplugin_home . "/r-plugin/synctex_evince_backward.py '" . basenm . ".pdf' " . v:servername . " &")
         endif
         if basedir != '.'
             cd -
         endif
-    elseif has("nvim") && (g:rplugin_pdfviewer == "okular" || g:rplugin_pdfviewer == "zathura") && !exists("g:rplugin_tail_follow")
-        let g:rplugin_tail_follow = 1
-        call writefile([], g:rplugin_tmpdir . "/" . g:rplugin_pdfviewer . "_search")
-        call jobstart("RnwSyncTeX", "tail", ["-f", g:rplugin_tmpdir . "/" . g:rplugin_pdfviewer . "_search"])
-        autocmd JobActivity RnwSyncTeX call ROnJobActivity()
-        autocmd VimLeave * call delete(g:rplugin_tmpdir . "/" . g:rplugin_pdfviewer . "_search") | call delete(g:rplugin_tmpdir . "/synctex_back.sh")
     endif
     exe "cd " . substitute(olddir, ' ', '\\ ', 'g')
 endfunction
