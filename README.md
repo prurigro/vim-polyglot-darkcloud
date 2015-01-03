@@ -59,6 +59,7 @@ Optionally download one of the [releases](https://github.com/sheerun/vim-polyglo
 - [liquid](https://github.com/tpope/vim-liquid) (syntax, indent, ftplugin, ftdetect)
 - [*markdown](https://github.com/plasticboy/vim-markdown) (syntax, indent, ftdetect)
 - [nginx](https://github.com/mutewinter/nginx.vim) (syntax, ftdetect)
+- [*nim](https://github.com/zah/nimrod.vim) (syntax, indent, ftdetect, ftplugin)
 - [ocaml](https://github.com/jrk/vim-ocaml) (syntax, indent, ftplugin)
 - [octave](https://github.com/vim-scripts/octave.vim--) (syntax)
 - [opencl](https://github.com/petRUShka/vim-opencl) (syntax, indent, ftplugin, ftdetect)

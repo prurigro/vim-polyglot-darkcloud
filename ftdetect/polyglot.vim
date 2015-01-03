@@ -63,6 +63,7 @@ endfunction
 au BufNewFile *.go setlocal filetype=go fileencoding=utf-8 fileformat=unix
 au BufRead *.go call s:gofiletype_pre()
 au BufReadPost *.go call s:gofiletype_post()
+au BufNewFile,BufRead *.nim set filetype=nim
 autocmd BufNewFile,BufRead *.haml,*.hamlbars,*.hamlc setf haml
 autocmd BufNewFile,BufRead *.sass setf sass
 autocmd BufNewFile,BufRead *.scss setf scss
