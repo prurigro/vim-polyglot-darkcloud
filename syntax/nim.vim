@@ -79,7 +79,7 @@ if nim_highlight_numbers == 1
   " numbers (including longs and complex)
   syn match   nimNumber	"\v<0x\x+(\'(i|I|f|F|u|U)(8|16|32|64))?>"
   syn match   nimNumber	"\v<[0-9_]+(\'(i|I|f|F|u|U)(8|16|32|64))?>"
-  syn match   nimNumber	"\v\.[0-9_]+([eE][+-]=[0-9_]+)=>"
+  syn match   nimNumber	"\v[0-9]\.[0-9_]+([eE][+-]=[0-9_]+)=>"
   syn match   nimNumber	"\v<[0-9_]+(\.[0-9_]+)?([eE][+-]?[0-9_]+)?(\'(f|F)(32|64))?>"
 endif
 
@@ -185,3 +185,4 @@ if version >= 508 || !exists("did_nim_syn_inits")
 endif
 
 let b:current_syntax = "nim"
+

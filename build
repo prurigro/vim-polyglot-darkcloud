@@ -120,6 +120,7 @@ PACKS="
     liquid:tpope/vim-liquid
     markdown:plasticboy/vim-markdown:_BASIC
     nginx:mutewinter/nginx.vim
+    nim:zah/nimrod.vim
     ocaml:jrk/vim-ocaml
     octave:vim-scripts/octave.vim--
     opencl:petRUShka/vim-opencl
