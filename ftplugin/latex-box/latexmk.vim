@@ -446,7 +446,7 @@ endfunction
 " Redefine uniq() for compatibility with older Vim versions (< 7.4.218)
 function! s:uniq(list)
         if exists('*uniq')
-                return uniq(list)
+                return uniq(a:list)
         elseif len(a:list) <= 1
                 return a:list
         endif

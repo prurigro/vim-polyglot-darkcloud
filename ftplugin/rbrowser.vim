@@ -55,7 +55,7 @@ function! UpdateOB(what)
     endif
     let g:rplugin_upobcnt = 1
 
-    let g:rplugin_switchedbuf = 0
+    let rplugin_switchedbuf = 0
     if g:vimrplugin_tmux_ob == 0
         redir => s:bufl
         silent buffers
@@ -68,7 +68,7 @@ function! UpdateOB(what)
             let savesb = &switchbuf
             set switchbuf=useopen,usetab
             sil noautocmd sb Object_Browser
-            let g:rplugin_switchedbuf = 1
+            let rplugin_switchedbuf = 1
         endif
     endif
 
@@ -95,7 +95,7 @@ function! UpdateOB(what)
         setlocal nomodifiable
     endif
     redraw
-    if g:rplugin_switchedbuf
+    if rplugin_switchedbuf
         exe "sil noautocmd sb " . g:rplugin_curbuf
         exe "set switchbuf=" . savesb
     endif
@@ -119,23 +119,13 @@ function! RBrowserDoubleClick()
     " Toggle state of list or data.frame: open X closed
     let key = RBrowserGetName(0, 1)
     if g:rplugin_curview == "GlobalEnv"
-        call g:SendToVimCom("\006" . key)
-        if g:rplugin_lastrpl == "R is busy."
-            call RWarningMsg("R is busy.")
-        endif
+        call SendToVimCom("\006" . key)
     else
         let key = substitute(key, '`', '', "g") 
         if key !~ "^package:"
             let key = "package:" . RBGetPkgName() . '-' . key
         endif
-        call g:SendToVimCom("\006" . key)
-        if g:rplugin_lastrpl == "R is busy."
-            call RWarningMsg("R is busy.")
-        endif
-    endif
-    if v:servername == "" || has("win32") || has("win64")
-        sleep 50m " R needs some time to write the file.
-        call UpdateOB("both")
+        call SendToVimCom("\006" . key)
     endif
 endfunction
 
@@ -352,7 +342,7 @@ if g:vimrplugin_tmux_ob
         autocmd! ShowMarks
     endif
 else
-    au BufUnload <buffer> call g:SendToVimCom("\004Stop updating info [OB BufUnload].")
+    au BufUnload <buffer> call SendToVimCom("\004Stop updating info [OB BufUnload].")
 endif
 
 let s:envstring = tolower($LC_MESSAGES . $LC_ALL . $LANG)

@@ -13,6 +13,19 @@ endif
 " after the global ones:
 runtime r-plugin/common_buffer.vim
 
+if has("win32") || has("win64")
+    call RSetDefaultValue("g:vimrplugin_latexmk", 0)
+else
+    call RSetDefaultValue("g:vimrplugin_latexmk", 1)
+endif
+if !exists("g:rplugin_has_latexmk")
+    if g:vimrplugin_latexmk && executable("latexmk") && executable("perl")
+	let g:rplugin_has_latexmk = 1
+    else
+	let g:rplugin_has_latexmk = 0
+    endif
+endif
+
 function! RWriteChunk()
     if getline(".") =~ "^\\s*$" && RnwIsInRCode(0) == 0
         call setline(line("."), "<<>>=")
@@ -161,10 +174,6 @@ function! RMakePDF(bibtex, knit)
 
     if a:bibtex == "bibtex"
         let pdfcmd = pdfcmd . ", bibtex = TRUE"
-    endif
-
-    if a:bibtex == "verbose"
-        let pdfcmd = pdfcmd . ", quiet = FALSE"
     endif
 
     if g:vimrplugin_openpdf == 0
@@ -430,9 +439,14 @@ function! SyncTeX_backward(fname, ln)
     let rnwbn = substitute(rnwf, '.*/', '', '')
     let rnwf = substitute(rnwf, '^\./', '', '')
 
-    if GoToBuf(rnwbn, rnwf, basedir, rnwln) && g:rplugin_has_wmctrl
+    if GoToBuf(rnwbn, rnwf, basedir, rnwln)
+	if g:rplugin_has_wmctrl
         call system("wmctrl -xa " . g:vimrplugin_vim_window)
+	elseif has("gui_running")
+	    call foreground()
     endif
+    endif
+
 endfunction
 
 function! SyncTeX_forward(...)
@@ -563,7 +577,7 @@ function! SyncTeX_forward(...)
         call system("wmctrl -a '" . basenm . ".pdf'")
     elseif g:rplugin_pdfviewer == "sumatra"
         if g:rplugin_sumatra_path != "" || FindSumatra()
-            silent exe '!start "' . g:rplugin_sumatra_path . '" -reuse-instance -forward-search ' . basenm . '.tex ' . texln . ' -inverse-search "gvim --servername ' . v:servername . " --remote-expr SyncTeX_backward('%f',%l)" . '" "' . basenm . '.pdf"'
+            silent exe '!start "' . g:rplugin_sumatra_path . '" -reuse-instance -forward-search ' . basenm . '.tex ' . texln . ' -inverse-search "vim --servername ' . v:servername . " --remote-expr SyncTeX_backward('\\%f',\\%l)" . '" "' . basenm . '.pdf"'
         endif
     elseif g:rplugin_pdfviewer == "skim"
         " This command is based on macvim-skim
