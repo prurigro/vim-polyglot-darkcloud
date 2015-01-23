@@ -31,11 +31,11 @@ autocmd FileType ember-script set tabstop=2|set shiftwidth=2|set expandtab
 autocmd BufNewFile,BufRead *.emblem set filetype=emblem
 autocmd FileType emblem set tabstop=2|set shiftwidth=2|set expandtab
 autocmd BufNewFile,BufRead *.git/{,modules/**/}{COMMIT_EDIT,TAG_EDIT,MERGE_,}MSG set ft=gitcommit
-autocmd BufNewFile,BufRead *.git/config,.gitconfig,.gitmodules set ft=gitconfig
-autocmd BufNewFile,BufRead */.config/git/config                set ft=gitconfig
-autocmd BufNewFile,BufRead *.git/modules/**/config             set ft=gitconfig
-autocmd BufNewFile,BufRead git-rebase-todo                     set ft=gitrebase
-autocmd BufNewFile,BufRead .gitsendemail.*                     set ft=gitsendemail
+autocmd BufNewFile,BufRead *.git/config,.gitconfig,gitconfig,.gitmodules set ft=gitconfig
+autocmd BufNewFile,BufRead */.config/git/config                          set ft=gitconfig
+autocmd BufNewFile,BufRead *.git/modules/**/config                       set ft=gitconfig
+autocmd BufNewFile,BufRead git-rebase-todo                               set ft=gitrebase
+autocmd BufNewFile,BufRead .gitsendemail.*                               set ft=gitsendemail
 autocmd BufNewFile,BufRead *.git/**
       \ if getline(1) =~ '^\x\{40\}\>\|^ref: ' |
       \   set ft=git |

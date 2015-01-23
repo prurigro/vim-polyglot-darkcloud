@@ -194,11 +194,8 @@ fu! <sid>LocalSettings(type) "{{{3
         let b:undo_ftplugin = "setlocal sol& tw< wrap<"
 
         " Set browsefilter
-        if (v:version > 703 || (v:version == 703 && has("patch593")))
-                    \ && exists("browsefilter")
-            let b:browsefilter="CSV Files (*.csv, *.dat)\t*.csv;*.dat\n".
+        let b:browsefilter="CSV Files (*.csv, *.dat)\t*.csv;*.dat\n".
                  \ "All Files\t*.*\n"
-        endif
 
         if has("conceal")
             setl cole=2 cocu=nc
@@ -709,6 +706,8 @@ fu! <sid>CalculateColumnWidth() "{{{3
     " delete buffer content in variable b:csv_list,
     " this was only necessary for calculating the max width
     unlet! b:csv_list
+    unlet! s:columnize_count
+    unlet! s:decimal_column
 endfu
 
 fu! <sid>Columnize(field) "{{{3
@@ -732,51 +731,83 @@ fu! <sid>Columnize(field) "{{{3
     " Careful: Keep this fast! Using
     " let width=get(b:col_width,<SID>WColumn()-1,20)
     " is too slow, so we are using:
-    let width=get(b:col_width, (s:columnize_count % s:max_cols), 20)
+    let colnr = s:columnize_count % s:max_cols
+    let width=get(b:col_width, colnr, 20)
+    let align='r'
+    if exists('b:csv_arrange_align')
+        let align_list=split(get(b:, 'csv_arrange_align', " "), '\zs')
+        try
+            let align = align_list[colnr]
+        catch
+            let align = 'r'
+        endtry
+    endif
+    if ((align isnot? 'r' && align isnot? 'l' &&
+       \ align isnot? 'c' && align isnot? '.') || get(b:, 'csv_arrange_leftalign', 0))
+       let align = 'r'
+    endif
 
     let s:columnize_count += 1
     let has_delimiter = (a:field =~# b:delimiter.'$')
-    if v:version > 703 || v:version == 703 && has("patch713")
-        " printf knows about %S (e.g. can handle char length
-        if get(b:, 'csv_arrange_leftalign',0)
-            " left-align content
-            return printf("%-*S%s", width+1 , 
-                \ (has_delimiter ?
-                \ matchstr(a:field, '.*\%('.b:delimiter.'\)\@=') : a:field),
-                \ (has_delimiter ? b:delimiter : ''))
-        else
-            return printf("%*S", width+1 ,  a:field)
+    if align is? 'l'
+        " left-align content
+        return printf("%-*S%s", width+1 , 
+            \ (has_delimiter ? a:field[:-2] : a:field),
+            \ (has_delimiter ? b:delimiter : ' '))
+    elseif align is? 'c'
+        " center the column
+        let t = width - len(split(a:field, '\zs'))
+        let leftwidth = t/2
+        " uneven width, add one
+        let rightwidth = (t%2 ? leftwidth+1 : leftwidth)
+        let field = (has_delimiter ?  a:field[:-2] : a:field).  repeat(' ', rightwidth)
+        return printf("%*S%s", width , field, (has_delimiter ? b:delimiter : ' '))
+    elseif align is? '.'
+        if !exists("s:decimal_column")
+            let s:decimal_column = {}
         endif
-    else
-        " printf only handles bytes
-        if !exists("g:csv_no_multibyte") &&
-            \ match(a:field, '[^ -~]') != -1
-            " match characters outside the ascii range
-            let a = split(a:field, '\zs')
-            let add = eval(join(map(a, 'len(v:val)'), '+'))
-            let add -= len(a)
-        else
-            let add = 0
-        endif
-
-        " Add one for the frame
-        " plus additional width for multibyte chars,
-        " since printf(%*s..) uses byte width!
-        let width = width + add  + 1
-
-        if width == strlen(a:field)
-            " Column has correct length, don't use printf()
-            return a:field
-        else
-            if get(b:, 'csv_arrange_leftalign',0)
-                " left-align content
-                return printf("%-*s%s", width,  
-                \ (has_delimiter ?  matchstr(a:field, '.*\%('.b:delimiter.'\)\@=') : a:field),
-                \ (has_delimiter ? b:delimiter : ''))
-            else
-                return printf("%*s", width ,  a:field)
+        if get(s:decimal_column, colnr, 0) == 0
+            call <sid>CheckHeaderLine()
+            call <sid>NumberFormat()
+            let data = <sid>CopyCol('', colnr+1, '')[s:csv_fold_headerline : -1]
+            let pat1 = escape(s:nr_format[1], '.').'\zs[^'.s:nr_format[1].']*\ze'.
+                        \ (has_delimiter ? b:delimiter : '').'$'
+            let pat2 = '\d\+\ze\%(\%('.escape(s:nr_format[1], '.'). '\d\+\)\|'.
+                        \ (has_delimiter ? b:delimiter : '').'$\)'
+            let data1 = map(copy(data), 'matchstr(v:val, pat1)')
+            let data2 = map(data, 'matchstr(v:val, pat2)')
+            " strlen should be okay for decimals...
+            let data1 = map(data1, 'strlen(v:val)')
+            let data2 = map(data2, 'strlen(v:val)')
+            let dec = max(data1)
+            let scal = max(data2)
+            if dec + scal + 1 + (has_delimiter ? 1 : 0) > width
+                let width = dec + scal + 1 + (has_delimiter ? 1 :0)
+                let b:col_width[colnr] = width
             endif
+
+            let s:decimal_column[colnr] = dec
+        else
+            let dec = get(s:decimal_column, colnr)
         endif
+        let field = (has_delimiter ?  a:field[:-2] : a:field)
+        let fmt = printf("%%%d.%df", width+1, dec)
+        try
+            if s:nr_format[1] isnot '.'
+                let field = substitute(field, s:nr_format[1], '.', 'g')
+                let field = substitute(field, s:nr_format[0], '', 'g')
+            endif
+            if field =~? '\h' " text in the column, can't be converted to float
+                throw "no decimal"
+            endif
+            let result = printf(fmt, str2float(field)). (has_delimiter ? b:delimiter : ' ')
+        catch
+            let result = printf("%*S", width+2, a:field)
+        endtry
+        return result
+    else
+        " right align
+        return printf("%*S", width+1 ,  a:field)
     endif
 endfun
 
@@ -834,7 +865,7 @@ fu! <sid>SplitHeaderLine(lines, bang, hor) "{{{3
         let a = []
         let b=b:col
         if a:hor
-            setl scrollopt=hor scrollbind
+            setl scrollopt=hor scrollbind cursorbind
             let _fdc = &l:fdc
             let lines = empty(a:lines) ? s:csv_fold_headerline : a:lines
             let a = getline(1,lines)
@@ -847,16 +878,21 @@ fu! <sid>SplitHeaderLine(lines, bang, hor) "{{{3
             "setl syntax=csv
             sil! doautocmd FileType csv
             noa 1
+            sil! sign unplace *
             exe "resize" . lines
-            setl scrollopt=hor winfixheight nowrap
+            setl scrollopt=hor winfixheight nowrap cursorbind
             "let &l:stl=repeat(' ', winwidth(0))
             let &l:stl="%#Normal#".repeat(' ',winwidth(0))
             " set the foldcolumn to the same of the other window
             let &l:fdc = _fdc
         else
-            setl scrollopt=ver scrollbind
+            setl scrollopt=ver scrollbind cursorbind
             noa 0
-            let a=<sid>CopyCol('',1,a:lines)
+            if a:lines[-1:] is? '!'
+                let a=<sid>CopyCol('',a:lines,'')
+            else
+                let a=<sid>CopyCol('',1, a:lines-1)
+            endif
             " Does it make sense to use the preview window?
             "vert sil! pedit |wincmd w | enew!
             above vsp +enew
@@ -872,9 +908,10 @@ fu! <sid>SplitHeaderLine(lines, bang, hor) "{{{3
             noa 0
             let b:csv_SplitWindow = winnr()
             sil :call <sid>ArrangeCol(1,line('$'), 1, -1)
+            sil! sign unplace *
             exe "vert res" . len(split(getline(1), '\zs'))
             call matchadd("CSVHeaderLine", b:col)
-            setl scrollopt=ver winfixwidth
+            setl scrollopt=ver winfixwidth cursorbind
         endif
         call <sid>SetupQuitPre(winnr())
         let win = winnr()
