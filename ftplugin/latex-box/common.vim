@@ -64,14 +64,24 @@ setlocal efm+=%-G%.%#
 
 " Vim Windows {{{
 
-" Width of vertical splits
+" Type of split, "new" for horiz. "vnew" for vert.
+if !exists('g:LatexBox_split_type')
+	let g:LatexBox_split_type = "vnew"
+endif
+
+" Length of vertical splits
+if !exists('g:LatexBox_split_length')
+	let g:LatexBox_split_length = 15
+endif
+
+" Width of horizontal splits
 if !exists('g:LatexBox_split_width')
 	let g:LatexBox_split_width = 30
 endif
 
-" Where vertical splits appear
+" Where splits appear
 if !exists('g:LatexBox_split_side')
-	let g:LatexBox_split_side = "leftabove"
+	let g:LatexBox_split_side = "aboveleft"
 endif
 
 " Resize when split?

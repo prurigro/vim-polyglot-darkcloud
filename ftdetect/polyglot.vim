@@ -83,6 +83,7 @@ autocmd BufNewFile,BufRead *.jsonp set filetype=json
 au BufNewFile,BufRead *.ejs		set filetype=jst
 au BufNewFile,BufRead *.jst  		set filetype=jst
 au BufNewFile,BufRead *.hamljs set filetype=jst
+au BufNewFile,BufRead *.ect set filetype=jst
 autocmd BufNewFile,BufRead *.less setf less
 au BufNewFile,BufRead *.liquid					set ft=liquid
 au BufNewFile,BufRead */_layouts/*.html,*/_includes/*.html	set ft=liquid

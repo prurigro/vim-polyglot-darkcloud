@@ -1,21 +1,32 @@
-if version < 600
-  syntax clear
-elseif exists("b:current_syntax")
-  finish
+if !exists('main_syntax')
+  if version < 600
+    syntax clear
+  elseif exists("b:current_syntax")
+    finish
+  endif
+  let main_syntax = 'scala'
 endif
 
 scriptencoding utf-8
 
 let b:current_syntax = "scala"
 
+" Allows for embedding, see #59; main_syntax convention instead? Refactor TOP
+"
+" The @Spell here is a weird hack, it means *exclude* if the first group is
+" TOP. Otherwise we get spelling errors highlighted on code elements that
+" match scalaBlock, even with `syn spell notoplevel`.
 function! s:ContainedGroup()
   try
     silent syn list @scala
-    return '@scala'
+    return '@scala,@NoSpell'
   catch /E392/
-    return 'TOP'
+    return 'TOP,@Spell'
   endtry
 endfunction
+
+syn include @scalaHtml syntax/html.vim  " Doc comment HTML
+unlet! b:current_syntax
 
 syn case match
 syn sync minlines=200 maxlines=1000
@@ -58,6 +69,9 @@ syn match scalaInstanceHash /#/ contained nextgroup=scalaInstanceDeclaration
 hi link scalaInstanceDeclaration Special
 hi link scalaInstanceHash Type
 
+syn match scalaUnimplemented /???/
+hi link scalaUnimplemented ERROR
+
 syn match scalaCapitalWord /\<[A-Z][A-Za-z0-9$]*\>/
 hi link scalaCapitalWord Special
 
@@ -97,11 +111,14 @@ hi link scalaCaseFollowing Special
 syn keyword scalaKeywordModifier abstract override final lazy implicit implicitly private protected sealed null require super
 hi link scalaKeywordModifier Function
 
-syn keyword scalaSpecial this true false package import ne eq
+syn keyword scalaSpecial this true false ne eq
 syn keyword scalaSpecial new nextgroup=scalaInstanceDeclaration skipwhite
 syn match scalaSpecial "\%(=>\|⇒\|<-\|←\|->\|→\)"
 syn match scalaSpecial /`[^`]*`/  " Backtick literals
 hi link scalaSpecial PreProc
+
+syn keyword scalaExternal package import
+hi link scalaExternal Include
 
 syn match scalaStringEmbeddedQuote /\\"/ contained
 syn region scalaString start=/"/ end=/"/ contains=scalaStringEmbeddedQuote,scalaEscapedChar,scalaUnicodeChar
@@ -146,7 +163,7 @@ syn match scalaTypeAnnotationParameter /@\<[`_A-Za-z0-9$]\+\>/ contained
 hi link scalaTypeOperator Keyword
 hi link scalaTypeAnnotationParameter Function
 
-syn region scalaMultilineComment start="/\*" end="\*/" contains=scalaMultilineComment,scalaDocLinks,scalaParameterAnnotation,scalaCommentAnnotation,scalaCommentCodeBlock,@scalaHtml keepend
+syn region scalaMultilineComment start="/\*" end="\*/" contains=scalaMultilineComment,scalaDocLinks,scalaParameterAnnotation,scalaCommentAnnotation,scalaCommentCodeBlock,@scalaHtml,@Spell keepend
 syn match scalaCommentAnnotation "@[_A-Za-z0-9$]\+" contained
 syn match scalaParameterAnnotation "@param" nextgroup=scalaParamAnnotationValue skipwhite contained
 syn match scalaParamAnnotationValue /[`_A-Za-z0-9$]\+/ contained
@@ -162,7 +179,7 @@ hi link scalaCommentCodeBlock String
 syn match scalaAnnotation /@\<[`_A-Za-z0-9$]\+\>/
 hi link scalaAnnotation PreProc
 
-syn match scalaTrailingComment "//.*$"
+syn match scalaTrailingComment "//.*$" contains=@Spell
 hi link scalaTrailingComment Comment
 
 syn match scalaAkkaFSM /goto([^)]*)\_s\+\<using\>/ contains=scalaAkkaFSMGotoUsing
@@ -178,3 +195,9 @@ syn match scalaAkkaFSMGotoUsing /\<using\>/
 syn match scalaAkkaFSMGotoUsing /\<goto\>/
 hi link scalaAkkaFSM PreProc
 hi link scalaAkkaFSMGotoUsing PreProc
+
+let b:current_syntax = 'scala'
+
+if main_syntax ==# 'scala'
+  unlet main_syntax
+endif
