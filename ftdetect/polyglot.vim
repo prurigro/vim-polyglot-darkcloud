@@ -185,14 +185,15 @@ autocmd BufNewFile,BufRead *.Rrst set ft=rrst
 autocmd BufNewFile,BufRead *.rrst set ft=rrst
 autocmd BufNewFile,BufRead *.Rmd set ft=rmd
 autocmd BufNewFile,BufRead *.rmd set ft=rmd
-au BufRead,BufNewFile *.sbt set filetype=sbt
+au BufRead,BufNewFile *.sbt set filetype=sbt.scala
 fun! s:DetectScala()
     if getline(1) == '#!/usr/bin/env scala'
         set filetype=scala
     endif
 endfun
-au BufRead,BufNewFile *.scala,*.sbt set filetype=scala
+au BufRead,BufNewFile *.scala set filetype=scala
 au BufRead,BufNewFile * call s:DetectScala()
+au BufRead,BufNewFile *.sbt setfiletype sbt.scala
 autocmd BufNewFile,BufRead *.slim set filetype=slim
 autocmd BufNewFile,BufReadPost *.styl set filetype=stylus
 autocmd BufNewFile,BufReadPost *.stylus set filetype=stylus
