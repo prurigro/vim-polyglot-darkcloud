@@ -20,25 +20,16 @@
 
 " TODO:
 "   * Fix p6Match region for /pattern/. It shouldn't match (1,2)[*/2]
-"   * Deal with s:Perl5//
 "   * Highlight interpolated $() and related constructs
-"   * Make these highlight as strings, not operators:
-"       <==> <=:=> <===> <=~> <« »> «>» «<»
 "   * Allow more keywords to match as function calls(leave() is export(), etc)
+"   * Go over the list of keywords/routines to see what's deprecated/missing
+"   * Highlight indented Pod blocks
 "   * Optimization: use nextgroup instead of lookaround (:help syn-nextgroup)
 "   * Optimization: See if some lookarounds can be bounded with e.g. \@1<=
 "   * Optimization: Try replacing similar regexes with a single, larger one.
 "     See also :help syntime.
 "   * Add more support for folding (:help syn-fold)
 "   * Add more syntax syncing hooks (:help syn-sync)
-"
-" Impossible TODO?:
-"   * Unspace
-"   * Unicode bracketing characters for quoting (there are so many)
-"   * Various tricks depending on context. I.e. we can't know when Perl
-"     expects «*» to be a string or a hyperoperator. The latter is presumably
-"     more common, so that's what we assume.
-"   * Selective highlighting of Pod formatting codes with the :allow option
 "
 " To highlight comments with doubled and tripled delimiters (#`<<< >>>, etc):
 "   let perl6_extended_comments=1
@@ -73,14 +64,6 @@ set cpo&vim
 " Identifiers (subroutines, methods, constants, classes, roles, etc)
 syn match p6Identifier display "\%([A-Za-z_\xC0-\xFF]\%([A-Za-z_\xC0-\xFF0-9]\|[-'][A-Za-z_\xC0-\xFF]\@=\)*\)"
 
-" This is used in the for loops below
-" Don't use the "syn keyword" construct because that always has higher
-" priority than matches/regions, so the words can't be autoquoted with
-" the "=>" and "p5=>" operators. All the lookaround stuff is to make sure
-" we don't match them as part of some other identifier.
-let s:before_keyword = " display \"\\%([A-Za-z_\\xC0-\\xFF0-9]\\|[A-Za-z_\\xC0-\\xFF][-']\\)\\@<!\\%("
-let s:after_keyword = "\\)\\%([A-Za-z_\\xC0-\\xFF0-9]\\|[-'][A-Za-z_\\xC0-\\xFF]\\@=\\)\\@!\""
-
 " Billions of keywords
 let s:keywords = {
  \ "p6Attention": [
@@ -112,7 +95,7 @@ let s:keywords = {
  \   "default exit make continue break goto leave async lift",
  \ ],
  \ "p6TypeConstraint": [
- \   "is as but trusts of returns handles where augment supersede",
+ \   "is does as but trusts of returns handles where augment supersede",
  \ ],
  \ "p6ClosureTrait": [
  \   "BEGIN CHECK INIT START FIRST ENTER LEAVE KEEP",
@@ -158,63 +141,23 @@ let s:keywords = {
  \ ],
 \ }
 
+" We don't use the "syn keyword" construct here because that always has
+" higher priority than matches/regions, which would ruin our chance of
+" matching these words later on as strings with the autoquote ("=>", "p5=>")
+" operators.
+let s:before_keyword = "\\%([A-Za-z_\\xC0-\\xFF0-9]\\|[A-Za-z_\\xC0-\\xFF][-']\\)\\@<!\\%("
+let s:after_keyword = "\\)\\%([A-Za-z_\\xC0-\\xFF0-9]\\|[-'][A-Za-z_\\xC0-\\xFF]\\@=\\)\\@!"
+let s:no_open_paren = "\\%((\\)\\@!"
+
 for [group, words] in items(s:keywords)
     let s:words_space = join(words, " ")
     let s:temp = split(s:words_space)
     let s:words = join(s:temp, "\\|")
-    exec "syn match ". group ." ". s:before_keyword . s:words . s:after_keyword
+    exec "syn match ". group ." display \"". s:before_keyword . s:words . s:after_keyword . s:no_open_paren . "\""
 endfor
-unlet s:keywords s:words_space s:temp s:words
+unlet s:keywords s:words_space s:temp s:words s:no_open_paren
 
-" More operators
-" Don't put a "\+" at the end of the character class. That makes it so
-" greedy that the "%" " in "+%foo" won't be allowed to match as a sigil,
-" among other things
-syn match p6Operator display "[-+/*~?|=^!%&,<>».;\\]"
-syn match p6Operator display "\%(:\@<!::\@!\|::=\|\.::\)"
-" these require whitespace on the left side
-syn match p6Operator display "\%(\s\|^\)\@<=\%(xx=\|p5=>\)"
-" "i" requires a digit to the left, and no identifier char to the right
-syn match p6Operator display "[A-Za-z_\xC0-\xFF]\@<!i[A-Za-z_\xC0-\xFF0-9]\@!"
-" index overloading
-syn match p6Operator display "\%(&\.(\@=\|@\.\[\@=\|%\.{\@=\)"
-
-" all infix operators except nonassocative ones
-let s:infix_a = [
-    \ "div % mod +& +< +> \\~& ?& \\~< \\~> +| +\\^ \\~| \\~\\^ ?| ?\\^ xx x",
-    \ "\\~ && & also <== ==> <<== ==>> == != < <= > >= \\~\\~ eq ne lt le gt",
-    \ "ge =:= === eqv before after \\^\\^ min max \\^ff ff\\^ \\^ff\\^",
-    \ "\\^fff fff\\^ \\^fff\\^ fff ff ::= := \\.= => , : p5=> Z minmax",
-    \ "\\.\\.\\. and andthen or orelse xor \\^ += -= /= \\*= \\~= //= ||=",
-    \ "+ - \\*\\* \\* // / \\~ || |",
-\ ]
-" nonassociative infix operators
-let s:infix_n = "but does <=> leg cmp \\.\\. \\.\\.\\^\\^ \\^\\.\\. \\^\\.\\.\\^"
-
-let s:infix_a_long = join(s:infix_a, " ")
-let s:infix_a_words = split(s:infix_a_long)
-let s:infix_a_pattern = join(s:infix_a_words, "\\|")
-
-let s:infix_n_words = split(s:infix_n)
-let s:infix_n_pattern = join(s:infix_n_words, "\\|")
-
-let s:both = [s:infix_a_pattern, s:infix_n_pattern]
-let s:infix = join(s:both, "\\|")
-
-let s:infix_assoc = "!\\?\\%(" . s:infix_a_pattern . "\\)"
-let s:infix = "!\\?\\%(" . s:infix . "\\)"
-
-unlet s:infix_a s:infix_a_long s:infix_a_words s:infix_a_pattern
-unlet s:infix_n s:infix_n_pattern s:both
-
-" [+] reduce
-exec "syn match p6ReduceOp display \"[A-Za-z_\\xC0-\\xFF0-9]\\@<!\\[[R\\\\]\\?!\\?". s:infix_assoc ."]\\%(«\\|<<\\)\\?\""
-unlet s:infix_assoc
-
-" Reverse and cross operators (Rop, Xop)
-exec "syn match p6ReverseCrossOp display \"[RX]". s:infix ."\""
-
-" basically all builtins that can be followed by parentheses
+" Basically all builtins that can be followed by parentheses
 let s:routines = [
  \ "eager hyper substr index rindex grep map sort join lines hints chmod",
  \ "split reduce min max reverse truncate zip cat roundrobin classify",
@@ -238,26 +181,47 @@ let s:routines = [
  \ "unwrap getc pi e context void quasi body each contains rewinddir subst",
  \ "can isa flush arity assuming rewind callwith callsame nextwith nextsame",
  \ "attr eval_elsewhere none srand trim trim_start trim_end lastcall WHAT",
- \ "WHERE HOW WHICH VAR WHO WHENCE ACCEPTS REJECTS does not true iterator by",
+ \ "WHERE HOW WHICH VAR WHO WHENCE ACCEPTS REJECTS not true iterator by",
  \ "re im invert flip gist flat tree is-prime throws_like trans",
 \ ]
 
-" we want to highlight builtins like split() though, so this comes afterwards
-" TODO: check if this would be faster as one big regex
 let s:words_space = join(s:routines, " ")
 let s:temp = split(s:words_space)
 let s:words = join(s:temp, "\\|")
-exec "syn match p6Routine ". s:before_keyword . s:words . s:after_keyword
+exec "syn match p6Routine display \"". s:before_keyword . s:words . s:after_keyword . "\""
 unlet s:before_keyword s:after_keyword s:words_space s:temp s:words s:routines
+
+" try to distinguish the is/does functions from the type constraints
+syn match p6Routine     display "\%(\%(\S[A-Za-z_\xC0-\xFF0-9]\@<!\|^\)\s*\)\@<=\%(is\|does\)\>"
+
+" these Routine names are also Properties, if preceded by "is"
+syn match p6Property    display "\%(is\s\+\)\@<=\%(signature\|context\|also\|shape\)"
 
 " packages, must come after all the keywords
 syn match p6Identifier display "\%(::\)\@<=\%([A-Za-z_\xC0-\xFF]\%([A-Za-z_\xC0-\xFF0-9]\|[-'][A-Za-z_\xC0-\xFF]\@=\)*\)*"
 syn match p6Identifier display "\%([A-Za-z_\xC0-\xFF]\%([A-Za-z_\xC0-\xFF0-9]\|[-'][A-Za-z_\xC0-\xFF]\@=\)*\)\%(::\)\@="
 
+" The sigil in ::*Package
+syn match p6PackageTwigil display "\%(::\)\@<=\*"
+
 " some standard packages
 syn match p6Type display "\%(::\|[A-Za-z_\xC0-\xFF0-9]\|[A-Za-z_\xC0-\xFF]\@<=[-']\)\@<!\%(Order\%(::Same\|::More\|::Less\)\?\)\%([A-Za-z_\xC0-\xFF0-9]\|-[A-Za-z_\xC0-\xFF]\@=\)\@!"
 syn match p6Type display "\%(::\|[A-Za-z_\xC0-\xFF0-9]\|[A-Za-z_\xC0-\xFF]\@<=[-']\)\@<!\%(Bool\%(::True\|::False\)\?\)\%([A-Za-z_\xC0-\xFF0-9]\|-[A-Za-z_\xC0-\xFF]\@=\)\@!"
 
+" Don't put a "\+" at the end of the character class. That makes it so
+" greedy that the "%" " in "+%foo" won't be allowed to match as a sigil,
+" among other things
+syn match p6Operator display "[-+/*~?|=^!%&,<>».;\\]"
+syn match p6Operator display "\%(:\@<!::\@!\|::=\|\.::\)"
+" these require whitespace on the left side
+syn match p6Operator display "\%(\s\|^\)\@<=\%(xx=\|p5=>\)"
+" "i" requires a digit to the left, and no identifier char to the right
+syn match p6Operator display "[A-Za-z_\xC0-\xFF]\@<!i[A-Za-z_\xC0-\xFF0-9]\@!"
+" index overloading
+syn match p6Operator display "\%(&\.(\@=\|@\.\[\@=\|%\.{\@=\)"
+" reduce, reverse, and cross metaoperators
+syn match p6ReduceOp display "\%(^\|\s\|(\)\@<=\[\d\@![^,[:space:]]\+]"
+syn match p6ReverseCrossOp display "[RX]\S\+"
 
 syn match p6BlockLabel display "\%(^\s*\)\@<=\h\w*\s*::\@!\_s\@="
 syn match p6Number     display "[A-Za-z_\xC0-\xFF0-9]\@<!_\@!\%(\d\|__\@!\)\+_\@<!\%([eE]_\@!+\?\%(\d\|_\)\+\)\?_\@<!"
@@ -277,21 +241,6 @@ syn match p6Number     display "\%(\<0d\)\@<=\d[[:digit:]_]*"
 syn match p6Version    display "\<v\d\@=" nextgroup=p6VersionNum
 syn match p6VersionNum display "\d\+" nextgroup=p6VersionDot contained
 syn match p6VersionDot display "\.\%(\d\|\*\)\@=" nextgroup=p6VersionNum contained
-
-" try to distinguish the "is" function from the "is" trail auxiliary
-syn match p6Routine     display "\%(\%(\S[A-Za-z_\xC0-\xFF0-9]\@<!\|^\)\s*\)\@<=is\>"
-
-" does is a type constraint sometimes
-syn match p6TypeConstraint display "does\%(\s*\%([A-Za-z_\xC0-\xFF0-9]\|[-'][A-Za-z_\xC0-\xFF]\@=\)\)\@="
-
-" int is a type sometimes
-syn match p6Type        display "\<int\>\%(\s*(\|\s\+\d\)\@!"
-
-" these Routine names are also Properties, if preceded by "is"
-syn match p6Property    display "\%(is\s\+\)\@<=\%(signature\|context\|also\|shape\)"
-
-" The sigil in ::*Package
-syn match p6PackageTwigil display "\%(::\)\@<=\*"
 
 " $<match>
 syn region p6MatchVarSigil
@@ -561,6 +510,18 @@ syn region p6InnerFrench
     \ contained
     \ contains=p6InnerFrench
 
+" Hyperops. They need to come after "<>" and "«»" strings in order to override
+" them, but before other types of strings, to avoid matching those delimiters
+" as parts of hyperops.
+syn match p6HyperOp display "»\S\+»\?"
+syn match p6HyperOp display "«\?\S\+«"
+syn match p6HyperOp display "»\S\+«"
+syn match p6HyperOp display "«\S\+»"
+syn match p6HyperOp display ">>\S\+\%(>>\)\?"
+syn match p6HyperOp display "\%(<<\)\?\S\+<<"
+syn match p6HyperOp display ">>\S\+<<"
+syn match p6HyperOp display "<<\S\+>>"
+
 " 'string'
 syn region p6StringSQ
     \ matchgroup=p6Quote
@@ -641,18 +602,6 @@ syn match p6StringP5Auto display "\%([A-Za-z_\xC0-\xFF]\%([A-Za-z_\xC0-\xFF0-9]\
 syn match p6StringAuto   display "\%([A-Za-z_\xC0-\xFF]\%([A-Za-z_\xC0-\xFF0-9]\|[-'][A-Za-z_\xC0-\xFF]\@=\)*\)\ze\%(p5\)\@<!=>"
 syn match p6StringAuto   display "\%([A-Za-z_\xC0-\xFF]\%([A-Za-z_\xC0-\xFF0-9]\|[-'][A-Za-z_\xC0-\xFF]\@=\)*\)\ze\s\+=>"
 syn match p6StringAuto   display "\%([A-Za-z_\xC0-\xFF]\%([A-Za-z_\xC0-\xFF0-9]\|[-'][A-Za-z_\xC0-\xFF]\@=\)*\)p5\ze=>"
-
-" Hyperoperators. Needs to come after the quoting operators (<>, «», etc)
-exec "syn match p6HyperOp display \"»"   .s:infix."»\\?\""
-exec "syn match p6HyperOp display \"«\\?".s:infix."«\""
-exec "syn match p6HyperOp display \"»"   .s:infix."«\""
-exec "syn match p6HyperOp display \"«"   .s:infix. "»\""
-
-exec "syn match p6HyperOp display \">>"          .s:infix."\\%(>>\\)\\?\""
-exec "syn match p6HyperOp display \"\\%(<<\\)\\?".s:infix."<<\""
-exec "syn match p6HyperOp display \">>"          .s:infix."<<\""
-exec "syn match p6HyperOp display \"<<"          .s:infix.">>\""
-unlet s:infix
 
 " Regexes and grammars
 
