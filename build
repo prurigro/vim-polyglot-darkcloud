@@ -2,87 +2,99 @@
 
 set -E
 
-DIRS="after/ftdetect after/ftplugin after/indent after/syntax autoload compiler ftdetect ftplugin indent plugin syntax"
-DIRS_BASIC="after/ftdetect after/indent after/syntax ftdetect indent syntax"
+langdirs='after/ftdetect after/ftplugin after/indent after/syntax autoload compiler ftdetect ftplugin indent plugin syntax'
+langdirs_basic='after/ftdetect after/indent after/syntax ftdetect indent syntax'
 
-TMPFOLDER="./tmp"
-BACKFOLDER="_oldpacks_backup"
-GITSOURCE="https://github.com"
+tmpfolder='./tmp'
+backfolder='_oldpacks_backup'
+gitsource='https://github.com'
 
 function cleanup_and_exit() {
     # remove temp folder
-    [[ -d "$TMPFOLDER" ]] && rm -rf "$TMPFOLDER"
-    echo -e "$1"
-    exit $2
+    [[ -d "$tmpfolder" ]] \
+        && rm -rf "$tmpfolder"
+    printf '%s\n' "$1"
+    exit "$2"
 }
 
 download() {
     for pack in $1; do
-        path="$(printf "$pack" | cut -d ':' -f 2 | cut -d '#' -f 1)"
-        dir="${TMPFOLDER}/$(printf "$path" | cut -d '/' -f 2)"
-        [[ $(grep '#' <<< $pack) ]] \
-            && branch="$(printf "$pack" | cut -d '#' -f 2)" || branch="master"
+        path="$(cut -d ':' -f 2 <<< "$pack" | cut -d '#' -f 1)"
+        dir="$tmpfolder/$(cut -d '/' -f 2 <<< "$path")"
+        if [[ "$pack" =~ \# ]]; then
+            branch="$(cut -d '#' -f 2 <<< "$pack")"
+        else
+            branch='master'
+        fi
         rm -rf "$dir"
-        while [ ! -d "$dir" ]; do
-            git clone -b "$branch" -q --recursive "${GITSOURCE}/${path}.git" "$dir" && printf '.'
+        while [[ ! -d "$dir" ]]; do
+            git clone -b "$branch" -q --recursive "$gitsource/${path}.git" "$dir" \
+                && printf '%s' '.'
         done
     done
     wait
 }
 
 extract() {
-    printf "\n"
+    printf '\n'
     for pack in $1; do
-        name="$(printf "$pack" | cut -d ':' -f 1 | cut -d '#' -f 1)"
-        path="$(printf "$pack" | cut -d ':' -f 2 | cut -d '#' -f 1)"
-        dir="${TMPFOLDER}/$(printf "$path" | cut -d '/' -f 2)"
-        [[ $(grep '#' <<< $pack) ]] && branch="$(printf "$pack" | cut -d '#' -f 2)" || branch="master"
-        directories="DIRS$(printf "$pack" | cut -d ':' -f 3 | cut -d '#' -f 1)"
-        printf -- "- [${name}](${GITSOURCE}/${path}#branch=${branch}) ("
+        name="$(cut -d ':' -f 1 <<< "$pack" | cut -d '#' -f 1)"
+        path="$(cut -d ':' -f 2 <<< "$pack" | cut -d '#' -f 1)"
+        dir="$tmpfolder/$(cut -d '/' -f 2 <<< "$path")"
+        if grep -q '#' <<< "$pack"; then
+            branch="$(cut -d '#' -f 2 <<< "$pack")"
+        else
+            branch='master'
+        fi
+        directories="langdirs$(cut -d ':' -f 3 <<< "$pack" | cut -d '#' -f 1)"
+        printf -- "- [$name]($gitsource/${path}#branch=$branch) ("
 
-        subdirs=""
+        subdirs=''
         for subdir in ${!directories}; do
             if [ -d "$dir/$subdir" ]; then
                 base="$(basename "$subdir")"
-                [[ "$subdirs" != *"$base"* ]] && subdirs="$subdirs, $base"
+                [[ "$subdirs" != *"$base"* ]] \
+                    && subdirs="$subdirs, $base"
                 copy_dir "$dir" "$subdir"
             fi
         done
 
-        printf "${subdirs##, })\n"
+        printf '%s\n' "${subdirs##, })"
     done
 }
 
 copy_dir() {
-    for file in $(find "${1}/${2}" -name '*.vim'); do
-        file_path="$(dirname "${file##$1/}")"
+    while read -r; do
+        file_path="$(dirname "${REPLY##$1/}")"
         mkdir -p "$file_path"
-        touch "${file_path}/$(basename "$file")"
-        cat $file >> ${file_path}/$(basename "$file")
-    done
+        touch "$file_path/$(basename "$REPLY")"
+        cat "$REPLY" >> "$file_path/$(basename "$REPLY")"
+    done < <(find "$1/$2" -name '*.vim')
 }
 
 concat_ftdetect() {
-    cat ftdetect/* | grep -E '^[^"]' > ${TMPFOLDER}/polyglot.vim
+    cat ftdetect/* | egrep '^[^"]' > "$tmpfolder/polyglot.vim"
     rm -f ftdetect/*
-    mv ${TMPFOLDER}/polyglot.vim ftdetect/
+    mv "$tmpfolder/polyglot.vim" ftdetect/
 }
 
 backup() {
-    BACKUPDIRS="after autoload compiler ftdetect ftplugin indent plugin syntax"
+    backupdirs='after autoload compiler ftdetect ftplugin indent plugin syntax'
 
-    [[ -d "$BACKFOLDER" ]] \
-        && cleanup_and_exit "Error, backup directory already exists: ${BACKFOLDER}" 1
-    install -d "$BACKFOLDER"
-    printf "Backing up current packs to: ${BACKFOLDER}\n"
-    for subdir in $BACKUPDIRS; do
-        [[ -d $subdir ]] \
-            && mv "$subdir" "${BACKFOLDER}/${subdir}" \
-            || printf "Error, could not backup missing directory: ${subdir}\n"
+    [[ -d "$backfolder" ]] \
+        && cleanup_and_exit "Error, backup directory already exists: $backfolder" 1
+    install -d "$backfolder"
+    printf '%s\n' "Backing up current packs to: $backfolder"
+    for subdir in $backupdirs; do
+        if [[ -d $subdir ]]; then
+            mv "$subdir" "$backfolder/$subdir"
+        else
+            printf '%s\n' "Error, could not backup missing directory: $subdir"
+        fi
     done
 }
 
-PACKS="
+PACKS='
     archversion:prurigro/vim-archversion
     arduino:sudar/vim-arduino-syntax
     blade:xsbeats/vim-blade
@@ -103,7 +115,7 @@ PACKS="
     emblem:heartsentwined/vim-emblem
     erlang:oscarh/vimerl
     git:tpope/vim-git
-    go:fatih/vim-go:_BASIC
+    go:fatih/vim-go:_basic
     haml:tpope/vim-haml
     handlebars:mustache/vim-mustache-handlebars
     haskell:travitch/hasksyn
@@ -118,7 +130,7 @@ PACKS="
     latex:LaTeX-Box-Team/LaTeX-Box
     less:groenewege/vim-less
     liquid:tpope/vim-liquid
-    markdown:plasticboy/vim-markdown:_BASIC
+    markdown:plasticboy/vim-markdown:_basic
     nginx:mutewinter/nginx.vim
     nim:zah/nimrod.vim
     ocaml:jrk/vim-ocaml
@@ -151,19 +163,20 @@ PACKS="
     twig:beyondwords/vim-twig
     xls:vim-scripts/XSLT-syntax
     yard:sheerun/vim-yardoc
-"
+'
 
 # backup current setup
 backup
 
 # setup fresh temp folder
-rm -rf "$TMPFOLDER"
-mkdir "$TMPFOLDER"
+rm -rf "${tmpfolder:?}"
+install -d "$tmpfolder"
 
 # download/setup latest packs
-printf "Downloading packs..."
+printf 'Downloading packs...'
 download "$PACKS"
 extract "$PACKS"
 concat_ftdetect
 
-cleanup_and_exit '\nDone!' 0
+printf '\n'
+cleanup_and_exit 'Done!' 0
