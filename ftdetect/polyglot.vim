@@ -137,7 +137,7 @@ function! s:DetectPerl6()
   endwhile
 endfunction
 autocmd BufReadPost *.pl,*.pm,*.t call s:DetectPerl6()
-autocmd BufNew,BufRead *.nqp setf perl6
+autocmd BufNew,BufNewFile,BufRead *.nqp setf perl6
 autocmd BufNewFile,BufRead *.proto setfiletype proto
 au! BufRead,BufNewFile *.pp setfiletype puppet
 au! BufRead,BufNewFile Puppetfile setfiletype ruby
