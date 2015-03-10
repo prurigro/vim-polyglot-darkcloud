@@ -187,7 +187,7 @@ autocmd BufNewFile,BufRead *.Rmd set ft=rmd
 autocmd BufNewFile,BufRead *.rmd set ft=rmd
 au BufRead,BufNewFile *.sbt set filetype=sbt.scala
 fun! s:DetectScala()
-    if getline(1) == '#!/usr/bin/env scala'
+    if getline(1) =~# '^#!\(/usr\)\?/bin/env\s\+scalas\?'
         set filetype=scala
     endif
 endfun
@@ -208,6 +208,7 @@ au BufNewFile,BufRead *.target    set filetype=systemd
 au BufNewFile,BufRead *.timer     set filetype=systemd
 au BufRead,BufNewFile *.textile set filetype=textile
 autocmd BufNewFile,BufRead {.,}tmux.conf{.*,} setlocal filetype=tmux
+autocmd BufNewFile,BufRead {.,}tmux.conf{.*,} setlocal commentstring=#\ %s
 autocmd BufNewFile,BufRead *.toml set filetype=toml
 autocmd BufNewFile,BufRead Cargo.lock set filetype=toml
 autocmd BufNewFile,BufRead *.twig set filetype=twig
