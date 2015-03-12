@@ -9,7 +9,7 @@ tmpfolder='./tmp'
 backfolder='_oldpacks_backup'
 gitsource='https://github.com'
 
-function cleanup_and_exit() {
+function cleanup_and_exit {
     # remove temp folder
     [[ -d "$tmpfolder" ]] \
         && rm -rf "$tmpfolder"
@@ -17,7 +17,7 @@ function cleanup_and_exit() {
     exit "$2"
 }
 
-download() {
+function download {
     for pack in $1; do
         path="$(cut -d ':' -f 2 <<< "$pack" | cut -d '#' -f 1)"
         dir="$tmpfolder/$(cut -d '/' -f 2 <<< "$path")"
@@ -35,7 +35,7 @@ download() {
     wait
 }
 
-extract() {
+function extract {
     printf '\n'
     for pack in $1; do
         name="$(cut -d ':' -f 1 <<< "$pack" | cut -d '#' -f 1)"
@@ -63,24 +63,23 @@ extract() {
     done
 }
 
-copy_dir() {
+function copy_dir {
     while read -r; do
         file_path="$(dirname "${REPLY##$1/}")"
-        mkdir -p "$file_path"
+        install -d "$file_path"
         touch "$file_path/$(basename "$REPLY")"
         cat "$REPLY" >> "$file_path/$(basename "$REPLY")"
     done < <(find "$1/$2" -name '*.vim')
 }
 
-concat_ftdetect() {
+function concat_ftdetect {
     cat ftdetect/* | egrep '^[^"]' > "$tmpfolder/polyglot.vim"
     rm -f ftdetect/*
     mv "$tmpfolder/polyglot.vim" ftdetect/
 }
 
-backup() {
+function backup {
     backupdirs='after autoload compiler ftdetect ftplugin indent plugin syntax'
-
     [[ -d "$backfolder" ]] \
         && cleanup_and_exit "Error, backup directory already exists: $backfolder" 1
     install -d "$backfolder"
@@ -89,12 +88,12 @@ backup() {
         if [[ -d $subdir ]]; then
             mv "$subdir" "$backfolder/$subdir"
         else
-            printf '%s\n' "Error, could not backup missing directory: $subdir"
+            printf '%s\n' "Error, could not backup missing directory: $subdir" >&2
         fi
     done
 }
 
-PACKS='
+lang_packs='
     archversion:prurigro/vim-archversion
     arduino:sudar/vim-arduino-syntax
     blade:xsbeats/vim-blade
@@ -174,9 +173,10 @@ install -d "$tmpfolder"
 
 # download/setup latest packs
 printf 'Downloading packs...'
-download "$PACKS"
-extract "$PACKS"
+download "$lang_packs"
+extract "$lang_packs"
 concat_ftdetect
 
 printf '\n'
 cleanup_and_exit 'Done!' 0
+
