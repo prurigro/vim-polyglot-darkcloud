@@ -13,6 +13,14 @@ endif
 " after the global ones:
 runtime r-plugin/common_buffer.vim
 
+if !exists("b:did_ftplugin") && !exists("g:rplugin_runtime_warn")
+    runtime ftplugin/rnoweb.vim
+    if !exists("b:did_ftplugin")
+        call RWarningMsgInp("Your runtime files seems to be outdated.\nSee: https://github.com/jalvesaq/R-Vim-runtime")
+        let g:rplugin_runtime_warn = 1
+    endif
+endif
+
 if has("win32") || has("win64")
     call RSetDefaultValue("g:vimrplugin_latexmk", 0)
 else
@@ -641,4 +649,8 @@ endif
 
 call RSourceOtherScripts()
 
-let b:undo_ftplugin .= " | unlet! b:IsInRCode b:SourceLines b:PreviousRChunk b:NextRChunk b:SendChunkToR"
+if exists("b:undo_ftplugin")
+    let b:undo_ftplugin .= " | unlet! b:IsInRCode b:SourceLines b:PreviousRChunk b:NextRChunk b:SendChunkToR"
+else
+    let b:undo_ftplugin = " | unlet! b:IsInRCode b:SourceLines b:PreviousRChunk b:NextRChunk b:SendChunkToR"
+endif

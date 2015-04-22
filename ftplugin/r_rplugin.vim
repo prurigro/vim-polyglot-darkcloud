@@ -13,6 +13,14 @@ endif
 " need be defined after the global ones:
 runtime r-plugin/common_buffer.vim
 
+if !exists("b:did_ftplugin") && !exists("g:rplugin_runtime_warn")
+    runtime ftplugin/r.vim
+    if !exists("b:did_ftplugin")
+        call RWarningMsgInp("Your runtime files seems to be outdated.\nSee: https://github.com/jalvesaq/R-Vim-runtime")
+    endif
+    let g:rplugin_runtime_warn = 1
+endif
+
 " Run R CMD BATCH on current file and load the resulting .Rout in a split
 " window
 function! ShowRout()

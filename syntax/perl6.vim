@@ -350,7 +350,7 @@ syn region p6Adverb
 "   for " = < ... >" assignments though.
 " * It comes after "enum", "for", "any", "all", or "none"
 " * It's the first or last thing on a line (ignoring whitespace)
-" * It's preceded by "= "
+" * It's preceded by "(\s*" or "=\s\+"
 " * It's empty and terminated on the same line (e.g. <> and < >)
 "
 " It never matches when:
@@ -364,7 +364,7 @@ syn region p6StringAngle
     \ start="[<+~=!]\@1<!<\%(\s\|<\|=>\|[-=]\{1,2}\)\@!"
     \ start="\%(^\s*\)\@<=<\%(<\|=>\|[-=]\{1,2}>\@!\)\@!"
     \ start="[<+~=!]\@1<!<\%(\s*$\)\@="
-    \ start="\%(=\s\+\)\@<=<\%(<\|=>\|[-=]\{1,2}>\@!\)\@!"
+    \ start="\%((\s*\|=\s\+\)\@<=<\%(<\|=>\|[-=]\{1,2}>\@!\)\@!"
     \ start="<\%(\s*>\)\@="
     \ skip="\\\@1<!\\>"
     \ end=">"
@@ -454,8 +454,8 @@ syn match p6QuoteQ_qww  display "qww[A-Za-z(]\@!" nextgroup=p6PairsQ_qww skipwhi
 syn match p6QuoteQ_qq   display "qq[pwx]\?[A-Za-z(]\@!" nextgroup=p6PairsQ_qq skipwhite skipempty contained
 syn match p6QuoteQ_qto  display "qto[A-Za-z(]\@!" nextgroup=p6StringQ_qto skipwhite skipempty contained
 syn match p6QuoteQ_qqto display "qqto[A-Za-z(]\@!" nextgroup=p6StringQ_qqto skipwhite skipempty contained
-syn match p6QuoteQ_qto  display "q\%(:\%(to\|heredoc\)[A-Za-z(]\@!\)\@=" nextgroup=p6PairsQ_qto skipwhite skipempty contained
-syn match p6QuoteQ_qqto display "qq\%(:\%(to\|heredoc\)[A-Za-z(]\@!\)\@=" nextgroup=p6PairsQ_qqto skipwhite skipempty contained
+syn match p6QuoteQ_qto  display "q\_s*\%(:\%(to\|heredoc\)[A-Za-z(]\@!\)\@=" nextgroup=p6PairsQ_qto skipwhite skipempty contained
+syn match p6QuoteQ_qqto display "qq\_s*\%(:\%(to\|heredoc\)[A-Za-z(]\@!\)\@=" nextgroup=p6PairsQ_qqto skipwhite skipempty contained
 syn match p6PairsQ      "\%(\_s*:!\?\%([A-Za-z_\xC0-\xFF]\%([A-Za-z_\xC0-\xFF0-9]\|[-'][A-Za-z_\xC0-\xFF]\@=\)*\)\%(([^)]*)\)\?\)*" contained transparent skipwhite skipempty nextgroup=p6StringQ
 syn match p6PairsQ_q    "\%(\_s*:!\?\%([A-Za-z_\xC0-\xFF]\%([A-Za-z_\xC0-\xFF0-9]\|[-'][A-Za-z_\xC0-\xFF]\@=\)*\)\%(([^)]*)\)\?\)*" contained transparent skipwhite skipempty nextgroup=p6StringQ_q
 syn match p6PairsQ_qww  "\%(\_s*:!\?\%([A-Za-z_\xC0-\xFF]\%([A-Za-z_\xC0-\xFF0-9]\|[-'][A-Za-z_\xC0-\xFF]\@=\)*\)\%(([^)]*)\)\?\)*" contained transparent skipwhite skipempty nextgroup=p6StringQ_qww
