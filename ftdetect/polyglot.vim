@@ -51,18 +51,19 @@ autocmd BufNewFile,BufRead *
 let s:current_fileformats = ''
 let s:current_fileencodings = ''
 function! s:gofiletype_pre()
-  let s:current_fileformats = &g:fileformats
-  let s:current_fileencodings = &g:fileencodings
-  set fileencodings=utf-8 fileformats=unix
-  setlocal filetype=go
+    let s:current_fileformats = &g:fileformats
+    let s:current_fileencodings = &g:fileencodings
+    set fileencodings=utf-8 fileformats=unix
+    setlocal filetype=go
 endfunction
 function! s:gofiletype_post()
-  let &g:fileformats = s:current_fileformats
-  let &g:fileencodings = s:current_fileencodings
+    let &g:fileformats = s:current_fileformats
+    let &g:fileencodings = s:current_fileencodings
 endfunction
 au BufNewFile *.go setlocal filetype=go fileencoding=utf-8 fileformat=unix
 au BufRead *.go call s:gofiletype_pre()
 au BufReadPost *.go call s:gofiletype_post()
+au BufRead,BufNewFile *.tmpl set filetype=gohtmltmpl
 autocmd BufNewFile,BufRead *.haml,*.hamlbars,*.hamlc setf haml
 autocmd BufNewFile,BufRead *.sass setf sass
 autocmd BufNewFile,BufRead *.scss setf scss

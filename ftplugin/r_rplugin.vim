@@ -75,10 +75,6 @@ endfunction
 
 let b:IsInRCode = function("DefaultIsInRCode")
 
-" Pointer to function that must be different if the plugin is used as a
-" global one:
-let b:SourceLines = function("RSourceLines")
-
 "==========================================================================
 " Key bindings and menu items
 
@@ -86,7 +82,8 @@ call RCreateStartMaps()
 call RCreateEditMaps()
 
 " Only .R files are sent to R
-call RCreateMaps("ni", '<Plug>RSendFile',     'aa', ':call SendFileToR()')
+call RCreateMaps("ni", '<Plug>RSendFile',     'aa', ':call SendFileToR("silent")')
+call RCreateMaps("ni", '<Plug>RESendFile',    'ae', ':call SendFileToR("echo")')
 call RCreateMaps("ni", '<Plug>RShowRout',     'ao', ':call ShowRout()')
 
 " Knitr::spin
@@ -107,7 +104,7 @@ endif
 call RSourceOtherScripts()
 
 if exists("b:undo_ftplugin")
-    let b:undo_ftplugin .= " | unlet! b:IsInRCode b:SourceLines"
+    let b:undo_ftplugin .= " | unlet! b:IsInRCode"
 else
-    let b:undo_ftplugin = "unlet! b:IsInRCode b:SourceLines"   
+    let b:undo_ftplugin = "unlet! b:IsInRCode"
 endif
