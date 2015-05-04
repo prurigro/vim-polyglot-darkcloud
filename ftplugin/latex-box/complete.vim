@@ -255,14 +255,14 @@ function! LatexBox_BibSearch(regexp)
 		if has('win32')
 			let l:old_shellslash = &l:shellslash
 			setlocal noshellslash
-			silent execute '! cd ' shellescape(LatexBox_GetTexRoot()) .
+			call system('cd ' . shellescape(LatexBox_GetTexRoot()) .
 						\ ' & bibtex -terse '
-						\ . fnamemodify(auxfile, ':t') . ' >nul'
+						\ . fnamemodify(auxfile, ':t') . ' >nul')
 			let &l:shellslash = l:old_shellslash
 		else
-			silent execute '! cd ' shellescape(LatexBox_GetTexRoot()) .
+			call system('cd ' . shellescape(LatexBox_GetTexRoot()) .
 						\ ' ; bibtex -terse '
-						\ . fnamemodify(auxfile, ':t') . ' >/dev/null'
+						\ . fnamemodify(auxfile, ':t') . ' >/dev/null')
 		endif
 
 		let lines = split(substitute(join(readfile(bblfile), "\n"),
