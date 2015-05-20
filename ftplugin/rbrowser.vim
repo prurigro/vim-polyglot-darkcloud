@@ -27,6 +27,7 @@ setlocal noswapfile
 setlocal buftype=nofile
 setlocal nowrap
 setlocal iskeyword=@,48-57,_,.
+setlocal nolist
 
 if !exists("g:rplugin_hasmenu")
     let g:rplugin_hasmenu = 0
@@ -293,16 +294,6 @@ function! RBrowserGetName(cleantail, cleantick)
             return ""
         endif
     endif
-endfunction
-
-function! MakeRBrowserMenu()
-    let g:rplugin_curbuf = bufname("%")
-    if g:rplugin_hasmenu == 1
-        return
-    endif
-    menutranslate clear
-    call RControlMenu()
-    call RBrowserMenu()
 endfunction
 
 function! ObBrBufUnload()

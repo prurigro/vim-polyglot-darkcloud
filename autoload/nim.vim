@@ -2,7 +2,7 @@ let g:nim_log = []
 let s:plugin_path = escape(expand('<sfile>:p:h'), ' \')
 
 if !exists("g:nim_caas_enabled")
-  let g:nim_caas_enabled = 1
+  let g:nim_caas_enabled = 0
 endif
 
 if !executable('nim')
@@ -202,7 +202,7 @@ endf
 
 " Syntastic syntax checking
 fun! SyntaxCheckers_nim_nim_GetLocList()
-  let makeprg = 'nim check --hints:off ' . s:CurrentNimFile()
+  let makeprg = 'nim check --hints:off --listfullpaths ' . s:CurrentNimFile()
   let errorformat = &errorformat
   
   return SyntasticMake({ 'makeprg': makeprg, 'errorformat': errorformat })
