@@ -1139,13 +1139,10 @@ fu! <sid>SortList(a1, a2) "{{{3
 endfu
 
 fu! <sid>Sort(bang, line1, line2, colnr) range "{{{3
-    let wsv=winsaveview()
-    if a:colnr =~? 'n'
-        let numeric = 1
-    else
-        let numeric = 0
-    endif
-    let col = (empty(a:colnr) || a:colnr !~? '\d\+') ? <sid>WColumn() : a:colnr+0
+" :Sort command
+    let wsv  = winsaveview()
+    let flag = matchstr(a:colnr, '[nixo]')
+    let col = (empty(a:colnr) || a:colnr !~? '\d\+[nixo]\?') ? <sid>WColumn() : a:colnr+0
     if col != 1
         if !exists("b:csv_fixed_width_cols")
             let pat= '^' . <SID>GetColPat(col-1,1) . b:col
@@ -1156,7 +1153,7 @@ fu! <sid>Sort(bang, line1, line2, colnr) range "{{{3
         let pat= '^' . <SID>GetColPat(col,0)
     endif
     exe a:line1. ','. a:line2. "sort". (a:bang ? '!' : '') .
-        \' r ' . (numeric ? 'n' : '') . ' /' . pat . '/'
+        \' r'. flag. ' /' . pat . '/'
     call winrestview(wsv)
 endfun
 
