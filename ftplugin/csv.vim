@@ -585,7 +585,7 @@ fu! <sid>ColWidth(colnr, ...) "{{{3
         endif
         try
             for item in b:csv_list
-                call add(tlist, item[a:colnr-1])
+                call add(tlist, get(item, a:colnr-1, ''))
             endfor
             " do not strip leading whitespace
             call map(tlist, 'substitute(v:val, ".", "x", "g")')
@@ -1106,9 +1106,18 @@ fu! <sid>SortComplete(A,L,P) "{{{3
 endfun
 
 fu! <sid>Sort(bang, line1, line2, colnr) range "{{{3
-" :Sort command
+    " :Sort command
     let wsv  = winsaveview()
     let flag = matchstr(a:colnr, '[nixo]')
+    call <sid>CheckHeaderLine()
+    let line1 = a:line1
+    let line2 = a:line2
+    if line1 <= s:csv_fold_headerline
+      let line1 += s:csv_fold_headerline
+    endif
+    if line2 <= s:csv_fold_headerline
+      let line2 += s:csv_fold_headerline
+    endif
     let col = (empty(a:colnr) || a:colnr !~? '\d\+[nixo]\?') ? <sid>WColumn() : a:colnr+0
     if col != 1
         if !exists("b:csv_fixed_width_cols")
@@ -1119,7 +1128,7 @@ fu! <sid>Sort(bang, line1, line2, colnr) range "{{{3
     else
         let pat= '^' . <SID>GetColPat(col,0)
     endif
-    exe a:line1. ','. a:line2. "sort". (a:bang ? '!' : '') .
+    exe line1. ','. line2. "sort". (a:bang ? '!' : '') .
         \' r'. flag. ' /' . pat . '/'
     call winrestview(wsv)
 endfun
