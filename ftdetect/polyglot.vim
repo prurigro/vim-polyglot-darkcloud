@@ -171,6 +171,8 @@ au BufNewFile,BufRead Puppetfile		call s:setf('ruby')
 au BufNewFile,BufRead [Bb]uildfile		call s:setf('ruby')
 au BufNewFile,BufRead Appraisals		call s:setf('ruby')
 au BufNewFile,BufRead Podfile,*.podspec		call s:setf('ruby')
+au BufNewFile,BufRead [rR]outefile		call s:setf('ruby')
+au BufNewFile,BufRead .simplecov		set filetype=ruby
 au BufRead,BufNewFile *.rs set filetype=rust
 if exists("disable_r_ftplugin")
   finish
