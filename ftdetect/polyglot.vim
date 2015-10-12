@@ -30,7 +30,7 @@ autocmd BufNewFile,BufRead *.em set filetype=ember-script
 autocmd FileType ember-script set tabstop=2|set shiftwidth=2|set expandtab
 autocmd BufNewFile,BufRead *.emblem set filetype=emblem
 autocmd FileType emblem set tabstop=2|set shiftwidth=2|set expandtab
-autocmd BufNewFile,BufRead *.git/{,modules/**/}{COMMIT_EDIT,TAG_EDIT,MERGE_,}MSG set ft=gitcommit
+autocmd BufNewFile,BufRead *.git/{,modules/**/,worktrees/*/}{COMMIT_EDIT,TAG_EDIT,MERGE_,}MSG set ft=gitcommit
 autocmd BufNewFile,BufRead *.git/config,.gitconfig,gitconfig,.gitmodules set ft=gitconfig
 autocmd BufNewFile,BufRead */.config/git/config                          set ft=gitconfig
 autocmd BufNewFile,BufRead *.git/modules/**/config                       set ft=gitconfig
