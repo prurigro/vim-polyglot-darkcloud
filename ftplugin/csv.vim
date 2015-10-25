@@ -226,20 +226,19 @@ fu! <sid>LocalSettings(type) "{{{3
 endfu
 
 fu! <sid>DoAutoCommands() "{{{3
-    " Highlight column, on which the cursor is?
-    if exists("g:csv_highlight_column") && g:csv_highlight_column =~? 'y' &&
-        \ !exists("#CSV_HI#CursorMoved")
-        aug CSV_HI
+    " Highlight column, on which the cursor is
+    if exists("g:csv_highlight_column") && g:csv_highlight_column =~? 'y'
+        exe "aug CSV_HI".bufnr('')
             au!
-            au CursorMoved <buffer> HiColumn
+            exe "au CursorMoved <buffer=".bufnr('')."> HiColumn"
         aug end
         " Set highlighting for column, on which the cursor is currently
         HiColumn
-    elseif exists("#CSV_HI#CursorMoved")
-        aug CSV_HI
-            au! CursorMoved <buffer>
+    else
+        exe "aug CSV_HI".bufnr('')
+            exe "au! CursorMoved <buffer=".bufnr('').">"
         aug end
-        aug! CSV_HI
+        exe "aug! CSV_HI".bufnr('')
         " Remove any existing highlighting
         HiColumn!
     endif
@@ -766,7 +765,7 @@ fu! <sid>Columnize(field) "{{{3
     let has_delimiter = (a:field[-1:] is? b:delimiter)
     if align is? 'l'
         " left-align content
-        return printf("%-*S%s", width+1 , 
+        return printf("%-*S%s", width-1,
             \ (has_delimiter ? a:field[:-2] : a:field),
             \ (has_delimiter ? b:delimiter : ' '))
     elseif align is? 'c'
@@ -1981,7 +1980,7 @@ fu! <sid>CommandDefinitions() "{{{3
     call <sid>LocalCmd("UnArrangeColumn",
         \':call <sid>PrepUnArrangeCol(<line1>, <line2>)',
         \ '-range')
-    call <sid>LocalCmd("InitCSV", ':call <sid>Init(<line1>,<line2>,<bang>0)',
+    call <sid>LocalCmd("CSVInit", ':call <sid>Init(<line1>,<line2>,<bang>0)',
         \ '-bang -range=%')
     call <sid>LocalCmd('Header',
         \ ':call <sid>SplitHeaderLine(<q-args>,<bang>0,1)',
@@ -2076,7 +2075,7 @@ endfu
 fu! <sid>Menu(enable) "{{{3
     if a:enable
         " Make a menu for the graphical vim
-        amenu CSV.&Init\ Plugin             :InitCSV<cr>
+        amenu CSV.&Init\ Plugin             :CSVInit<cr>
         amenu CSV.SetUp\ &fixedwidth\ Cols  :CSVFixed<cr>
         amenu CSV.-sep1-                    <nul>
         amenu &CSV.&Column.&Number          :WhatColumn<cr>
@@ -2358,6 +2357,8 @@ fu! <sid>Tabularize(bang, first, last) "{{{3
     new
     call setline(1,content)
     let b:delimiter=delim
+    let csv_highlight_column = get(g:, 'csv_highlight_column', '')
+    unlet! g:csv_highlight_column
     call <sid>Init(1,line('$'), 1)
     if exists("b:csv_fixed_width_cols")
         let cols=copy(b:csv_fixed_width_cols)
@@ -2430,6 +2431,9 @@ fu! <sid>Tabularize(bang, first, last) "{{{3
 
     syn clear
     let &l:ma = _ma
+    if !empty(csv_highlight_column)
+      let g:csv_highlight_column = csv_highlight_column
+    endif
     call winrestview(_c)
 endfu
 fu! <sid>SubstituteInColumn(command, line1, line2) range "{{{3
