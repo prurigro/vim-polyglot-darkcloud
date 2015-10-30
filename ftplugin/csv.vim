@@ -231,6 +231,7 @@ fu! <sid>DoAutoCommands() "{{{3
         exe "aug CSV_HI".bufnr('')
             au!
             exe "au CursorMoved <buffer=".bufnr('')."> HiColumn"
+            exe "au BufWinLeave <buffer=".bufnr('')."> HiColumn!"
         aug end
         " Set highlighting for column, on which the cursor is currently
         HiColumn
@@ -272,10 +273,10 @@ fu! <sid>GetPat(colnr, maxcolnr, pat, allowmore) "{{{3
     elseif a:colnr == a:maxcolnr
         if !exists("b:csv_fixed_width_cols")
             return '^' . <SID>GetColPat(a:colnr - 1,0) .
-                \ '\zs' . a:pat . '\ze$'
+                \ '\zs' . a:pat . '\ze' . (a:allowmore ? '' : '$')
         else
             return '\%' . b:csv_fixed_width_cols[-1] .
-                \ 'c\zs' . a:pat . '\ze$'
+                \ 'c\zs' . a:pat . '\ze' . (a:allowmore ? '' : '$')
         endif
     else " colnr = 1
         if !exists("b:csv_fixed_width_cols")
@@ -2497,6 +2498,20 @@ fu! <sid>SubstituteInColumn(command, line1, line2) range "{{{3
             for colnr in columns
                 let @/ = <sid>GetPat(colnr, maxcolnr, cmd[1], 1)
                 while search(@/)
+                    let curpos = getpos('.')
+                    " safety check
+                    if (<sid>WColumn() != colnr)
+                      break
+                    endif
+                    if  len(split(getline('.'), '\zs')) > curpos[2] && <sid>GetCursorChar() is# b:delimiter
+                      " Cursor is on delimiter and next char belongs to the
+                      " next field, skip this match
+                      norm! l
+                      if (<sid>WColumn() != colnr)
+                        break
+                      endif
+                      call setpos('.', curpos)
+                    endif
                     exe printf("%d,%ds//%s%s", a:line1, a:line2, cmd[2], (has_flags ? '/'. cmd[3] : ''))
                     if !has_flags || (has_flags && cmd[3] !~# 'g')
                         break
@@ -2538,6 +2553,17 @@ endfu
 fu! <sid>Timeout(start) "{{{3
     return localtime()-a:start < 2
 endfu
+fu! <sid>GetCursorChar() "{{{3
+    let register = ['a', getreg('a'), getregtype('a')]
+    try
+      norm! v"ay
+      let s=getreg('a')
+      return s
+    finally
+      call call('setreg', register)
+    endtry
+endfu
+
 fu! <sid>SameFieldRegion() "{{{3
     " visually select the region, that has the same value in the cursor field
     let col = <sid>WColumn()
