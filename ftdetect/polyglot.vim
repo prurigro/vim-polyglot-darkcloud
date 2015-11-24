@@ -112,7 +112,7 @@ if has("autocmd")
 endif
 au BufRead,BufNewFile /etc/nginx/*,/usr/local/nginx/*,*/nginx/vhosts.d/*,nginx.conf if &ft == '' | setfiletype nginx | endif
 au BufNewFile,BufRead *.nim set filetype=nim
-au BufRead,BufNewFile *.cl set filetype=opencl
+au! BufRead,BufNewFile *.cl set filetype=opencl
 function! s:DetectPerl6()
   let line_no = 1
   let eof     = line('$')
