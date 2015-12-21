@@ -2,7 +2,7 @@
 " Language:	git rebase --interactive
 " Maintainer:	Tim Pope <vimNOSPAM@tpope.org>
 " Filenames:	git-rebase-todo
-" Last Change:	2015 November 21
+" Last Change:	2013 May 30
 
 if exists("b:current_syntax")
   finish
@@ -32,6 +32,7 @@ hi def link gitrebaseEdit           PreProc
 hi def link gitrebaseSquash         Type
 hi def link gitrebaseFixup          Special
 hi def link gitrebaseExec           Function
+hi def link gitrebaseDrop           Comment
 hi def link gitrebaseSummary        String
 hi def link gitrebaseComment        Comment
 hi def link gitrebaseSquashError    Error

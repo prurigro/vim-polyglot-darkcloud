@@ -29,23 +29,6 @@ if !s:csv_numeric_sort "{{{2
     return (a:i1+0) == (a:i2+0) ? 0 : (a:i1+0) > (a:i2+0) ? 1 : -1
   endfu
 endif
-if !exists("##OptionSet") "{{{2
-  " No OptionSet autocommands
-  fu! CSV_SetSplitOptions(window) "{{{3
-      if exists("s:local_stl")
-          " local horizontal statusline
-          for opt in items({'&nu': &l:nu, '&rnu': &l:rnu, '&fdc': &fdc})
-              if opt[1] != getwinvar(a:window, opt[0])
-                  call setwinvar(a:window, opt[0], opt[1])
-              endif
-          endfor
-          " Check statusline (airline might change it)
-          if getwinvar(a:window, '&l:stl') != s:local_stl
-              call setwinvar(a:window, '&stl', s:local_stl)
-          endif
-      endif
-  endfun
-endif
 " Function definitions: "{{{1
 fu! CSVArrangeCol(first, last, bang, limit) range "{{{2
     if &ft =~? 'csv'
@@ -165,7 +148,9 @@ fu! <sid>Init(startline, endline, ...) "{{{3
     " enable CSV Menu
     call <sid>Menu(1)
     call <sid>DisableFolding()
-    silent do Syntax
+    if !exists("b:current_syntax")
+      silent do Syntax
+    endif
     unlet! b:csv_start b:csv_end
 
     " Remove configuration variables
@@ -405,11 +390,11 @@ fu! <sid>DelColumn(colnr) "{{{3
     endif
 endfu
 fu! <sid>HiCol(colnr, bang) "{{{3
-    if a:colnr > <SID>MaxColumns() && !a:bang
-        call <SID>Warn("There exists no column " . a:colnr)
-        return
-    endif
     if !a:bang
+        if a:colnr > <SID>MaxColumns()
+            call <SID>Warn("There exists no column " . a:colnr)
+            return
+        endif
         if empty(a:colnr)
             let colnr=<SID>WColumn()
         else
@@ -433,9 +418,6 @@ fu! <sid>HiCol(colnr, bang) "{{{3
         " Additionally, filter all matches, that could have been used earlier
         let matchlist=getmatches()
         call filter(matchlist, 'v:val["group"] !~ s:hiGroup')
-        " remove matches, that come from matchaddpos()
-        " setmatches() can't handle them.
-        call filter(matchlist, 'has_key(v:val, "pattern")')
         call setmatches(matchlist)
         if a:bang
             return
@@ -628,6 +610,20 @@ fu! <sid>ArrangeCol(first, last, bang, limit, ...) range "{{{3
         return
     endif
 
+    let first = a:first
+    let last  = a:last
+    if exists("b:csv_headerline")
+      if a:first < b:csv_headerline
+        let first = b:csv_headerline
+      endif
+      if a:last < b:csv_headerline
+        let last = b:csv_headerline
+      endif
+    endif
+    if &vbs
+      echomsg printf("ArrangeCol Start: %d, End: %d", first, last)
+    endif
+
     if !exists("b:col_width")
         " Force recalculation of Column width
         let row = exists("a:1") ? a:1 : ''
@@ -644,10 +640,10 @@ fu! <sid>ArrangeCol(first, last, bang, limit, ...) range "{{{3
     endif
     let s:count = 0
     let _stl  = &stl
-    let s:max   = (a:last - a:first + 1) * len(b:col_width)
+    let s:max   = (last - first + 1) * len(b:col_width)
     let s:temp  = 0
     try
-        exe "sil". a:first . ',' . a:last .'s/' . (b:col) .
+        exe "sil". first . ',' . last .'s/' . (b:col) .
         \ '/\=<SID>Columnize(submatch(0))/' . (&gd ? '' : 'g')
     finally
         " Clean up variables, that were only needed for <sid>Columnize() function
@@ -661,7 +657,7 @@ fu! <sid>ArrangeCol(first, last, bang, limit, ...) range "{{{3
     endtry
 endfu
 fu! <sid>ProgressBar(cnt, max) "{{{3
-    if get(g:, 'csv_no_progress', 0)
+    if get(g:, 'csv_no_progress', 0) || a:max == 0
         return
     endif
     let width = 40 " max width of progressbar
@@ -706,6 +702,11 @@ fu! <sid>CalculateColumnWidth(row) "{{{3
     " does not work with fixed width columns
     let b:col_width=[]
     try
+        if exists("b:csv_headerline")
+          if line('.') < b:csv_headerline
+            call cursor(b:csv_headerline,1)
+          endif
+        endif
         let s:max_cols=<SID>MaxColumns(line('.'))
         for i in range(1,s:max_cols)
             if empty(a:row)
@@ -860,6 +861,7 @@ fu! <sid>SetupAutoCmd(window,bufnr) "{{{3
           exe "au OptionSet foldcolumn,number,relativenumber call <sid>CSV_SetOption(".a:bufnr.
             \ ", ".bufnr('%').", expand('<amatch>'), v:option_new)"
         endif
+        exe "au VimResized,FocusLost,FocusGained <buffer=".a:bufnr."> call CSV_SetSplitOptions(".a:window.")"
     aug END
 endfu
 fu! <sid>CSV_SetOption(csvfile, header, option, value) "{{{3
@@ -2608,6 +2610,20 @@ fu! CSV_CloseBuffer(buffer) "{{{3
         augroup! CSV_QuitPre
     endtry
 endfu
+fu! CSV_SetSplitOptions(window) "{{{3
+    if exists("s:local_stl")
+        " local horizontal statusline
+        for opt in items({'&nu': &l:nu, '&rnu': &l:rnu, '&fdc': &fdc})
+            if opt[1] != getwinvar(a:window, opt[0])
+                call setwinvar(a:window, opt[0], opt[1])
+            endif
+        endfor
+        " Check statusline (airline might change it)
+        if getwinvar(a:window, '&l:stl') != s:local_stl
+            call setwinvar(a:window, '&stl', s:local_stl)
+        endif
+    endif
+endfun
 " Global functions "{{{2
 fu! csv#EvalColumn(nr, func, first, last, ...) range "{{{3
     " Make sure, the function is called for the correct filetype.
