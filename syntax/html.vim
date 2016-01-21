@@ -1,26 +1,24 @@
 " Vim syntax file
-" Language:	HTML (version 5)
-" Maintainer:	Rodrigo Machado <rcmachado@gmail.com>
-" URL:		http://rm.blog.br/vim/syntax/html.vim
-" Last Change:  2009 Aug 19
+" Language:	    HTML (version 5.1)
+" Last Change:  2016 Jan 20
 " License:      Public domain
 "               (but let me know if you like :) )
 "
-" Note: This file just adds the new tags from HTML 5
+" Note: This file just add new tags from HTML 5
 "       and don't replace default html.vim syntax file
 "
-" Modified:     othree <othree@gmail.com>
-" Changes:      update to Draft 13 January 2011
-"               add complete new attributes
+" Maintainer:   Kao, Wei-Ko(othree) ( othree AT gmail DOT com )
+" Changes:      update to Draft 2016 Jan 13
 "               add microdata Attributes
-"               add bdi element
+" Maintainer:   Rodrigo Machado <rcmachado@gmail.com>
+" URL:          http://rm.blog.br/vim/syntax/html.vim
 " Modified:     htdebeer <H.T.de.Beer@gmail.com>
 " Changes:      add common SVG elements and attributes for inline SVG
 
 " HTML 5 tags
 syn keyword htmlTagName contained article aside audio canvas command
 syn keyword htmlTagName contained datalist details dialog embed figcaption figure footer
-syn keyword htmlTagName contained header hgroup keygen main mark meter menu nav output
+syn keyword htmlTagName contained header hgroup keygen main mark meter menu menuitem nav output
 syn keyword htmlTagName contained progress ruby rt rp rb rtc section source summary time track video data
 syn keyword htmlTagName contained template content shadow
 syn keyword htmlTagName contained wbr bdi
