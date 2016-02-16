@@ -73,7 +73,6 @@ autocmd BufNewFile,BufRead *.haml,*.hamlbars,*.hamlc setf haml
 autocmd BufNewFile,BufRead *.sass setf sass
 autocmd BufNewFile,BufRead *.scss setf scss
 autocmd BufNewFile,BufRead *.hx setf haxe
-autocmd BufNewFile,BufReadPost *.jade set filetype=jade
 autocmd BufNewFile,BufRead *Spec.js,*_spec.js set filetype=jasmine.javascript syntax=jasmine
 au BufNewFile,BufRead *.js setf javascript
 au BufNewFile,BufRead *.jsm setf javascript
@@ -147,6 +146,8 @@ endfunction
 autocmd BufReadPost *.pl,*.pm,*.t call s:DetectPerl6()
 autocmd BufNew,BufNewFile,BufRead *.nqp setf perl6
 autocmd BufNewFile,BufRead *.proto setfiletype proto
+autocmd BufNewFile,BufReadPost *.pug set filetype=pug
+autocmd BufNewFile,BufReadPost *.jade set filetype=pug
 au! BufRead,BufNewFile *.pp setfiletype puppet
 au! BufRead,BufNewFile Puppetfile setfiletype ruby
 function! s:setf(filetype) abort

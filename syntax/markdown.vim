@@ -41,13 +41,18 @@ if has('conceal')
   let s:concealends = ' concealends'
 endif
 
-"additions to HTML groups
-syn region htmlItalic start="\%(^\|\s\)\zs\*\ze[^\\\*\t ]" end="[^\\\*\t ]\zs\*\ze\_W" keepend
-syn region htmlItalic start="\%(^\|\s\)\zs_\ze[^\\_\t ]" end="[^\\_\t ]\zs_\ze\_W" keepend
-syn region htmlBold start="\*\*\ze\S" end="\S\zs\*\*" keepend
-syn region htmlBold start="__\ze\S" end="\S\zs__" keepend
-syn region htmlBoldItalic start="\*\*\*\ze\S" end="\S\zs\*\*\*" keepend
-syn region htmlBoldItalic start="___\ze\S" end="\S\zs___" keepend
+" additions to HTML groups
+if get(g:, 'vim_markdown_emphasis_multiline', 1)
+    let s:oneline = ''
+else
+    let s:oneline = ' oneline'
+endif
+execute 'syn region htmlItalic start="\%(^\|\s\)\zs\*\ze[^\\\*\t ]" end="[^\\\*\t ]\zs\*\ze\_W" keepend' . s:oneline
+execute 'syn region htmlItalic start="\%(^\|\s\)\zs_\ze[^\\_\t ]" end="[^\\_\t ]\zs_\ze\_W" keepend' . s:oneline
+execute 'syn region htmlBold start="\*\*\ze\S" end="\S\zs\*\*" keepend' . s:oneline
+execute 'syn region htmlBold start="__\ze\S" end="\S\zs__" keepend' . s:oneline
+execute 'syn region htmlBoldItalic start="\*\*\*\ze\S" end="\S\zs\*\*\*" keepend' . s:oneline
+execute 'syn region htmlBoldItalic start="___\ze\S" end="\S\zs___" keepend' . s:oneline
 
 " [link](URL) | [link][id] | [link][] | ![image](URL)
 syn region mkdFootnotes matchgroup=mkdDelimiter start="\[^"    end="\]"
@@ -56,12 +61,12 @@ execute 'syn region mkdURL matchgroup=mkdDelimiter   start="("     end=")"  cont
 execute 'syn region mkdLink matchgroup=mkdDelimiter  start="\\\@<!!\?\[" end="\n\{-,1}[^]]\{-}\zs\]\ze[[(]" contains=@mkdNonListItem,@Spell nextgroup=mkdURL,mkdID skipwhite oneline' . s:concealends
 
 " Autolink without angle brackets.
-" mkd  inline links:           protocol   optional  user:pass@       sub/domain                 .com, .co.uk, etc      optional port   path/querystring/hash fragment
-"                            ------------ _____________________ --------------------------- ________________________ ----------------- __
-syntax match   mkdInlineURL /https\?:\/\/\(\w\+\(:\w\+\)\?@\)\?\([A-Za-z][-_0-9A-Za-z]*\.\)\{1,}\(\w\{2,}\.\?\)\{1,}\(:[0-9]\{1,5}\)\?\S*/
+" mkd  inline links:      protocol     optional  user:pass@  sub/domain                    .com, .co.uk, etc         optional port   path/querystring/hash fragment
+"                         ------------ _____________________ ----------------------------- _________________________ ----------------- __
+syn match   mkdInlineURL /https\?:\/\/\(\w\+\(:\w\+\)\?@\)\?\([A-Za-z0-9][-_0-9A-Za-z]*\.\)\{1,}\(\w\{2,}\.\?\)\{1,}\(:[0-9]\{1,5}\)\?\S*/
 
 " Autolink with parenthesis.
-syntax region  mkdInlineURL matchgroup=mkdDelimiter start="(\(https\?:\/\/\(\w\+\(:\w\+\)\?@\)\?\([A-Za-z][-_0-9A-Za-z]*\.\)\{1,}\(\w\{2,}\.\?\)\{1,}\(:[0-9]\{1,5}\)\?\S*)\)\@=" end=")"
+syn region  mkdInlineURL matchgroup=mkdDelimiter start="(\(https\?:\/\/\(\w\+\(:\w\+\)\?@\)\?\([A-Za-z0-9][-_0-9A-Za-z]*\.\)\{1,}\(\w\{2,}\.\?\)\{1,}\(:[0-9]\{1,5}\)\?\S*)\)\@=" end=")"
 
 " Autolink with angle brackets.
 syn region mkdInlineURL matchgroup=mkdDelimiter start="\\\@<!<\ze[a-z][a-z0-9,.-]\{1,22}:\/\/[^> ]*>" end=">"
@@ -88,11 +93,11 @@ syn match  mkdLineBreak    /  \+$/
 syn region mkdBlockquote   start=/^\s*>/                   end=/$/ contains=mkdLineBreak,@Spell
 syn region mkdCode         start=/\(\([^\\]\|^\)\\\)\@<!`/ end=/\(\([^\\]\|^\)\\\)\@<!`/
 syn region mkdCode         start=/\s*``[^`]*/              end=/[^`]*``\s*/
-syn region mkdCode         start=/^\s*\z(`\{3,}\)\s*[0-9A-Za-z_+-]*\s*$/          end=/^\s*\z1`*\s*$/
-syn region mkdCode         start=/\s*\~\~[^\~]*/              end=/[^\~]*\~\~\s*/
+syn region mkdCode         start=/^\s*\z(`\{3,}\)[^`]*$/   end=/^\s*\z1`*\s*$/
+syn region mkdCode         start=/\s*\~\~[^\~]*/           end=/[^\~]*\~\~\s*/
 syn region mkdCode         start=/^\s*\z(\~\{3,}\)\s*[0-9A-Za-z_+-]*\s*$/         end=/^\s*\z1\~*\s*$/
-syn region mkdCode         start="<pre[^>]*>"              end="</pre>"
-syn region mkdCode         start="<code[^>]*>"             end="</code>"
+syn region mkdCode         start="<pre[^>]*\\\@<!>"        end="</pre>"
+syn region mkdCode         start="<code[^>]*\\\@<!>"       end="</code>"
 syn region mkdFootnote     start="\[^"                     end="\]"
 syn match  mkdCode         /^\s*\n\(\(\s\{8,}[^ ]\|\t\t\+[^\t]\).*\n\)\+/
 syn match  mkdCode         /\%^\(\(\s\{4,}[^ ]\|\t\+[^\t]\).*\n\)\+/
@@ -124,9 +129,13 @@ if get(g:, 'vim_markdown_toml_frontmatter', 0)
 endif
 
 if get(g:, 'vim_markdown_json_frontmatter', 0)
-  syn include @jsonTop syntax/json.vim
-  syn region Comment matchgroup=mkdDelimiter start="\%^{$" end="^}$" contains=@jsonTop
-  unlet! b:current_syntax
+  try
+    syn include @jsonTop syntax/json.vim
+    syn region Comment matchgroup=mkdDelimiter start="\%^{$" end="^}$" contains=@jsonTop
+    unlet! b:current_syntax
+  catch /E484/
+    syn region Comment matchgroup=mkdDelimiter start="\%^{$" end="^}$"
+  endtry
 endif
 
 if get(g:, 'vim_markdown_math', 0)
