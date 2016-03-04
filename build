@@ -96,11 +96,11 @@ function backup {
 lang_packs='
     archversion:prurigro/vim-archversion
     arduino:sudar/vim-arduino-syntax
-    blade:xsbeats/vim-blade
     aspnet:vim-scripts/aspnet.vim--Abshire
+    blade:xsbeats/vim-blade
     c++11:octol/vim-cpp-enhanced-highlight
-    c/c++:vim-jp/cpp-vim
     c-extensions:kergoth/aftersyntaxc.vim
+    c/c++:vim-jp/cpp-vim
     clojure:guns/vim-clojure-static
     coffee-script:kchmck/vim-coffee-script
     coloresque:prurigro/vim-coloresque
@@ -115,7 +115,6 @@ lang_packs='
     erlang:oscarh/vimerl
     git:tpope/vim-git
     go:fatih/vim-go:_basic
-    haml:tpope/vim-haml
     handlebars:mustache/vim-mustache-handlebars
     haskell:travitch/hasksyn
     haxe:yaymukund/vim-haxe
@@ -137,8 +136,8 @@ lang_packs='
     opencl:petRUShka/vim-opencl
     perl:vim-perl/vim-perl
     php:StanAngeloff/php.vim
-    puppet:rodjek/vim-puppet
     protobuf:uarun/vim-protobuf
+    puppet:rodjek/vim-puppet
     python:mitsuhiko/vim-python-combined
     r-lang:jcfaria/Vim-R-plugin
     rspec:sheerun/rspec.vim
@@ -146,6 +145,7 @@ lang_packs='
     rust:wting/rust.vim
     sbt:derekwyatt/vim-sbt
     scala:derekwyatt/vim-scala
+    scss:cakebaker/scss-syntax.vim
     slim:slim-template/vim-slim
     stylus:wavded/vim-stylus
     svg:vim-scripts/svg.vim
@@ -155,11 +155,11 @@ lang_packs='
     tmux:tejr/vim-tmux
     tomdoc:duwanis/tomdoc.vim
     toml:cespare/vim-toml
+    twig:beyondwords/vim-twig
     typescript:leafgarland/typescript-vim
     vala:tkztmk/vim-vala
     vbnet:vim-scripts/vbnet.vim
     vm:lepture/vim-velocity
-    twig:beyondwords/vim-twig
     xls:vim-scripts/XSLT-syntax
     yard:sheerun/vim-yardoc
 '

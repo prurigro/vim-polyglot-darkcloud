@@ -469,7 +469,7 @@ fu! <sid>WColumn(...) "{{{3
             " line is empty
             let line = getline(line('.')-1)
         else
-            let line=getline('.')
+            let line = getline('.')
         endif
         " move cursor to end of field
         "call search(b:col, 'ec', line('.'))
@@ -479,7 +479,7 @@ fu! <sid>WColumn(...) "{{{3
         let ret=len(fields)
         if exists("a:1") && a:1 > 0
             " bang attribute: Try to get the column name
-            let head  = split(get(b:, 'csv_headerline', 1),b:col.'\zs')
+            let head  = split(getline(get(b:, 'csv_headerline', 1)),b:col.'\zs')
             " remove preceeding whitespace
             if len(head) < ret
                 call <sid>Warn("Header has no field ". ret)
@@ -510,6 +510,9 @@ fu! <sid>MaxColumns(...) "{{{3
       let i = this_col ? a:1 : get(b:, 'csv_headerline', 1)
         while 1
             let l = getline(i, (this_col ? i : i+10))
+            if empty(l) && i >= line('$')
+                break
+            endif
 
             " Filter comments out
             let pat = '^\s*\V'. escape(b:csv_cmt[0], '\\')
@@ -2814,7 +2817,10 @@ endfu
 fu! CSV_WCol(...) "{{{3
     " Needed for airline
     try
-        if exists("a:1") && (a:1 == 'Name' || a:1 == 1)
+        if line('$') == 1 && empty(getline(1))
+            " Empty file
+            return ''
+        elseif exists("a:1") && (a:1 == 'Name' || a:1 == 1)
             return printf("%s", <sid>WColumn(1))
         else
             return printf(" %d/%d", <SID>WColumn(), <SID>MaxColumns())

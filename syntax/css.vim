@@ -71,7 +71,7 @@ endtry
 " digits
 syn match cssValueInteger contained "[-+]\=\d\+" contains=cssUnitDecorators
 syn match cssValueNumber contained "[-+]\=\d\+\(\.\d*\)\=" contains=cssUnitDecorators
-syn match cssValueLength contained "[-+]\=\d\+\(\.\d*\)\=\(%\|mm\|cm\|in\|pt\|pc\|em\|ex\|px\|rem\|dpi\|dppx\|dpcm\)\>" contains=cssUnitDecorators
+syn match cssValueLength contained "[-+]\=\d\+\(\.\d*\)\=\(%\|mm\|cm\|in\|pt\|pc\|em\|ex\|px\|rem\|dpi\|dppx\|dpcm\|vh\|vw\|vmin\|vmax\)\>" contains=cssUnitDecorators
 syn match cssValueAngle contained "[-+]\=\d\+\(\.\d*\)\=\(deg\|grad\|rad\)\>" contains=cssUnitDecorators
 syn match cssValueTime contained "+\=\d\+\(\.\d*\)\=\(ms\|s\)\>" contains=cssUnitDecorators
 syn match cssValueFrequency contained "+\=\d\+\(\.\d*\)\=\(Hz\|kHz\)\>" contains=cssUnitDecorators
@@ -275,7 +275,7 @@ syn keyword cssFlexibleBoxProp contained order
 
 syn match cssFlexibleBoxAttr contained "\<\(row\|column\|wrap\)\(-reverse\)\=\>"
 syn keyword cssFlexibleBoxAttr contained nowrap stretch baseline center
-syn match cssFlexibleBoxAttr contained "\<flex-\(start\|end\)\>"
+syn match cssFlexibleBoxAttr contained "\<flex\(-\(start\|end\)\)\=\>"
 syn match cssFlexibleBoxAttr contained "\<space\(-\(between\|around\)\)\=\>"
 
 " CSS Fonts Module Level 3
@@ -427,6 +427,10 @@ syn keyword cssUIAttr contained both horizontal vertical
 
 syn match cssUIProp contained "\<text-overflow\>"
 syn keyword cssUIAttr contained clip ellipsis
+
+syn match cssUIProp contained "\<image-rendering\>"
+syn keyword cssUIAttr contained pixellated
+syn match cssUIAttr contained "\<crisp-edges\>"
 
 " Already highlighted Props: font content
 "------------------------------------------------

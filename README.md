@@ -1,4 +1,4 @@
-# vim-polyglot (darkcloud fork) #
+# vim-polyglot (darkcloud fork)
 
 A collection of language packs for Vim. This fork includes a customized set of language packages (unique items marked with a * below), an updated build script and the inclusion of the plugin folder for applicable packs.
 
@@ -43,7 +43,6 @@ Optionally download one of the [releases](https://github.com/sheerun/vim-polyglo
 - [erlang](https://github.com/oscarh/vimerl) (syntax, indent, compiler, autoload, ftplugin)
 - [git](https://github.com/tpope/vim-git) (syntax, indent, ftplugin, ftdetect)
 - [go](https://github.com/fatih/vim-go) (syntax, indent, ftdetect)
-- [haml](https://github.com/tpope/vim-haml) (syntax, indent, compiler, ftplugin, ftdetect)
 - [handlebars](https://github.com/mustache/vim-mustache-handlebars) (syntax, ftplugin, ftdetect)
 - [haskell](https://github.com/travitch/hasksyn) (syntax, indent, ftplugin)
 - [haxe](https://github.com/yaymukund/vim-haxe) (syntax, ftdetect)
@@ -74,6 +73,7 @@ Optionally download one of the [releases](https://github.com/sheerun/vim-polyglo
 - [rust](https://github.com/wting/rust.vim) (syntax, indent, compiler, autoload, ftplugin, ftdetect, plugin)
 - [sbt](https://github.com/derekwyatt/vim-sbt) (syntax, ftdetect)
 - [scala](https://github.com/derekwyatt/vim-scala) (syntax, indent, ftplugin, ftdetect, plugin)
+- [*scss](https://github.com/cakebaker/scss-syntax.vim) (syntax, autoload, ftplugin, ftdetect)
 - [slim](https://github.com/slim-template/vim-slim) (syntax, indent, ftdetect)
 - [stylus](https://github.com/wavded/vim-stylus) (syntax, indent, ftplugin, ftdetect)
 - [*svg](https://github.com/vim-scripts/svg.vim.git) (syntax)

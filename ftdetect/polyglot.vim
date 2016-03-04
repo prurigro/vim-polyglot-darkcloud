@@ -69,9 +69,6 @@ au BufNewFile *.s setfiletype asm | setlocal fileencoding=utf-8 fileformat=unix
 au BufRead *.s call s:gofiletype_pre("asm")
 au BufReadPost *.s call s:gofiletype_post()
 au BufRead,BufNewFile *.tmpl set filetype=gohtmltmpl
-autocmd BufNewFile,BufRead *.haml,*.hamlbars,*.hamlc setf haml
-autocmd BufNewFile,BufRead *.sass setf sass
-autocmd BufNewFile,BufRead *.scss setf scss
 autocmd BufNewFile,BufRead *.hx setf haxe
 autocmd BufNewFile,BufRead *Spec.js,*_spec.js set filetype=jasmine.javascript syntax=jasmine
 au BufNewFile,BufRead *.js setf javascript
@@ -205,6 +202,8 @@ endfun
 au BufRead,BufNewFile *.scala set filetype=scala
 au BufRead,BufNewFile * call s:DetectScala()
 au BufRead,BufNewFile *.sbt setfiletype sbt.scala
+au BufRead,BufNewFile *.scss set filetype=scss
+au BufEnter *.scss :syntax sync fromstart
 autocmd BufNewFile,BufRead *.slim set filetype=slim
 autocmd BufNewFile,BufReadPost *.styl set filetype=stylus
 autocmd BufNewFile,BufReadPost *.stylus set filetype=stylus
