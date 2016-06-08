@@ -11,8 +11,7 @@ gitsource='https://github.com'
 
 function cleanup_and_exit {
     # remove temp folder
-    [[ -d "$tmpfolder" ]] \
-        && rm -rf "$tmpfolder"
+    [[ -d "$tmpfolder" ]] && rm -rf "$tmpfolder"
     printf '%s\n' "$1"
     exit "$2"
 }
@@ -21,40 +20,47 @@ function download {
     for pack in $1; do
         path="$(cut -d ':' -f 2 <<< "$pack" | cut -d '#' -f 1)"
         dir="$tmpfolder/$(cut -d '/' -f 2 <<< "$path")"
+
         if [[ "$pack" =~ \# ]]; then
             branch="$(cut -d '#' -f 2 <<< "$pack")"
         else
             branch='master'
         fi
+
         rm -rf "$dir"
+
         while [[ ! -d "$dir" ]]; do
             git clone -b "$branch" -q --recursive "$gitsource/${path}.git" "$dir" \
                 && printf '%s' '.'
         done
     done
+
     wait
 }
 
 function extract {
     printf '\n'
+
     for pack in $1; do
         name="$(cut -d ':' -f 1 <<< "$pack" | cut -d '#' -f 1)"
         path="$(cut -d ':' -f 2 <<< "$pack" | cut -d '#' -f 1)"
         dir="$tmpfolder/$(cut -d '/' -f 2 <<< "$path")"
+        directories="langdirs$(cut -d ':' -f 3 <<< "$pack" | cut -d '#' -f 1)"
+        subdirs=''
+
         if grep -q '#' <<< "$pack"; then
             branch="$(cut -d '#' -f 2 <<< "$pack")"
         else
             branch='master'
         fi
-        directories="langdirs$(cut -d ':' -f 3 <<< "$pack" | cut -d '#' -f 1)"
+
         printf -- "- [$name]($gitsource/${path}#branch=$branch) ("
 
-        subdirs=''
         for subdir in ${!directories}; do
-            if [ -d "$dir/$subdir" ]; then
+            if [[ -d "$dir/$subdir" ]]; then
                 base="$(basename "$subdir")"
-                [[ "$subdirs" != *"$base"* ]] \
-                    && subdirs="$subdirs, $base"
+
+                [[ "$subdirs" != *"$base"* ]] && subdirs="$subdirs, $base"
                 copy_dir "$dir" "$subdir"
             fi
         done
@@ -66,6 +72,7 @@ function extract {
 function copy_dir {
     while read -r; do
         file_path="$(dirname "${REPLY##$1/}")"
+
         install -d "$file_path"
         touch "$file_path/$(basename "$REPLY")"
         cat "$REPLY" >> "$file_path/$(basename "$REPLY")"
@@ -80,10 +87,11 @@ function concat_ftdetect {
 
 function backup {
     backupdirs='after autoload compiler ftdetect ftplugin indent plugin syntax'
-    [[ -d "$backfolder" ]] \
-        && cleanup_and_exit "Error, backup directory already exists: $backfolder" 1
+
+    [[ -d "$backfolder" ]] && cleanup_and_exit "Error, backup directory already exists: $backfolder" 1
     install -d "$backfolder"
     printf '%s\n' "Backing up current packs to: $backfolder"
+
     for subdir in $backupdirs; do
         if [[ -d $subdir ]]; then
             mv "$subdir" "$backfolder/$subdir"
@@ -179,4 +187,3 @@ concat_ftdetect
 
 printf '\n'
 cleanup_and_exit 'Done!' 0
-
