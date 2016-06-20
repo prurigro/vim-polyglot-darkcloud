@@ -160,7 +160,7 @@ lang_packs='
     swift:toyamarinyon/vim-swift
     systemd:kurayama/systemd-vim-syntax
     textile:timcharper/textile.vim
-    tmux:tejr/vim-tmux
+    tmux:tmux-plugins/vim-tmux
     tomdoc:duwanis/tomdoc.vim
     toml:cespare/vim-toml
     twig:beyondwords/vim-twig

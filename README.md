@@ -80,7 +80,7 @@ Optionally download one of the [releases](https://github.com/sheerun/vim-polyglo
 - [swift](https://github.com/toyamarinyon/vim-swift) (syntax, indent, ftdetect)
 - [systemd](https://github.com/kurayama/systemd-vim-syntax) (syntax, ftdetect)
 - [textile](https://github.com/timcharper/textile.vim) (syntax, ftplugin, ftdetect)
-- [*tmux](https://github.com/tejr/vim-tmux) (syntax, ftdetect)
+- [*tmux](https://github.com/tmux-plugins/vim-tmux) (syntax, indent, compiler, autoload, ftplugin, ftdetect)
 - [tomdoc](https://github.com/duwanis/tomdoc.vim) (syntax)
 - [toml](https://github.com/cespare/vim-toml) (syntax, ftdetect)
 - [typescript](https://github.com/leafgarland/typescript-vim) (syntax, compiler, ftplugin, ftdetect)
