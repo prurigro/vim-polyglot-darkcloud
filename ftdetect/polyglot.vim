@@ -28,9 +28,19 @@ function! s:DetectElixir()
     call s:setf('elixir')
   endif
 endfunction
+if !exists('g:vim_ember_script')
+  let g:vim_ember_script = 1
+endif
 autocmd BufNewFile,BufRead *.em set filetype=ember-script
 autocmd FileType ember-script set tabstop=2|set shiftwidth=2|set expandtab
-autocmd BufNewFile,BufRead *.emblem set filetype=emblem
+if !exists('g:vim_emblem')
+  let g:vim_emblem = 1
+endif
+if exists('g:vim_ember_script')
+  autocmd BufNewFile,BufRead *.emblem set filetype=emblem
+else
+  autocmd BufNewFile,BufRead *.em,*.emblem set filetype=emblem
+endif
 autocmd FileType emblem set tabstop=2|set shiftwidth=2|set expandtab
 autocmd BufNewFile,BufRead *.git/{,modules/**/,worktrees/*/}{COMMIT_EDIT,TAG_EDIT,MERGE_,}MSG set ft=gitcommit
 autocmd BufNewFile,BufRead *.git/config,.gitconfig,gitconfig,.gitmodules set ft=gitconfig
