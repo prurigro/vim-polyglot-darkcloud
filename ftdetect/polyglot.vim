@@ -249,3 +249,4 @@ autocmd BufNewFile,BufRead *.ts,*.tsx setlocal filetype=typescript
 autocmd BufRead *.vala,*.vapi set efm=%f:%l.%c-%[%^:]%#:\ %t%[%^:]%#:\ %m
 au BufRead,BufNewFile *.vala,*.vapi setfiletype vala
 au BufRead,BufNewFile *.vm set ft=velocity syntax=velocity
+au BufNewFile,BufRead *.vue setf vue

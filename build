@@ -168,6 +168,7 @@ lang_packs='
     vala:tkztmk/vim-vala
     vbnet:vim-scripts/vbnet.vim
     vm:lepture/vim-velocity
+    vue:posva/vim-vue
     xls:vim-scripts/XSLT-syntax
     yard:sheerun/vim-yardoc
 '

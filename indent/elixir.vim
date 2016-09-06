@@ -6,7 +6,7 @@ let b:did_indent = 1
 setlocal nosmartindent
 
 setlocal indentexpr=GetElixirIndent()
-setlocal indentkeys+=0),0],0=end,0=else,0=match,0=elsif,0=catch,0=after,0=rescue
+setlocal indentkeys+=0),0],0=end,0=else,0=match,0=elsif,0=catch,0=after,0=rescue,0=\|>
 
 if exists("*GetElixirIndent")
   finish
@@ -32,7 +32,7 @@ let s:indent_keywords = '\<'.s:no_colon_before.'\%('.s:block_start.'\|'.s:block_
 let s:deindent_keywords = '^\s*\<\%('.s:block_end.'\|'.s:block_middle.'\)\>'.'\|'.s:arrow
 
 let s:pair_start = '\<\%('.s:no_colon_before.s:block_start.'\)\>'.s:no_colon_after
-let s:pair_middle = '\<\%('.s:block_middle.'\)\>'.s:no_colon_after.'\zs'
+let s:pair_middle = '^\s*\%('.s:block_middle.'\)\>'.s:no_colon_after.'\zs'
 let s:pair_end = '\<\%('.s:no_colon_before.s:block_end.'\)\>\zs'
 
 function! s:metadata()
@@ -64,6 +64,12 @@ function! s:continuing_parameter_list()
         \ s:metadata().pending_parenthesis > 0
         \ && s:metadata().last_line !~ '^\s*def'
         \ && s:metadata().last_line !~ s:arrow
+endfunction
+
+function! s:continuing_pipe()
+  return
+        \ empty(s:metadata().current_line)
+        \ && s:metadata().last_line =~ s:starts_with_pipeline
 endfunction
 
 function! s:is_indentable_syntax()
@@ -124,7 +130,7 @@ function! s:indent_assignment_ending(ind)
 endfunction
 
 function! s:indent_pipeline(ind)
-  if s:metadata().last_line =~ '|>.*$'
+  if s:metadata().last_line =~ s:starts_with_pipeline
         \ && s:metadata().current_line =~ s:starts_with_pipeline
     " if line starts with pipeline
     " and last line ends with a pipeline,
@@ -157,7 +163,7 @@ function! s:indent_after_pipeline(ind)
   end
 endfunction
 
-function! s:indent_keyword(ind)
+function! s:deindent_keyword(ind)
   if s:metadata().current_line =~ s:deindent_keywords
     let bslnum = searchpair(
           \ s:pair_start,
@@ -191,15 +197,17 @@ function! GetElixirIndent()
   elseif !s:is_indentable_syntax()
     " Current syntax is not indentable, keep last line indentation
     return indent(s:metadata().last_line_ref)
+  elseif s:continuing_pipe()
+    return indent(s:metadata().last_line_ref)
   else
     let ind = indent(s:metadata().last_line_ref)
     let ind = s:indent_opened_symbol(ind)
-    let ind = s:indent_last_line_end_symbol_or_indent_keyword(ind)
     let ind = s:indent_symbols_ending(ind)
     let ind = s:indent_assignment_ending(ind)
+    let ind = s:indent_last_line_end_symbol_or_indent_keyword(ind)
     let ind = s:indent_pipeline(ind)
     let ind = s:indent_after_pipeline(ind)
-    let ind = s:indent_keyword(ind)
+    let ind = s:deindent_keyword(ind)
     let ind = s:indent_arrow(ind)
     return ind
   end
