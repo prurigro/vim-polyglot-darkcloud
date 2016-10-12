@@ -22,40 +22,48 @@ let s:starting_symbols = '\[\|{\|('
 let s:arrow = '^.*->$'
 let s:skip_syntax = '\%(Comment\|String\)$'
 let s:block_skip = "synIDattr(synID(line('.'),col('.'),1),'name') =~? '".s:skip_syntax."'"
-let s:block_start = '\<\%(do\|fn\)\>'
-let s:block_middle = 'else\|match\|elsif\|catch\|after\|rescue'
+let s:fn = '\<fn\>'
+let s:multiline_fn = s:fn.'\%(.*end\)\@!'
+let s:block_start = '\%(\<do\>\|'.s:fn.'\)\>'
+let s:multiline_block = '\%(\<do\>\|'.s:multiline_fn.'\)'
+let s:block_middle = '\<\%(else\|match\|elsif\|catch\|after\|rescue\)\>'
 let s:block_end = 'end'
 let s:starts_with_pipeline = '^\s*|>.*$'
 let s:ending_with_assignment = '=\s*$'
 
-let s:indent_keywords = '\<'.s:no_colon_before.'\%('.s:block_start.'\|'.s:block_middle.'\)$'.'\|'.s:arrow
-let s:deindent_keywords = '^\s*\<\%('.s:block_end.'\|'.s:block_middle.'\)\>'.'\|'.s:arrow
+let s:indent_keywords = s:no_colon_before.'\%('.s:multiline_block.'\|'.s:block_middle.'\)'
+let s:deindent_keywords = '^\s*\<\%('.s:block_end.'\|'.s:block_middle.'\)\>'
 
 let s:pair_start = '\<\%('.s:no_colon_before.s:block_start.'\)\>'.s:no_colon_after
 let s:pair_middle = '^\s*\%('.s:block_middle.'\)\>'.s:no_colon_after.'\zs'
 let s:pair_end = '\<\%('.s:no_colon_before.s:block_end.'\)\>\zs'
 
+
 function! GetElixirIndent()
   call s:build_data()
+  let b:old_ind = get(b:, 'old_ind', {})
 
   if s:last_line_ref == 0
     " At the start of the file use zero indent.
+    let b:old_ind = {}
     return 0
   elseif !s:is_indentable_at(s:current_line_ref, 1)
     " Current syntax is not indentable, keep last line indentation
     return indent(s:last_line_ref)
   else
     let ind = indent(s:last_line_ref)
+    let ind = s:deindent_case_arrow(ind)
     let ind = s:indent_opened_symbols(ind)
     let ind = s:deindent_opened_symbols(ind)
-    let ind = s:indent_pipeline(ind)
+    let ind = s:indent_pipeline_assignment(ind)
     let ind = s:indent_pipeline_continuation(ind)
     let ind = s:indent_after_pipeline(ind)
     let ind = s:indent_assignment(ind)
-    let ind = s:indent_keywords_and_ending_symbols(ind)
+    let ind = s:indent_ending_symbols(ind)
+    let ind = s:indent_keywords(ind)
     let ind = s:deindent_keywords(ind)
     let ind = s:deindent_ending_symbols(ind)
-    let ind = s:indent_arrow(ind)
+    let ind = s:indent_case_arrow(ind)
     return ind
   end
 endfunction
@@ -72,7 +80,7 @@ function! s:build_data()
     let splitted_line = split(s:last_line, '\zs')
     if s:is_indentable_match(s:last_line_ref, '(') && s:is_indentable_match(s:last_line_ref, ')')
       let s:pending_parenthesis =
-            \ + count(splitted_line, '(') - count(splitted_line, ')')
+            \ + count(splitted_line, '(') - len(filter(matchlist(s:last_line, '\%(end\s*\)\@<!)'), '!empty(v:val)'))
       let s:opened_symbol += s:pending_parenthesis
     end
     if s:is_indentable_match(s:last_line_ref, '[') && s:is_indentable_match(s:last_line_ref, ']')
@@ -106,7 +114,7 @@ function! s:indent_opened_symbols(ind)
     if s:pending_parenthesis > 0
           \ && s:last_line !~ '^\s*def'
           \ && s:last_line !~ s:arrow
-      let b:old_ind = a:ind
+      let b:old_ind.symbol = a:ind
       return matchend(s:last_line, '(')
       " if start symbol is followed by a character, indent based on the
       " whitespace after the symbol, otherwise use the default shiftwidth
@@ -125,7 +133,7 @@ endfunction
 
 function! s:deindent_opened_symbols(ind)
   if s:opened_symbol < 0
-    let ind = get(b:, 'old_ind', a:ind + (s:opened_symbol * &sw))
+    let ind = get(b:old_ind, 'symbol', a:ind + (s:opened_symbol * &sw))
     let ind = float2nr(ceil(floor(ind)/&sw)*&sw)
     return ind <= 0 ? 0 : ind
   else
@@ -133,10 +141,10 @@ function! s:deindent_opened_symbols(ind)
   end
 endfunction
 
-function! s:indent_pipeline(ind)
+function! s:indent_pipeline_assignment(ind)
   if s:current_line =~ s:starts_with_pipeline
         \ && s:last_line =~ '^[^=]\+=.\+$'
-    let b:old_ind = indent(s:last_line_ref)
+    let b:old_ind.pipeline = indent(s:last_line_ref)
     " if line starts with pipeline
     " and last line is an attribution
     " indents pipeline in same level as attribution
@@ -161,7 +169,9 @@ function! s:indent_after_pipeline(ind)
           \ || s:current_line =~ s:starts_with_pipeline
       return indent(s:last_line_ref)
     elseif s:last_line !~ s:indent_keywords
-      return b:old_ind
+      let ind = b:old_ind.pipeline
+      let b:old_ind.pipeline = 0
+      return ind
     end
   end
 
@@ -170,16 +180,23 @@ endfunction
 
 function! s:indent_assignment(ind)
   if s:last_line =~ s:ending_with_assignment
-    let b:old_ind = indent(s:last_line_ref) " FIXME: side effect
+    let b:old_ind.pipeline = indent(s:last_line_ref) " FIXME: side effect
     return a:ind + &sw
   else
     return a:ind
   end
 endfunction
 
-function! s:indent_keywords_and_ending_symbols(ind)
-  if s:last_line =~ '^\s*\('.s:ending_symbols.'\)'
-        \ || s:last_line =~ s:indent_keywords
+function! s:indent_ending_symbols(ind)
+  if s:last_line =~ '^\s*\('.s:ending_symbols.'\)\s*$'
+    return a:ind + &sw
+  else
+    return a:ind
+  end
+endfunction
+
+function! s:indent_keywords(ind)
+  if s:last_line =~ s:indent_keywords
     return a:ind + &sw
   else
     return a:ind
@@ -210,9 +227,19 @@ function! s:deindent_ending_symbols(ind)
   end
 endfunction
 
-function! s:indent_arrow(ind)
-  if s:current_line =~ s:arrow
-    " indent case statements '->'
+function! s:deindent_case_arrow(ind)
+  if get(b:old_ind, 'arrow', 0) > 0
+    let ind = b:old_ind.arrow
+    let b:old_ind.arrow = 0
+    return ind
+  else
+    return a:ind
+  end
+endfunction
+
+function! s:indent_case_arrow(ind)
+  if s:last_line =~ s:arrow && s:last_line !~ '\<fn\>'
+    let b:old_ind.arrow = a:ind
     return a:ind + &sw
   else
     return a:ind
