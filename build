@@ -2,7 +2,7 @@
 
 set -E
 
-langdirs='after/ftdetect after/ftplugin after/indent after/syntax autoload compiler ftdetect ftplugin indent plugin syntax'
+langdirs='after/ftdetect after/ftplugin after/indent after/syntax autoload compiler ftdetect ftplugin indent plugin syntax syntax_checkers'
 langdirs_basic='after/ftdetect after/indent after/syntax ftdetect indent syntax'
 
 tmpfolder='./tmp'
