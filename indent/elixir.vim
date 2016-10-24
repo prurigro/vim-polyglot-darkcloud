@@ -6,7 +6,7 @@ let b:did_indent = 1
 setlocal nosmartindent
 
 setlocal indentexpr=GetElixirIndent()
-setlocal indentkeys+=0),0],0=end,0=else,0=match,0=elsif,0=catch,0=after,0=rescue,0=\|>
+setlocal indentkeys+=0),0],0=end,0=else,0=match,0=elsif,0=catch,0=after,0=rescue,0=\|>,=->
 
 if exists("*GetElixirIndent")
   finish
@@ -19,13 +19,14 @@ let s:no_colon_before = ':\@<!'
 let s:no_colon_after = ':\@!'
 let s:ending_symbols = '\]\|}\|)'
 let s:starting_symbols = '\[\|{\|('
-let s:arrow = '^.*->$'
+let s:arrow = '->'
+let s:end_with_arrow = s:arrow.'$'
 let s:skip_syntax = '\%(Comment\|String\)$'
 let s:block_skip = "synIDattr(synID(line('.'),col('.'),1),'name') =~? '".s:skip_syntax."'"
 let s:fn = '\<fn\>'
 let s:multiline_fn = s:fn.'\%(.*end\)\@!'
 let s:block_start = '\%(\<do\>\|'.s:fn.'\)\>'
-let s:multiline_block = '\%(\<do\>\|'.s:multiline_fn.'\)'
+let s:multiline_block = '\%(\<do\>'.s:no_colon_after.'\|'.s:multiline_fn.'\)'
 let s:block_middle = '\<\%(else\|match\|elsif\|catch\|after\|rescue\)\>'
 let s:block_end = 'end'
 let s:starts_with_pipeline = '^\s*|>.*$'
@@ -37,7 +38,6 @@ let s:deindent_keywords = '^\s*\<\%('.s:block_end.'\|'.s:block_middle.'\)\>'
 let s:pair_start = '\<\%('.s:no_colon_before.s:block_start.'\)\>'.s:no_colon_after
 let s:pair_middle = '^\s*\%('.s:block_middle.'\)\>'.s:no_colon_after.'\zs'
 let s:pair_end = '\<\%('.s:no_colon_before.s:block_end.'\)\>\zs'
-
 
 function! GetElixirIndent()
   call s:build_data()
@@ -75,40 +75,41 @@ function! s:build_data()
   let s:last_line_ref = prevnonblank(s:current_line_ref - 1)
   let s:current_line = getline(s:current_line_ref)
   let s:last_line = getline(s:last_line_ref)
-  let s:opened_symbol = 0
 
   if s:last_line !~ s:arrow
-    let splitted_line = split(s:last_line, '\zs')
-    if s:is_indentable_match(
-          \ s:last_line_ref, '(')
-          \ && s:is_indentable_match(s:last_line_ref, ')'
-          \ )
-      let s:pending_parenthesis =
-            \   count(splitted_line, '(')
-            \ - len(filter(matchlist(s:last_line, '\%(end\s*\)\@<!)'), '!empty(v:val)'))
-    end
-    if s:is_indentable_match(
-          \ s:last_line_ref, '[')
-          \ && s:is_indentable_match(s:last_line_ref, ']'
-          \ )
-      let s:pending_square_brackets =
-            \  count(splitted_line, '[')
-            \ - count(splitted_line, ']')
-    end
-    if s:is_indentable_match(
-          \ s:last_line_ref, '{')
-          \ && s:is_indentable_match(s:last_line_ref, '}'
-          \ )
-      let s:pending_brackets =
-            \   count(splitted_line, '{')
-            \ - count(splitted_line, '}')
-    end
-
-    let s:opened_symbol =
-          \   s:pending_parenthesis
-          \ + s:pending_square_brackets
-          \ + s:pending_brackets
+    let s:pending_parenthesis = s:count_indentable_symbol_diff('(', '\%(end\s*\)\@<!)')
+    let s:pending_square_brackets = s:count_indentable_symbol_diff('[', ']')
+    let s:pending_brackets = s:count_indentable_symbol_diff('{', '}')
   end
+endfunction
+
+function! s:count_indentable_symbol_diff(open, close)
+  if s:is_indentable_match(s:last_line_ref, a:open)
+        \ && s:is_indentable_match(s:last_line_ref, a:close)
+    return
+          \   s:count_pattern(s:last_line, a:open)
+          \ - s:count_pattern(s:last_line, a:close)
+  else
+    return 0
+  end
+endfunction
+
+function! s:count_pattern(string, pattern)
+  let size = strlen(a:string)
+  let index = 0
+  let counter = 0
+
+  while index < size
+    let index = match(a:string, a:pattern, index)
+    if index >= 0
+      let index += 1
+      let counter +=1
+    else
+      break
+    end
+  endwhile
+
+  return counter
 endfunction
 
 function! s:is_indentable_at(line, col)
@@ -131,7 +132,7 @@ endfunction
 function! s:indent_parenthesis(ind)
   if s:pending_parenthesis > 0
         \ && s:last_line !~ '^\s*def'
-        \ && s:last_line !~ s:arrow
+        \ && s:last_line !~ s:end_with_arrow
     let b:old_ind.symbol = a:ind
     return matchend(s:last_line, '(')
   else
@@ -163,6 +164,11 @@ function! s:indent_brackets(ind)
 endfunction
 
 function! s:deindent_opened_symbols(ind)
+  let s:opened_symbol =
+        \   s:pending_parenthesis
+        \ + s:pending_square_brackets
+        \ + s:pending_brackets
+
   if s:opened_symbol < 0
     let ind = get(b:old_ind, 'symbol', a:ind + (s:opened_symbol * &sw))
     let ind = float2nr(ceil(floor(ind)/&sw)*&sw)
@@ -260,6 +266,8 @@ endfunction
 
 function! s:deindent_case_arrow(ind)
   if get(b:old_ind, 'arrow', 0) > 0
+        \ && (s:current_line =~ s:arrow
+        \ || s:current_line =~ s:block_end)
     let ind = b:old_ind.arrow
     let b:old_ind.arrow = 0
     return ind
@@ -269,7 +277,7 @@ function! s:deindent_case_arrow(ind)
 endfunction
 
 function! s:indent_case_arrow(ind)
-  if s:last_line =~ s:arrow && s:last_line !~ '\<fn\>'
+  if s:last_line =~ s:end_with_arrow && s:last_line !~ '\<fn\>'
     let b:old_ind.arrow = a:ind
     return a:ind + &sw
   else
