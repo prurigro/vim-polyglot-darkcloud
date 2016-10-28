@@ -1,7 +1,7 @@
 " Vim syntax file
 " Language:	C
 " Maintainer:	Bram Moolenaar <Bram@vim.org>
-" Last Change:	2016 Apr 10
+" Last Change:	2016 Oct 28
 
 " Quit when a (custom) syntax file was already loaded
 if exists("b:current_syntax")
@@ -182,11 +182,6 @@ syn match	cNumbersCom	display contained transparent "\<\d\|\.\d" contains=cNumbe
 syn match	cNumber		display contained "\d\+\(u\=l\{0,2}\|ll\=u\)\>"
 "hex number
 syn match	cNumber		display contained "0x\x\+\(u\=l\{0,2}\|ll\=u\)\>"
-if s:ft ==# 'cpp' && !exists("cpp_no_cpp14")
-  syn match	cNumber		display contained "\d\('\=\d\+\)*\(u\=l\{0,2}\|ll\=u\)\>"
-  syn match	cNumber		display contained "0x\x\('\=\x\+\)*\(u\=l\{0,2}\|ll\=u\)\>"
-  syn match	cNumber		display contained "0b[01]\('\=[01]\+\)*\(u\=l\{0,2}\|ll\=u\)\>"
-endif
 " Flag the first zero of an octal number as something special
 syn match	cOctal		display contained "0\o\+\(u\=l\{0,2}\|ll\=u\)\>" contains=cOctalZero
 syn match	cOctalZero	display contained "\<0"
@@ -388,11 +383,11 @@ if !exists("c_no_if0")
 endif
 syn region	cIncluded	display contained start=+"+ skip=+\\\\\|\\"+ end=+"+
 syn match	cIncluded	display contained "<[^>]*>"
-syn match	cInclude	display "^\s*\(%:\|#\)\s*include\>\s*["<]" contains=cIncluded
+syn match	cInclude	display "\(%:\|#\)\s*include\>\s*["<]" contains=cIncluded
 "syn match cLineSkip	"\\$"
 syn cluster	cPreProcGroup	contains=cPreCondit,cIncluded,cInclude,cDefine,cErrInParen,cErrInBracket,cUserLabel,cSpecial,cOctalZero,cCppOutWrapper,cCppInWrapper,@cCppOutInGroup,cFormat,cNumber,cFloat,cOctal,cOctalError,cNumbersCom,cString,cCommentSkip,cCommentString,cComment2String,@cCommentGroup,cCommentStartError,cParen,cBracket,cMulti,cBadBlock
-syn region	cDefine		start="^\s*\(%:\|#\)\s*\(define\|undef\)\>" skip="\\$" end="$" keepend contains=ALLBUT,@cPreProcGroup,@Spell
-syn region	cPreProc	start="^\s*\(%:\|#\)\s*\(pragma\>\|line\>\|warning\>\|warn\>\|error\>\)" skip="\\$" end="$" keepend contains=ALLBUT,@cPreProcGroup,@Spell
+syn region	cDefine		start="\(%:\|#\)\s*\(define\|undef\)\>" skip="\\$" end="$" keepend contains=ALLBUT,@cPreProcGroup,@Spell
+syn region	cPreProc	start="\(%:\|#\)\s*\(pragma\>\|line\>\|warning\>\|warn\>\|error\>\)" skip="\\$" end="$" keepend contains=ALLBUT,@cPreProcGroup,@Spell
 
 " Highlight User Labels
 syn cluster	cMultiGroup	contains=cIncluded,cSpecial,cCommentSkip,cCommentString,cComment2String,@cCommentGroup,cCommentStartError,cUserCont,cUserLabel,cBitField,cOctalZero,cCppOutWrapper,cCppInWrapper,@cCppOutInGroup,cFormat,cNumber,cFloat,cOctal,cOctalError,cNumbersCom,cCppParen,cCppBracket,cCppString
@@ -401,8 +396,8 @@ if s:ft ==# 'c' || exists("cpp_no_cpp11")
 endif
 " Avoid matching foo::bar() in C++ by requiring that the next char is not ':'
 syn cluster	cLabelGroup	contains=cUserLabel
-syn match	cUserCont	display "^\s*\I\i*\s*:$" contains=@cLabelGroup
-syn match	cUserCont	display ";\s*\I\i*\s*:$" contains=@cLabelGroup
+syn match	cUserCont	display "^\s*\zs\I\i*\s*:$" contains=@cLabelGroup
+syn match	cUserCont	display ";\s*\zs\I\i*\s*:$" contains=@cLabelGroup
 if s:ft ==# 'cpp'
   syn match	cUserCont	display "^\s*\%(class\|struct\|enum\)\@!\I\i*\s*:[^:]"me=e-1 contains=@cLabelGroup
   syn match	cUserCont	display ";\s*\%(class\|struct\|enum\)\@!\I\i*\s*:[^:]"me=e-1 contains=@cLabelGroup
