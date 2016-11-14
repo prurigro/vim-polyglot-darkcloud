@@ -2,7 +2,7 @@
 " Language: Javascript
 " Maintainer: Chris Paul ( https://github.com/bounceme )
 " URL: https://github.com/pangloss/vim-javascript
-" Last Change: November 6, 2016
+" Last Change: November 12, 2016
 
 " Only load this indent file when no other was loaded.
 if exists('b:did_indent')
@@ -73,15 +73,21 @@ endfunction
 
 " NOTE: moves the cursor
 function s:previous_token()
-  return search('\<\|[][`^!"%-/:-?{-~]','bW') ? s:token() : ''
+  let l:ln = line('.')
+  return search('\<\|[][`^!"%-/:-?{-~]','bW') ?
+        \ (s:token() == '/' || line('.') != l:ln) &&
+        \ synIDattr(synID(line('.'),col('.'),0),'name') =~? 'comment' ?
+        \ search('\/[/*]\&','bW') ? s:previous_token() : ''
+        \ : s:token()
+        \ : ''
 endfunction
 
 function s:Trim(ln)
   let pline = substitute(getline(a:ln),'\s*$','','')
-  let l:max = max([strridx(pline,'//'),strridx(pline,'/*'),0])
+  let l:max = max([match(pline,'.*\zs\%([^/]\zs\/\/\|\/\*\)'),0])
   while l:max && synIDattr(synID(a:ln, strlen(pline), 0), 'name') =~? 'comment\|doc'
     let pline = substitute(strpart(pline, 0, l:max),'\s*$','','')
-    let l:max = max([strridx(pline,'//'),strridx(pline,'/*'),0])
+    let l:max = max([match(pline,'.*\zs\%([^/]\zs\/\/\|\/\*\)'),0])
   endwhile
   return pline
 endfunction
@@ -127,24 +133,22 @@ function s:iscontOne(i,num,cont)
 endfunction
 
 " https://github.com/sweet-js/sweet.js/wiki/design#give-lookbehind-to-the-reader
-function s:IsBlock(...)
-  let l:ln = get(a:000,0,line('.'))
+function s:IsBlock()
+  let l:ln = line('.')
   let char = s:previous_token()
   let syn = char =~ '[{>/]' || l:ln != line('.') ? synIDattr(synID(line('.'),col('.')-(char == '{'),0),'name') : ''
-  if char is ''
+  if char is '' || syn =~? 'regex'
     return 1
   elseif syn =~? 'xml\|jsx'
     return char != '{'
-  elseif syn =~? 'comment'
-    return search('\/[/*]','bW') && s:IsBlock(l:ln)
   elseif char == '>'
     return getline('.')[col('.')-2] == '=' || syn =~? '^jsflow'
   elseif char == ':'
     return cursor(0,match(' ' . strpart(getline('.'),0,col('.')),'.*\zs' . s:case_stmt . '$')) + 1 &&
           \ (expand('<cword>') !=# 'default' || s:previous_token() !~ '[,{]')
   endif
-  return index(split('return const let import export yield default delete var void typeof throw new in instanceof'
-        \ . ' - = ~ ! < * + , / ? ^ % | & ( ['), char) < (0 + (line('.') != l:ln))
+  return index(split('return const let import export yield default delete var void typeof throw new in instanceof')
+        \ + split('-=~!<*+,/?^%|&([','\zs'), char) < (0 + (line('.') != l:ln))
 endfunction
 
 " Find line above 'lnum' that isn't empty, in a comment, or in a string.
@@ -154,7 +158,7 @@ function s:PrevCodeLine(lnum)
     let syn = synIDattr(synID(l:lnum,matchend(getline(l:lnum), '^\s*[^''"`]'),0),'name')
     if syn =~? 'html'
       return
-    elseif syn !~? s:syng_strcom
+    elseif syn !~? 'comment\|doc\|string\|template'
       return l:lnum
     endif
     let l:lnum = prevnonblank(l:lnum - 1)
@@ -244,7 +248,8 @@ function GetJavascriptIndent()
   endif
 
   if stmt || !num
-    let isOp = l:line =~# s:opfirst || pline =~# s:continuation
+    let isOp = l:line =~# s:opfirst || pline =~# s:continuation &&
+          \ synIDattr(synID(l:lnum,match(' ' . pline,'\/$'),0),'name') !~? 'regex'
     let bL = s:iscontOne(l:lnum,num,isOp)
     let bL -= (bL && l:line[0] == '{') * s:W
   endif
