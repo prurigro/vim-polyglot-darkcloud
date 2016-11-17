@@ -94,9 +94,9 @@ endfunction
 
 " configurable regexes that define continuation lines, not including (, {, or [.
 let s:opfirst = '^' . get(g:,'javascript_opfirst',
-      \ '\%([<>,?^%|*/&]\|\([-.:+]\)\1\@!\|=>\@!\|in\%(stanceof\)\=\>\)')
+      \ '\%([<>,?^%|*/&]\|\([-.:+]\)\1\@!\|=>\@!\|typeof\>\|in\%(stanceof\)\=\>\)')
 let s:continuation = get(g:,'javascript_continuation',
-      \ '\%([<=,.?/*^%|&:]\|+\@<!+\|-\@<!-\|=\@<!>\|\<in\%(stanceof\)\=\)') . '$'
+      \ '\%([<=,.?/*^%|&:]\|+\@<!+\|-\@<!-\|=\@<!>\|\<typeof\|\<in\%(stanceof\)\=\)') . '$'
 
 function s:OneScope(lnum,text)
   if cursor(a:lnum, match(' ' . a:text, ')$')) + 1 &&
@@ -153,15 +153,15 @@ endfunction
 
 " Find line above 'lnum' that isn't empty, in a comment, or in a string.
 function s:PrevCodeLine(lnum)
-  let l:lnum = prevnonblank(a:lnum)
-  while l:lnum
-    let syn = synIDattr(synID(l:lnum,matchend(getline(l:lnum), '^\s*[^''"`]'),0),'name')
+  let curp = [line('.'),col('.')]
+  call cursor(a:lnum+1,1)
+  while search('^\s*\%(\/\/\)\@!\S','bW')
+    let syn = synIDattr(synID(line('.'),matchend(getline('.'), '^\s*[^''"`]'),0),'name')
     if syn =~? 'html'
       return
     elseif syn !~? 'comment\|doc\|string\|template'
-      return l:lnum
+      return line('.') + call('cursor',curp)
     endif
-    let l:lnum = prevnonblank(l:lnum - 1)
   endwhile
 endfunction
 
@@ -192,7 +192,7 @@ function GetJavascriptIndent()
   if syns =~? 'comment\|doc'
     if l:line =~ '^\s*\*'
       return cindent(v:lnum)
-    elseif l:line !~ '^\s*\/'
+    elseif l:line !~ '^\s*\/[/*]'
       return -1
     endif
   elseif syns =~? 'string\|template' && l:line !~ '^[''"]'
