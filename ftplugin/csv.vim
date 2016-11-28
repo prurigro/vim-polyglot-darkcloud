@@ -1256,6 +1256,64 @@ fu! <sid>MoveColumn(start, stop, ...) range "{{{3
     endfor
     call winrestview(wsv)
 endfu
+fu! <sid>DupColumn(start, stop, ...) range "{{{3
+    " Add new empty column
+    " Explicitly give the range as argument,
+    " cause otherwise, Vim would move the cursor
+    if exists("b:csv_fixed_width_cols")
+        call <sid>Warn("Duplicating Columns only works for delimited files")
+        return
+    endif
+
+    let wsv = winsaveview()
+
+    " translate 1 based columns into zero based list index
+    let col = <sid>WColumn() - 1
+    let max = <sid>MaxColumns()
+    let add_delim = 0
+
+    " If no argument is given, add column after current column
+    if exists("a:1")
+        if a:1 == '$' || a:1 >= max
+            let pos = max - 1
+        elseif a:1 < 0
+            let pos = col
+        else
+            let pos = a:1 - 1
+        endif
+    else
+        let pos = col
+    endif
+    if pos == max - 1
+        let add_delim = 1
+    endif
+    let cnt=(exists("a:2") && a:2 > 0 ? a:2 : 1)
+
+    " if the data contains comments, substitute one line after another
+    " skipping comment lines (we could do it with a single :s statement,
+    " but that would fail for the first and last column.
+
+    let commentpat = '\%(\%>'.(a:start-1).'l\V'.
+                \ escape(b:csv_cmt[0], '\\').'\m\)'. '\&\%(\%<'.
+                \ (a:stop+1). 'l\V'. escape(b:csv_cmt[0], '\\'). '\m\)'
+
+    for i in range(a:start, a:stop)
+        let content = getline(i)
+        if content =~ '^\s*\V'. escape(b:csv_cmt[0], '\\')
+            " skip comments
+            continue
+        endif
+        let fields = split(getline(i), b:col.'\zs')
+        if add_delim && fields[-1][:-1] isnot b:delimiter
+            " Need to add a delimiter
+            let fields[pos] .= b:delimiter
+        endif
+        let fields = fields[0:pos] + repeat([fields[pos]], cnt) + fields[pos+1:-1]
+        call setline(i, join(fields, ''))
+    endfor
+    call winrestview(wsv)
+endfu
+
 fu! <sid>AddColumn(start, stop, ...) range "{{{3
     " Add new empty column
     " Explicitly give the range as argument,
@@ -1285,12 +1343,11 @@ fu! <sid>AddColumn(start, stop, ...) range "{{{3
     let cnt=(exists("a:2") && a:2 > 0 ? a:2 : 1)
 
     " translate 1 based columns into zero based list index
-    "let pos -= 1
     let col -= 1
 
     if pos == 0
         let pat = '^'
-    elseif pos == max-1
+    elseif pos == max
         let pat = '$'
     else
         let pat = <sid>GetColPat(pos,1)
@@ -1358,6 +1415,37 @@ fu! <sid>SumColumn(list) "{{{3
             endif
         endif
         return sum
+    endif
+endfu
+fu! <sid>AvgColumn(list) "{{{3
+    if empty(a:list)
+        return 0
+    else
+        let cnt = 0
+        let sum = has("float") ? 0.0 : 0
+        for item in a:list
+            if empty(item)
+                continue
+            endif
+            let nr = matchstr(item, '-\?\d\(.*\d\)\?$')
+            let format1 = '^-\?\d\+\zs\V' . s:nr_format[0] . '\m\ze\d'
+            let format2 = '\d\+\zs\V' . s:nr_format[1] . '\m\ze\d'
+            try
+                let nr = substitute(nr, format1, '', '')
+                if has("float") && s:nr_format[1] != '.'
+                    let nr = substitute(nr, format2, '.', '')
+                endif
+            catch
+                let nr = 0
+            endtry
+            let sum += (has("float") ? str2float(nr) : (nr + 0))
+            let cnt += 1
+        endfor
+        if has("float")
+            return printf("%.2f", sum/cnt)
+        else
+            return sum/cnt
+        endif
     endif
 endfu
 fu! <sid>MaxColumn(list) "{{{3
@@ -2055,6 +2143,9 @@ fu! <sid>CommandDefinitions() "{{{3
     call <sid>LocalCmd("CountCol",
         \ ':echo csv#EvalColumn(<q-args>, "<sid>CountColumn", <line1>,<line2>)',
         \ '-nargs=? -range=% -complete=custom,<sid>SortComplete')
+    call <sid>LocalCmd("AvgCol",
+        \ ':echo csv#EvalColumn(<q-args>, "<sid>AvgColumn", <line1>,<line2>)',
+        \ '-nargs=? -range=% -complete=custom,<sid>SortComplete')
     call <sid>LocalCmd("ConvertData",
         \ ':call <sid>PrepareDoForEachColumn(<line1>,<line2>,<bang>0)',
         \ '-bang -nargs=? -range=%')
@@ -2077,6 +2168,9 @@ fu! <sid>CommandDefinitions() "{{{3
         \ '-bang -range=%')
     call <sid>LocalCmd("AddColumn",
         \ ':call <sid>AddColumn(<line1>,<line2>,<f-args>)',
+        \ '-range=% -nargs=* -complete=custom,<sid>SortComplete')
+    call <sid>LocalCmd("DupColumn",
+        \ ':call <sid>DupColumn(<line1>,<line2>,<f-args>)',
         \ '-range=% -nargs=* -complete=custom,<sid>SortComplete')
     call <sid>LocalCmd('Substitute', ':call <sid>SubstituteInColumn(<q-args>,<line1>,<line2>)',
         \ '-nargs=1 -range=%')
@@ -2679,9 +2773,15 @@ fu! csv#EvalColumn(nr, func, first, last, ...) range "{{{3
     if col == 0
         let col = 1
     endif
-    " don't take the header line into consideration
-    let start = a:first - 1 + s:csv_fold_headerline
-    let stop  = a:last  - 1 + s:csv_fold_headerline
+
+    let start = a:first - 1
+    let stop  = a:last  - 1
+
+    if a:first <= s:csv_fold_headerline
+        " don't take the header line into consideration
+        let start += s:csv_fold_headerline
+        let stop  += s:csv_fold_headerline
+    endif
 
     let column = <sid>CopyCol('', col, '')[start : stop]
     " Delete delimiter
@@ -2785,7 +2885,7 @@ fu! CSVSum(col, fmt, first, last) "{{{3
     if empty(last)
         let last = line('$')
     endif
-    return csv#EvalColumn(a:col, '<sid>SumColumn', first, last)
+    return csv#EvalColumn(a:col, '<sid>AvgColumn', first, last)
 endfu
 fu! CSVMax(col, fmt, first, last) "{{{3
     let first = a:first
@@ -2854,4 +2954,4 @@ let &cpo = s:cpo_save
 unlet s:cpo_save
 
 " Vim Modeline " {{{2
-" vim: set foldmethod=marker et:
+" vim: set foldmethod=marker et sw=0 sts=-1 ts=4:

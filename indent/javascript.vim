@@ -2,7 +2,7 @@
 " Language: Javascript
 " Maintainer: Chris Paul ( https://github.com/bounceme )
 " URL: https://github.com/pangloss/vim-javascript
-" Last Change: November 20, 2016
+" Last Change: November 24, 2016
 
 " Only load this indent file when no other was loaded.
 if exists('b:did_indent')
@@ -13,7 +13,7 @@ let b:did_indent = 1
 " Now, set up our indentation expression and keys that trigger it.
 setlocal indentexpr=GetJavascriptIndent()
 setlocal autoindent nolisp nosmartindent
-setlocal indentkeys=0{,0},0),0],:,!^F,o,O,e
+setlocal indentkeys+=0],0)
 
 let b:undo_indent = 'setlocal indentexpr< smartindent< autoindent< indentkeys<'
 
@@ -93,9 +93,9 @@ endfunction
 
 " configurable regexes that define continuation lines, not including (, {, or [.
 let s:opfirst = '^' . get(g:,'javascript_opfirst',
-      \ '\%([<>,?^%|*/&]\|\([-.:+]\)\1\@!\|=>\@!\|typeof\>\|in\%(stanceof\)\=\>\)')
+      \ '\%([<>=,?^%|*/&]\|\([-.:+]\)\1\@!\|!=\|in\%(stanceof\)\=\>\)')
 let s:continuation = get(g:,'javascript_continuation',
-      \ '\%([<=,.?/*^%|&:]\|+\@<!+\|-\@<!-\|=\@<!>\|\<typeof\|\<in\%(stanceof\)\=\)') . '$'
+      \ '\%([<=,.~!?/*^%|&:]\|+\@<!+\|-\@<!-\|=\@<!>\|\<\%(typeof\|delete\|void\|in\|instanceof\)\)') . '$'
 
 function s:OneScope(lnum,text)
   if cursor(a:lnum, match(' ' . a:text, ')$')) + 1 &&
@@ -150,16 +150,14 @@ function s:IsBlock()
         \ + split('-=~!<*+,/?^%|&([','\zs'), char) < (0 + (line('.') != l:ln))
 endfunction
 
-" Find line above 'lnum' that isn't empty, in a comment, or in a string.
+" Find line above 'lnum' that isn't empty or in a comment
 function s:PrevCodeLine(lnum)
-  let curp = [line('.'),col('.')]
-  call cursor(a:lnum+1,1)
-  while search('^\s*\%(\/\/\)\@!\S','bW')
-    if synIDattr(synID(line('.'),matchend(getline('.'), '^\s*[^''"`]'),0),'name') !~?
-          \ 'comment\|doc\|string\|template'
-      return line('.') + call('cursor',curp)
-    endif
+  let l:n = prevnonblank(a:lnum)
+  while getline(l:n) =~ '^\s*\/[/*]' || synIDattr(synID(l:n,1,0),'name') =~?
+        \ 'comment\|doc'
+    let l:n = prevnonblank(l:n-1)
   endwhile
+  return l:n
 endfunction
 
 " Check if line 'lnum' has a balanced amount of parentheses.
@@ -225,26 +223,30 @@ function GetJavascriptIndent()
     if idx == 2 && search('\S','bW',line('.')) && s:looking_at() == ')'
       call s:GetPair('(',')','bW',s:skip_expr,200)
     endif
-    return indent(line('.'))
+    return indent('.')
   endif
 
-  let b:js_cache = [v:lnum] + (line('.') == v:lnum ? [0,0] : [line('.'),col('.')])
+  let b:js_cache = [v:lnum] + (line('.') == v:lnum ? [0,0] : getpos('.')[1:2])
   let num = b:js_cache[1]
 
   let [s:W, pline, isOp, stmt, bL, switch_offset] = [s:sw(), s:Trim(l:lnum),0,0,0,0]
   if num && s:looking_at() == '{' && s:IsBlock()
-    let stmt = 1
-    if s:looking_at() == ')' && s:GetPair('(', ')', 'bW', s:skip_expr, 100) > 0 && s:previous_token() ==# 'switch'
-      let switch_offset = &cino !~ ':' || !has('float') ? s:W :
-            \ float2nr(str2float(matchstr(&cino,'.*:\zs[-0-9.]*')) * (&cino =~# '\%(.*:\)\@>[^,]*s' ? s:W : 1))
-      if l:line =~# '^' . s:case_stmt
-        return indent(num) + switch_offset
+    if s:looking_at() == ')' && s:GetPair('(', ')', 'bW', s:skip_expr, 100) > 0
+      let num = line('.')
+      if s:previous_token() ==# 'switch'
+        let switch_offset = &cino !~ ':' || !has('float') ? s:W :
+              \ float2nr(str2float(matchstr(&cino,'.*:\zs[-0-9.]*')) * (&cino =~# '\%(.*:\)\@>[^,]*s' ? s:W : 1))
+        if l:line =~# '^' . s:case_stmt
+          return indent(num) + switch_offset
+        elseif pline =~# s:case_stmt . '$'
+          return indent(l:lnum) + s:W
+        endif
       endif
-      let stmt = pline !~# s:case_stmt . '$'
     endif
+    let stmt = 1
   endif
 
-  if stmt || !num
+  if stmt && pline[-1:] != '{' || !num
     let isOp = l:line =~# s:opfirst || pline =~# s:continuation &&
           \ synIDattr(synID(l:lnum,match(' ' . pline,'\/$'),0),'name') !~? 'regex'
     let bL = s:iscontOne(l:lnum,num,isOp)
