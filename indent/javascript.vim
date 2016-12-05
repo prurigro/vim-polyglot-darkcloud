@@ -2,7 +2,7 @@
 " Language: Javascript
 " Maintainer: Chris Paul ( https://github.com/bounceme )
 " URL: https://github.com/pangloss/vim-javascript
-" Last Change: November 29, 2016
+" Last Change: December 1, 2016
 
 " Only load this indent file when no other was loaded.
 if exists('b:did_indent')
@@ -73,22 +73,12 @@ endfunction
 " NOTE: moves the cursor
 function s:previous_token()
   let l:ln = line('.')
-  return search('\<\|[][`^!"%-/:-?{-~]','bW') ?
-        \ (s:looking_at() == '/' || line('.') != l:ln) &&
+  return search('.\>\|[^[:alnum:][:space:]_$]','bW') ?
+        \ (s:looking_at() == '/' || line('.') != l:ln && getline('.') =~ '\/\/') &&
         \ synIDattr(synID(line('.'),col('.'),0),'name') =~? 'comment' ?
-        \ search('\%(\/\@<!\/\/\|\/\*\)\&','bW') ? s:previous_token() : ''
+        \ search('\_[^/]\zs\/[/*]','bW') ? s:previous_token() : ''
         \ : s:token()
         \ : ''
-endfunction
-
-function s:Trim(ln)
-  let pline = substitute(getline(a:ln),'\s*$','','')
-  let l:max = max([match(pline,'.*\zs\%([^/]\zs\/\/\|\/\*\)'),0])
-  while l:max && synIDattr(synID(a:ln, strlen(pline), 0), 'name') =~? 'comment\|doc'
-    let pline = substitute(strpart(pline, 0, l:max),'\s*$','','')
-    let l:max = max([match(pline,'.*\zs\%([^/]\zs\/\/\|\/\*\)'),0])
-  endwhile
-  return pline
 endfunction
 
 " configurable regexes that define continuation lines, not including (, {, or [.
@@ -97,16 +87,28 @@ let s:opfirst = '^' . get(g:,'javascript_opfirst',
 let s:continuation = get(g:,'javascript_continuation',
       \ '\%([<=,.~!?/*^%|&:]\|+\@<!+\|-\@<!-\|=\@<!>\|\%(\.\s*\)\@<!\<\%(typeof\|delete\|void\|in\|instanceof\)\)') . '$'
 
-function s:OneScope(lnum,text)
-  if cursor(a:lnum, match(' ' . a:text, ')$')) + 1 &&
-        \ s:GetPair('(', ')', 'bW', s:skip_expr, 100) > 0
+" get the line of code stripped of comments. if called with two args, leave
+" cursor at the last non-comment char.
+function s:Trim(ln,...)
+  let pline = substitute(getline(a:ln),'\s*$','','')
+  let l:max = max([match(pline,'.*[^/]\zs\/[/*]'),0])
+  while l:max && synIDattr(synID(a:ln, strlen(pline), 0), 'name') =~? 'comment\|doc'
+    let pline = substitute(strpart(pline, 0, l:max),'\s*$','','')
+    let l:max = max([match(pline,'.*[^/]\zs\/[/*]'),0])
+  endwhile
+  return !a:0 || cursor(a:ln,strlen(pline)) ? pline : pline
+endfunction
+
+function s:OneScope(lnum)
+  let pline = s:Trim(a:lnum,1)
+  if pline[-1:] == ')' && s:GetPair('(', ')', 'bW', s:skip_expr, 100) > 0
     let token = s:previous_token()
     if index(split('await each'),token) + 1
       return s:previous_token() ==# 'for'
     endif
     return index(split('for if let while with'),token) + 1
   endif
-  return cursor(a:lnum, match(' ' . a:text, '\%(\%(\.\s*\)\@<!\<\%(else\|do\)\|=>\)$\C')) + 1
+  return pline =~# '\%(\%(\.\s*\)\@<!\<\%(else\|do\)\|=>\)$'
 endfunction
 
 function s:iscontOne(i,num,cont)
@@ -116,7 +118,7 @@ function s:iscontOne(i,num,cont)
   let bL = 0
   while l:i >= l:num && (!l:cont || ind > pind)
     if indent(l:i) < ind " first line always true for !a:cont, false for !!a:cont
-      if s:OneScope(l:i,s:Trim(l:i))
+      if s:OneScope(l:i)
         let bL += s:W
         let [l:cont, l:i] = [0, line('.')]
       elseif !l:cont
@@ -135,19 +137,19 @@ endfunction
 function s:IsBlock()
   let l:ln = line('.')
   let char = s:previous_token()
-  let syn = char =~ '[{>/]' || l:ln != line('.') ? synIDattr(synID(line('.'),col('.')-(char == '{'),0),'name') : ''
-  if char is '' || syn =~? 'regex'
-    return 1
-  elseif syn =~? 'xml\|jsx'
+  let syn = char =~ '[{>/]' ? synIDattr(synID(line('.'),col('.')-(char == '{'),0),'name') : ''
+  if syn =~? 'xml\|jsx'
     return char != '{'
+  elseif char =~ '\k'
+    return index(split('return const let import export yield default delete var void typeof throw new in instanceof')
+          \ ,char) < (0 + (line('.') != l:ln)) || s:previous_token() == '.'
   elseif char == '>'
     return getline('.')[col('.')-2] == '=' || syn =~? '^jsflow'
   elseif char == ':'
-    return cursor(0,match(' ' . strpart(getline('.'),0,col('.')),'.*\zs' . s:case_stmt . '$')) + 1 &&
+    return !cursor(0,match(' ' . strpart(getline('.'),0,col('.')),'.*\zs' . s:case_stmt . '$')) &&
           \ (expand('<cword>') !=# 'default' || s:previous_token() !~ '[,{]')
   endif
-  return index(split('return const let import export yield default delete var void typeof throw new in instanceof')
-        \ + split('-=~!<*+,/?^%|&([','\zs'), char) < (0 + (line('.') != l:ln))
+  return syn =~? 'regex' || char !~ '[-=~!<*+,/?^%|&([]'
 endfunction
 
 " Find line above 'lnum' that isn't empty or in a comment
@@ -200,7 +202,7 @@ function GetJavascriptIndent()
 
   let l:line = substitute(substitute(l:line,'^\s*\%(\/\*.\{-}\*\/\s*\)*','',''),'^\/[/*].*','','')
 
-  " the containing paren, bracket, curly. Many hacks for performance
+  " the containing paren, bracket, or curly. Many hacks for performance
   call cursor(v:lnum,1)
   let idx = strlen(l:line) ? stridx('])}',l:line[0]) : -1
   if indent(l:lnum)
@@ -229,9 +231,10 @@ function GetJavascriptIndent()
   let b:js_cache = [v:lnum] + (line('.') == v:lnum ? [0,0] : getpos('.')[1:2])
   let num = b:js_cache[1]
 
-  let [s:W, pline, isOp, stmt, bL, switch_offset] = [s:sw(), s:Trim(l:lnum),0,0,0,0]
-  if num && s:looking_at() == '{' && s:IsBlock()
-    if s:looking_at() == ')' && s:GetPair('(', ')', 'bW', s:skip_expr, 100) > 0
+  let [s:W, isOp, bL, switch_offset] = [s:sw(),0,0,0]
+  if !num || s:looking_at() == '{' && s:IsBlock()
+    let pline = s:Trim(l:lnum)
+    if num && s:looking_at() == ')' && s:GetPair('(', ')', 'bW', s:skip_expr, 100) > 0
       let num = line('.')
       if s:previous_token() ==# 'switch'
         let switch_offset = &cino !~ ':' || !has('float') ? s:W :
@@ -243,14 +246,12 @@ function GetJavascriptIndent()
         endif
       endif
     endif
-    let stmt = 1
-  endif
-
-  if stmt && pline[-1:] != '{' || !num
-    let isOp = l:line =~# s:opfirst || pline =~# s:continuation &&
-          \ synIDattr(synID(l:lnum,match(' ' . pline,'\/$'),0),'name') !~? 'regex'
-    let bL = s:iscontOne(l:lnum,num,isOp)
-    let bL -= (bL && l:line[0] == '{') * s:W
+    if pline[-1:] !~ '[{;]'
+      let isOp = l:line =~# s:opfirst || pline =~# s:continuation &&
+            \ synIDattr(synID(l:lnum,match(' ' . pline,'\/$'),0),'name') !~? 'regex'
+      let bL = s:iscontOne(l:lnum,num,isOp)
+      let bL -= (bL && l:line[0] == '{') * s:W
+    endif
   endif
 
   " main return
