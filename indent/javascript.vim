@@ -95,12 +95,18 @@ endfunction
 " NOTE: Moves the cursor, unless a arg is supplied.
 function s:previous_token(...)
   let l:pos = getpos('.')[1:2]
-  return [search('.\>\|[^[:alnum:][:space:]_$]','bW') ?
-        \ (s:looking_at() == '/' || line('.') != l:pos[0] && getline('.') =~ '\/\/') &&
-        \ s:syn_at(line('.'),col('.')) =~? s:syng_com ?
-        \ search('\_[^/]\zs\/[/*]','bW') ? s:previous_token() : ''
-        \ : s:token()
-        \ : ''][a:0 && call('cursor',l:pos)]
+  let token = ''
+  while search('.\>\|[^[:alnum:][:space:]_$]','bW')
+    if (s:looking_at() == '/' || line('.') != l:pos[0] && search('\/\/','nbW',
+          \ line('.'))) && s:syn_at(line('.'),col('.')) =~? s:syng_com
+      call search('\_[^/]\zs\/[/*]','bW')
+    else
+      let token = s:token()
+      break
+    endif
+  endwhile
+  call call('cursor', a:0 ? l:pos : [0,0])
+  return token
 endfunction
 
 " switch case label pattern
@@ -164,16 +170,16 @@ endfunction
 
 function s:OneScope(lnum)
   let pline = s:Trim(a:lnum,1)
+  let kw = 'else do'
   if pline[-1:] == ')' && s:GetPair('(', ')', 'bW', s:skip_expr, 100) > 0
-    let token = s:previous_token()
-    if index(split('await each'),token) + 1
-      return s:previous_token() ==# 'for'
+    call s:previous_token()
+    let kw = 'for if let while with'
+    if index(split('await each'),s:token()) + 1
+      call s:previous_token()
+      let kw = 'for'
     endif
-    return index(split('for if let while with'),token) + 1
   endif
-  let token = s:token()
-  return token == '>' ? getline('.')[col('.')-2] == '=' :
-        \ token =~# '^\%(else\|do\)$' && s:previous_token(1) != '.'
+  return pline[-2:] == '=>' || index(split(kw),s:token()) + 1 && s:previous_token(1) != '.'
 endfunction
 
 " returns braceless levels started by 'i' and above lines * &sw. 'num' is the
