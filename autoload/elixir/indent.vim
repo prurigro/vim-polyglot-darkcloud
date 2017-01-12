@@ -21,6 +21,8 @@ let s:DEINDENT_KEYWORDS = '^\s*\<\%('.s:BLOCK_END.'\|'.s:BLOCK_MIDDLE.'\)\>'
 let s:PAIR_START = '\<\%('.s:NO_COLON_BEFORE.s:BLOCK_START.'\)\>'.s:NO_COLON_AFTER
 let s:PAIR_MIDDLE = '^\s*\%('.s:BLOCK_MIDDLE.'\)\>'.s:NO_COLON_AFTER.'\zs'
 let s:PAIR_END = '\<\%('.s:NO_COLON_BEFORE.s:BLOCK_END.'\)\>\zs'
+let s:LINE_COMMENT = '^\s*#'
+let s:MATCH_OPERATOR = '[^!><=]=[^~=>]'
 
 function! s:pending_parenthesis(line)
   if a:line.last.text !~ s:ARROW
@@ -141,7 +143,7 @@ function! elixir#indent#indent_ending_symbols(ind, line)
 endfunction
 
 function! elixir#indent#indent_keywords(ind, line)
-  if a:line.last.text =~ s:INDENT_KEYWORDS
+  if a:line.last.text =~ s:INDENT_KEYWORDS && a:line.last.text !~ s:LINE_COMMENT
     return a:ind + &sw
   else
     return a:ind
@@ -161,12 +163,13 @@ endfunction
 
 function! elixir#indent#indent_pipeline_assignment(ind, line)
   if a:line.current.text =~ s:STARTS_WITH_PIPELINE
-        \ && a:line.last.text =~ '^[^=]\+=.\+$'
+        \ && a:line.last.text =~ s:MATCH_OPERATOR
     let b:old_ind.pipeline = indent(a:line.last.num)
     " if line starts with pipeline
     " and last line is an attribution
     " indents pipeline in same level as attribution
-    return match(a:line.last.text, '=\s*\zs[^ ]')
+    let assign_pos = match(a:line.last.text, '=\s*\zs[^ ]')
+    return (elixir#util#is_indentable_at(a:line.last.num, assign_pos) ? assign_pos : a:ind)
   else
     return a:ind
   end
@@ -191,18 +194,6 @@ function! elixir#indent#indent_square_brackets(ind, line)
       " Avoid negative indentation index
       return matchend(a:line.last.text, '[\s*')
     end
-  else
-    return a:ind
-  end
-endfunction
-
-function! elixir#indent#deindent_case_arrow(ind, line)
-  if get(b:old_ind, 'arrow', 0) > 0
-        \ && (a:line.current.text =~ s:ARROW
-        \ || a:line.current.text =~ s:BLOCK_END)
-    let ind = b:old_ind.arrow
-    let b:old_ind.arrow = 0
-    return ind
   else
     return a:ind
   end
