@@ -2,7 +2,7 @@
 " Language: Javascript
 " Maintainer: Chris Paul ( https://github.com/bounceme )
 " URL: https://github.com/pangloss/vim-javascript
-" Last Change: December 31, 2016
+" Last Change: January 16, 2017
 
 " Only load this indent file when no other was loaded.
 if exists('b:did_indent')
@@ -57,11 +57,11 @@ let s:skip_expr = "synIDattr(synID(line('.'),col('.'),0),'name') =~? '".s:syng_s
 function s:skip_func()
   if !s:free || search('\m`\|\*\/','nW',s:looksyn)
     let s:free = !eval(s:skip_expr)
-    let s:looksyn = s:free ? line('.') : s:looksyn
+    let s:looksyn = line('.')
     return !s:free
   endif
   let s:looksyn = line('.')
-  return (search('\m[''"]\|\\$','nW',s:looksyn) || getline('.') =~ '\/\%<'.(col('.')+1).'c.\{-}\/') &&
+  return getline('.') =~ '\%<'.col('.').'c\/.\{-}\/\|\%>'.col('.').'c[''"]\|\\$' &&
         \ eval(s:skip_expr)
 endfunction
 
@@ -101,23 +101,22 @@ function s:token()
   return s:looking_at() =~ '\k' ? expand('<cword>') : s:looking_at()
 endfunction
 
-function s:b_token()
-  if s:looking_at() =~ '\k'
-    call search('\m\<','cbW')
-  endif
-  return search('\m\S','bW')
-endfunction
-
 function s:previous_token()
   let l:n = line('.')
-  while s:b_token()
-    if (s:looking_at() == '/' || line('.') != l:n && search('\m\/\/','nbW',
-          \ line('.'))) && s:syn_at(line('.'),col('.')) =~? s:syng_com
-      call search('\m\_[^/]\zs\/[/*]','bW')
+  if (s:looking_at() !~ '\k' || search('\m\<','cbW')) && search('\m\S','bW')
+    if (getline('.')[col('.')-2:col('.')-1] == '*/' || line('.') != l:n &&
+          \ getline('.') =~ '\%<'.col('.').'c\/\/') && s:syn_at(line('.'),col('.')) =~? s:syng_com
+      while search('\m\/\ze[/*]','cbW')
+        if !search('\m\S','bW')
+          break
+        elseif s:syn_at(line('.'),col('.')) !~? s:syng_com
+          return s:token()
+        endif
+      endwhile
     else
       return s:token()
     endif
-  endwhile
+  endif
   return ''
 endfunction
 
@@ -162,13 +161,9 @@ endfunction
 " get the line of code stripped of comments and move cursor to the last
 " non-comment char.
 function s:Trim(ln)
-  let pline = substitute(getline(a:ln),'\s*$','','')
-  let l:max = max([match(pline,'.*[^/]\zs\/[/*]'),0])
-  while l:max && s:syn_at(a:ln, strlen(pline)) =~? s:syng_com
-    let pline = substitute(strpart(pline, 0, l:max),'\s*$','','')
-    let l:max = max([match(pline,'.*[^/]\zs\/[/*]'),0])
-  endwhile
-  return cursor(a:ln,strlen(pline)) ? pline : pline
+  call cursor(a:ln+1,1)
+  call s:previous_token()
+  return strpart(getline('.'),0,col('.'))
 endfunction
 
 " Find line above 'lnum' that isn't empty or in a comment
@@ -258,7 +253,8 @@ function s:IsBlock()
     elseif char == ':'
       return getline('.')[col('.')-2] != ':' && s:label_col()
     endif
-    return syn =~? 'regex' || char !~ '[-=~!<*+,/?^%|&([]'
+    return syn =~? 'regex' || char !~ '[=~!<*,/?^%|&([]' &&
+          \ (char !~ '[-+]' || l:n != line('.') && getline('.')[col('.')-2] == char)
   endif
 endfunction
 
@@ -312,22 +308,16 @@ function GetJavascriptIndent()
     endif
   endif
 
-  if idx + 1 || l:line[:1] == '|}'
-    if idx == 2 && search('\m\S','bW',line('.')) && s:looking_at() == ')'
-      call s:GetPair('(',')','bW',s:skip_expr,200)
-    endif
-    return indent('.')
-  endif
-
   let b:js_cache = [v:lnum] + (line('.') == v:lnum ? [0,0] : getpos('.')[1:2])
   let num = b:js_cache[1]
 
   let [s:W, isOp, bL, switch_offset] = [s:sw(),0,0,0]
   if !num || s:IsBlock()
+    let ilnum = line('.')
     let pline = s:save_pos('s:Trim',l:lnum)
     if num && s:looking_at() == ')' && s:GetPair('(', ')', 'bW', s:skip_expr, 100) > 0
-      let num = line('.')
-      if s:previous_token() ==# 'switch' && s:previous_token() != '.'
+      let num = ilnum == num ? line('.') : num
+      if idx < 0 && s:previous_token() ==# 'switch' && s:previous_token() != '.'
         if &cino !~ ':' || !has('float')
           let switch_offset = s:W
         else
@@ -340,20 +330,22 @@ function GetJavascriptIndent()
         endif
       endif
     endif
-    if pline[-1:] !~ '[{;]'
+    if idx < 0 && pline !~ '[{;]$'
       if pline =~# ':\@<!:$'
         call cursor(l:lnum,strlen(pline))
         let isOp = s:tern_col(b:js_cache[1:2])
       else
         let isOp = l:line =~# s:opfirst || s:continues(l:lnum,pline)
       endif
-      let bL = s:iscontOne(l:lnum,num,isOp)
+      let bL = s:iscontOne(l:lnum,b:js_cache[1],isOp)
       let bL -= (bL && l:line[0] == '{') * s:W
     endif
   endif
 
   " main return
-  if isOp
+  if idx + 1 || l:line[:1] == '|}'
+    return indent(num)
+  elseif isOp
     return (num ? indent(num) : -s:W) + (s:W * 2) + switch_offset + bL
   elseif num
     return indent(num) + s:W + switch_offset + bL

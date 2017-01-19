@@ -24,7 +24,8 @@ syntax sync fromstart
 " syntax case ignore
 syntax case match
 
-syntax match   jsNoise          /[:,\;\.]\{1}/
+syntax match   jsNoise          /[:,\;]\{1}/
+syntax match   jsNoise          /[\.]\{1}/ skipwhite skipempty nextgroup=jsObjectProp
 syntax match   jsFuncCall       /\k\+\%(\s*(\)\@=/
 syntax match   jsParensError    /[)}\]]/
 
@@ -33,6 +34,7 @@ syntax keyword jsStorageClass   const var let skipwhite skipempty nextgroup=jsDe
 syntax match   jsVariableDef    contained /\k\+/ skipwhite skipempty nextgroup=jsFlowDefinition
 syntax keyword jsOperator       delete instanceof typeof void new in of skipwhite skipempty nextgroup=@jsExpression
 syntax match   jsOperator       /[\!\|\&\+\-\<\>\=\%\/\*\~\^]\{1}/ skipwhite skipempty nextgroup=@jsExpression
+syntax match   jsOperator       /::/ skipwhite skipempty nextgroup=@jsExpression
 syntax keyword jsBooleanTrue    true
 syntax keyword jsBooleanFalse   false
 
@@ -50,22 +52,22 @@ syntax match   jsModuleComma        contained /,/ skipwhite skipempty nextgroup=
 " Strings, Templates, Numbers
 syntax region  jsString           start=+"+  skip=+\\\("\|$\)+  end=+"\|$+  contains=jsSpecial,@Spell extend
 syntax region  jsString           start=+'+  skip=+\\\('\|$\)+  end=+'\|$+  contains=jsSpecial,@Spell extend
-syntax region  jsTemplateString   start=+`+  skip=+\\\(`\|$\)+  end=+`+     contains=jsTemplateVar,jsSpecial extend
+syntax region  jsTemplateString   start=+`+  skip=+\\\(`\|$\)+  end=+`+     contains=jsTemplateExpression,jsSpecial extend
 syntax match   jsTaggedTemplate   /\k\+\%(`\)\@=/ nextgroup=jsTemplateString
 syntax match   jsNumber           /\<\d\+\%([eE][+-]\=\d\+\)\=\>\|\<0[bB][01]\+\>\|\<0[oO]\o\+\>\|\<0[xX]\x\+\>/
 syntax keyword jsNumber           Infinity
 syntax match   jsFloat            /\<\%(\d\+\.\d\+\|\d\+\.\|\.\d\+\)\%([eE][+-]\=\d\+\)\=\>/
 
 " Regular Expressions
-syntax match   jsSpecial          contained "\v\\%(0|\\x\x\{2\}\|\\u\x\{4\}\|\c[A-Z]|.)"
-syntax region  jsTemplateVar      contained matchgroup=jsTemplateBraces start=+${+ end=+}+ contains=@jsExpression keepend
-syntax region  jsRegexpCharClass  contained start=+\[+ skip=+\\.+ end=+\]+
-syntax match   jsRegexpBoundary   contained "\v%(\<@![\^$]|\\[bB])"
-syntax match   jsRegexpBackRef    contained "\v\\[1-9][0-9]*"
-syntax match   jsRegexpQuantifier contained "\v\\@<!%([?*+]|\{\d+%(,|,\d+)?})\??"
-syntax match   jsRegexpOr         contained "\v\<@!\|"
-syntax match   jsRegexpMod        contained "\v\(@<=\?[:=!>]"
-syntax region  jsRegexpGroup      contained start="\\\@<!(" skip="\\.\|\[\(\\.\|[^]]\)*\]" end="\\\@<!)" contains=jsRegexpCharClass,@jsRegexpSpecial keepend
+syntax match   jsSpecial            contained "\v\\%(0|\\x\x\{2\}\|\\u\x\{4\}\|\c[A-Z]|.)"
+syntax region  jsTemplateExpression contained matchgroup=jsTemplateBraces start=+${+ end=+}+ contains=@jsExpression keepend
+syntax region  jsRegexpCharClass    contained start=+\[+ skip=+\\.+ end=+\]+
+syntax match   jsRegexpBoundary     contained "\v%(\<@![\^$]|\\[bB])"
+syntax match   jsRegexpBackRef      contained "\v\\[1-9][0-9]*"
+syntax match   jsRegexpQuantifier   contained "\v\\@<!%([?*+]|\{\d+%(,|,\d+)?})\??"
+syntax match   jsRegexpOr           contained "\v\<@!\|"
+syntax match   jsRegexpMod          contained "\v\(@<=\?[:=!>]"
+syntax region  jsRegexpGroup        contained start="\\\@<!(" skip="\\.\|\[\(\\.\|[^]]\)*\]" end="\\\@<!)" contains=jsRegexpCharClass,@jsRegexpSpecial keepend
 if v:version > 703 || v:version == 603 && has("patch1088")
   syntax region  jsRegexpString   start=+\%(\%(\%(return\|case\)\s\+\)\@50<=\|\%(\%([)\]"']\|\d\|\w\)\s*\)\@50<!\)/\(\*\|/\)\@!+ skip=+\\.\|\[\%(\\.\|[^]]\)*\]+ end=+/[gimy]\{,4}+ contains=jsRegexpCharClass,jsRegexpGroup,@jsRegexpSpecial oneline keepend extend
 else
@@ -80,7 +82,7 @@ syntax region  jsObjectKeyString   contained start=+"+  skip=+\\\("\|$\)+  end=+
 syntax region  jsObjectKeyString   contained start=+'+  skip=+\\\('\|$\)+  end=+'\|$+  contains=jsSpecial,@Spell skipwhite skipempty nextgroup=jsObjectValue
 syntax region  jsObjectKeyComputed contained matchgroup=jsBrackets start=/\[/ end=/]/ contains=@jsExpression skipwhite skipempty nextgroup=jsObjectValue,jsFuncArgs extend
 syntax match   jsObjectSeparator   contained /,/
-syntax region  jsObjectValue       contained start=/:/ end=/\%(,\|}\)\@=/ contains=jsObjectColon,@jsExpression extend
+syntax region  jsObjectValue       contained matchgroup=jsNoise start=/:/ end=/\%(,\|}\)\@=/ contains=@jsExpression extend
 syntax match   jsObjectFuncName    contained /\<[a-zA-Z_$][0-9a-zA-Z_$]*\>[\r\n\t ]*(\@=/ skipwhite skipempty nextgroup=jsFuncArgs
 syntax match   jsFunctionKey       contained /\<[a-zA-Z_$][0-9a-zA-Z_$]*\>\(\s*:\s*function\s*\)\@=/
 syntax match   jsObjectMethodType  contained /\%(get\|set\)\%( \k\+\)\@=/ skipwhite skipempty nextgroup=jsObjectFuncName
@@ -96,7 +98,7 @@ exe 'syntax keyword jsThis      this             '.(exists('g:javascript_conceal
 exe 'syntax keyword jsSuper     super  contained '.(exists('g:javascript_conceal_super')     ? 'conceal cchar='.g:javascript_conceal_super      : '')
 
 " Statement Keywords
-syntax match   jsBlockLabel              /\<[a-zA-Z_$][0-9a-zA-Z_$]*\>\s*:/    contains=jsNoise skipwhite skipempty nextgroup=jsBlock
+syntax match   jsBlockLabel              /\<[a-zA-Z_$][0-9a-zA-Z_$]*\>\s*::\@!/    contains=jsNoise skipwhite skipempty nextgroup=jsBlock
 syntax match   jsBlockLabelKey contained /\<[a-zA-Z_$][0-9a-zA-Z_$]*\>\%(\s*\%(;\|\n\)\)\@=/
 syntax keyword jsStatement    contained with yield debugger
 syntax keyword jsStatement    contained break continue skipwhite skipempty nextgroup=jsBlockLabelKey
@@ -111,7 +113,7 @@ syntax keyword jsFinally      contained finally        skipwhite skipempty nextg
 syntax keyword jsCatch        contained catch          skipwhite skipempty nextgroup=jsParenCatch
 syntax keyword jsException              throw
 syntax keyword jsAsyncKeyword           async await
-syntax match   jsSwitchColon   contained /:/            skipwhite skipempty nextgroup=jsSwitchBlock
+syntax match   jsSwitchColon   contained /::\@!/       skipwhite skipempty nextgroup=jsSwitchBlock
 
 " Keywords
 syntax keyword jsGlobalObjects      Array Boolean Date Function Iterator Number Object Symbol Map WeakMap Set RegExp String Proxy Promise Buffer ParallelArray ArrayBuffer DataView Float32Array Float64Array Int16Array Int32Array Int8Array Uint16Array Uint32Array Uint8Array Uint8ClampedArray JSON Math console document window Intl Collator DateTimeFormat NumberFormat fetch
@@ -219,6 +221,7 @@ syntax region  jsCommentMisc        contained start=/\/\*/ end=/\*\// contains=j
 " Decorators
 syntax match   jsDecorator                    /^\s*@/ nextgroup=jsDecoratorFunction
 syntax match   jsDecoratorFunction  contained /[a-zA-Z_][a-zA-Z0-9_.]*/ nextgroup=jsParenDecorator
+syntax match   jsObjectProp         contained /\<[a-zA-Z_$][0-9a-zA-Z_$]*\>/
 
 if exists("javascript_plugin_jsdoc")
   runtime extras/jsdoc.vim
@@ -324,7 +327,6 @@ if version >= 508 || !exists("did_javascript_syn_inits")
   HiLink jsRepeatBraces         Noise
   HiLink jsSwitchBraces         Noise
   HiLink jsSpecial              Special
-  HiLink jsTemplateVar          Special
   HiLink jsTemplateBraces       Noise
   HiLink jsGlobalObjects        Constant
   HiLink jsGlobalNodeObjects    Constant
