@@ -538,7 +538,7 @@ syn match phpVarSelector    "\$"  contained display
 " highlight static and object variables inside strings
 syn match phpMethodsVar     "\%(->\|::$\?\)\h\w*" contained contains=phpMethods,phpMemberSelector,phpIdentifier display containedin=phpStringDouble
 syn match phpMethodsVar     "\%(->\|::\%($\)\@!\)\s*\h\w*\s*("me=e-1 skipwhite skipempty contained contains=phpMemberSelector,phpMethod display containedin=phpStringDouble
-syn match phpMethod /\h\w*/
+syn match phpMethod /\h\w*/ contained
 syn match phpSplatOperator  "\.\.\." contained display
 
 " Identifier
@@ -601,9 +601,9 @@ if !exists("php_ignore_phpdoc") || !php_ignore_phpdoc
   syn region phpCommentTitle contained matchgroup=phpDocComment start="/\*\*" matchgroup=phpCommentTitle keepend end="\.$" end="\.[ \t\r<&]"me=e-1 end="[^{]@"me=s-2,he=s-1 end="\*/"me=s-1,he=s-1 contains=phpCommentStar,phpTodo,phpDocTags,@Spell containedin=phpDocComment
 
   syn region phpDocTags  start="{@\(example\|id\|internal\|inheritdoc\|link\|source\|toc\|tutorial\)" end="}" containedin=phpDocComment
-  syn match phpDocTags "@\%(abstract\|access\|api\|author\|brief\|bug\|category\|class\|copyright\|created\|date\|deprecated\|details\|example\|exception\|file\|filesource\|final\|global\|id\|ignore\|inheritdoc\|internal\|license\|link\|magic\|method\|name\|package\|param\|property\|return\|see\|since\|source\|static\|staticvar\|struct\|subpackage\|throws\|toc\|todo\|tutorial\|type\|uses\|var\|version\|warning\)" containedin=phpDocComment nextgroup=phpDocParam,phpDocIdentifier skipwhite
-  syn match phpDocParam "\s\+\zs\%(\h\w*|\?\)\+" nextgroup=phpDocIdentifier skipwhite
-  syn match phpDocIdentifier "\s\+\zs$\h\w*"
+  syn match phpDocTags "@\%(abstract\|access\|api\|author\|brief\|bug\|category\|class\|copyright\|created\|date\|deprecated\|details\|example\|exception\|file\|filesource\|final\|global\|id\|ignore\|inheritdoc\|internal\|license\|link\|magic\|method\|name\|package\|param\|property\|return\|see\|since\|source\|static\|staticvar\|struct\|subpackage\|throws\|toc\|todo\|tutorial\|type\|uses\|var\|version\|warning\)" containedin=phpDocComment nextgroup=phpDocParam,phpDocIdentifier skipwhite contained
+  syn match phpDocParam "\s\+\zs\%(\h\w*|\?\)\+" nextgroup=phpDocIdentifier skipwhite contained
+  syn match phpDocIdentifier "\s\+\zs$\h\w*" contained
 
   syn case match
 endif
@@ -666,12 +666,12 @@ syn match phpStaticClasses "\v\h\w+(::)@=" contained display
 " Class name
 syn keyword phpKeyword class contained
       \ nextgroup=phpClass skipwhite skipempty
-syn match phpClass /\h\w*/
+syn match phpClass /\h\w*/ contained
 
 " Class extends
 syn keyword phpKeyword extends contained
       \ nextgroup=phpClassExtends skipwhite skipempty
-syn match phpClassExtends /\(\\\|\h\w*\)*\h\w*/
+syn match phpClassExtends /\(\\\|\h\w*\)*\h\w*/ contained
 
 " Class implements
 syntax keyword phpKeyword implements contained
@@ -694,7 +694,7 @@ syn match phpUseKeyword /\(function\|as\)\_s\+/ contained contains=phpKeyword
 " Function name
 syn keyword phpKeyword function contained
       \ nextgroup=phpFunction skipwhite skipempty
-syn match phpFunction /\h\w*/
+syn match phpFunction /\h\w*/ contained
 
 " Clusters
 syn cluster phpClConst contains=phpFunctions,phpClasses,phpStaticClasses,phpIdentifier,phpStatement,phpKeyword,phpOperator,phpSplatOperator,phpStringSingle,phpStringDouble,phpBacktick,phpNumber,phpType,phpBoolean,phpStructure,phpMethodsVar,phpConstants,phpException,phpSuperglobals,phpMagicConstants,phpServerVars
@@ -741,7 +741,7 @@ if php_folding==1
 
   syn region phpFoldIfContainer start="^\z(\s*\)if\s\+\(.*{$\)\@=" skip="^\z1}\_s*else\%[if]" end="^\z1}$" keepend extend contained contains=@phpClFunction,@phpClControl,phpFCKeyword,phpFoldHtmlInside
   syn region phpFoldIf matchgroup=phpKeyword start="^\z(\s*\)if\s\+\([^}]*$\)\@=" matchgroup=Delimiter end="\(^\z1\)\@=}\(\_s\+\%[elseif]\s\+[^}]*$\)\@="me=s-1 contained containedin=phpFoldIfContainer keepend nextgroup=phpFoldElseIf,phpFoldElse fold transparent
-  syn region phpFoldElseIf matchgroup=phpKeyword start="^\z(\s*\)\(}\s\+\)\=elseif\s\+\([^}]*$\)\@=" matchgroup=Delimiter end="\(^\z1\)\@=}\(\s*\%[elseif]\s*[^}]*$\)\@="me=s-1 contained containedin=phpFoldIfContainer keepend nextgroup=phpFoldElseIf,phpFoldElse fold transparent 
+  syn region phpFoldElseIf matchgroup=phpKeyword start="^\z(\s*\)\(}\s\+\)\=elseif\s\+\([^}]*$\)\@=" matchgroup=Delimiter end="\(^\z1\)\@=}\(\s*\%[elseif]\s*[^}]*$\)\@="me=s-1 contained containedin=phpFoldIfContainer keepend nextgroup=phpFoldElseIf,phpFoldElse fold transparent
   syn region phpFoldElse matchgroup=phpKeyword start="^\z(\s*\)\(}\s\+\)\=else\s\+\([^}]*$\)\@=" matchgroup=Delimiter end="\(^\z1\)\@=}\(\s\+\%[elseif]\s\+[^}]*$\)\@="me=s-1 contained containedin=phpFoldIfContainer keepend fold transparent
 
   syn region phpFoldSwitch matchgroup=phpKeyword start="^\z(\s*\)switch\s*\(.*{$\)\@=" matchgroup=Delimiter end="^\z1}$" keepend extend contained contains=@phpClFunction,@phpClControl,phpFCKeyword,phpFoldHtmlInside fold transparent

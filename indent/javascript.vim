@@ -48,14 +48,14 @@ else
 endif
 
 " Regex of syntax group names that are or delimit string or are comments.
-let s:syng_strcom = 'string\|comment\|regex\|special\|doc\|template'
+let s:syng_strcom = 'string\|comment\|regex\|special\|doc\|template\%(braces\)\@!'
 let s:syng_str = 'string\|template'
 let s:syng_com = 'comment\|doc'
 " Expression used to check whether we should skip a match with searchpair().
 let s:skip_expr = "synIDattr(synID(line('.'),col('.'),0),'name') =~? '".s:syng_strcom."'"
 
 function s:skip_func()
-  if !s:free || search('\m`\|\*\/','nW',s:looksyn)
+  if !s:free || search('\m`\|\${\|\*\/','nW',s:looksyn)
     let s:free = !eval(s:skip_expr)
     let s:looksyn = line('.')
     return !s:free
@@ -293,7 +293,7 @@ function GetJavascriptIndent()
   endif
 
   " the containing paren, bracket, or curly. Many hacks for performance
-  let idx = strlen(l:line) ? stridx('])}',l:line[0]) : -1
+  let idx = index([']',')','}'],l:line[0])
   if b:js_cache[0] >= l:lnum && b:js_cache[0] < v:lnum &&
         \ (b:js_cache[0] > l:lnum || s:Balanced(l:lnum))
     call call('cursor',b:js_cache[1:])
@@ -319,12 +319,13 @@ function GetJavascriptIndent()
     if num && s:looking_at() == ')' && s:GetPair('(', ')', 'bW', s:skip_expr, 100) > 0
       let num = ilnum == num ? line('.') : num
       if idx < 0 && s:previous_token() ==# 'switch' && s:previous_token() != '.'
-        if &cino !~ ':' || !has('float')
+        if &cino !~ ':'
           let switch_offset = s:W
         else
-          let cinc = matchlist(&cino,'.*:\(-\)\=\([0-9.]*\)\(s\)\=\C')
-          let switch_offset = float2nr(str2float(cinc[1].(strlen(cinc[2]) ? cinc[2] : strlen(cinc[3])))
-                \ * (strlen(cinc[3]) ? s:W : 1))
+          let cinc = matchlist(&cino,'.*:\zs\(-\)\=\(\d*\)\(\.\d\+\)\=\(s\)\=\C')
+          let switch_offset = max([cinc[0] is '' ? 0 : (cinc[1] is '' ? 1 : -1) *
+                \ ((strlen(cinc[2].cinc[3]) ? cinc[2].printf('%d',cinc[3][1]) : 10) *
+                \ (cinc[4] is '' ? 1 : s:W)) / 10, -indent(num)])
         endif
         if pline[-1:] != '.' && l:line =~# '^\%(default\|case\)\>'
           return indent(num) + switch_offset
