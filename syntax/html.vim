@@ -1,7 +1,7 @@
 " Vim syntax file
 " Language:     HTML (version 5.1)
 "               SVG (SVG 1.1 (Second Edition) )
-" Last Change:  2016 Jan 20
+" Last Change:  2017 Feb 15
 " License:      Public domain
 "               (but let me know if you like :) )
 "
@@ -88,7 +88,7 @@ syn keyword htmlArg contained xml:lang xml:space xml:base xmlns
 syn keyword htmlArg contained onafterprint onbeforeprint onbeforeunload onblur onerror onfocus onhashchange onload 
 syn keyword htmlArg contained onmessage onoffline ononline onpopstate onredo onresize onstorage onundo onunload
 " <video>, <audio>, <source>, <track>
-syn keyword htmlArg contained autoplay preload controls loop poster media kind charset srclang track
+syn keyword htmlArg contained autoplay preload controls loop poster media kind charset srclang track playsinline
 " <form>, <input>, <button>
 syn keyword htmlArg contained form autocomplete autofocus list min max step
 syn keyword htmlArg contained formaction autofocus formenctype formmethod formtarget formnovalidate
@@ -100,7 +100,7 @@ syn keyword htmlArg contained async
 " <content>
 syn keyword htmlArg contained select
 " <iframe>
-syn keyword htmlArg contained seamless srcdoc sandbox allowfullscreen
+syn keyword htmlArg contained seamless srcdoc sandbox allowfullscreen allowusermedia allowpaymentrequest 
 " <picture>
 syn keyword htmlArg contained srcset sizes
 " <a>
