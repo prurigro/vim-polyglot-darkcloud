@@ -2,7 +2,7 @@
 " Language: Javascript
 " Maintainer: Chris Paul ( https://github.com/bounceme )
 " URL: https://github.com/pangloss/vim-javascript
-" Last Change: February 8, 2017
+" Last Change: February 25, 2017
 
 " Only load this indent file when no other was loaded.
 if exists('b:did_indent')
@@ -55,14 +55,13 @@ let s:syng_com = 'comment\|doc'
 let s:skip_expr = "synIDattr(synID(line('.'),col('.'),0),'name') =~? '".s:syng_strcom."'"
 
 function s:skip_func()
-  if !s:free || search('\m`\|\${\|\*\/','nW',s:looksyn)
+  if getline('.') =~ '\%<'.col('.').'c\/.\{-}\/\|\%>'.col('.').'c[''"]\|\\$'
+    return eval(s:skip_expr)
+  elseif !s:free || search('\m`\|\${\|\*\/','nW',s:looksyn)
     let s:free = !eval(s:skip_expr)
-    let s:looksyn = line('.')
-    return !s:free
   endif
   let s:looksyn = line('.')
-  return getline('.') =~ '\%<'.col('.').'c\/.\{-}\/\|\%>'.col('.').'c[''"]\|\\$' &&
-        \ eval(s:skip_expr)
+  return !s:free
 endfunction
 
 function s:alternatePair(stop)
@@ -101,9 +100,9 @@ function s:token()
 endfunction
 
 function s:previous_token()
-  let l:n = line('.')
+  let l:pos = getpos('.')[1:2]
   if (s:looking_at() !~ '\k' || search('\m\<','cbW')) && search('\m\S','bW')
-    if (getline('.')[col('.')-2:col('.')-1] == '*/' || line('.') != l:n &&
+    if (getline('.')[col('.')-2:col('.')-1] == '*/' || line('.') != l:pos[0] &&
           \ getline('.') =~ '\%<'.col('.').'c\/\/') && s:syn_at(line('.'),col('.')) =~? s:syng_com
       while search('\m\S\ze\_s*\/[/*]','bW')
         if s:syn_at(line('.'),col('.')) !~? s:syng_com
@@ -114,6 +113,7 @@ function s:previous_token()
       return s:token()
     endif
   endif
+  call call('cursor',l:pos)
   return ''
 endfunction
 
@@ -149,16 +149,16 @@ endfunction
 
 " configurable regexes that define continuation lines, not including (, {, or [.
 let s:opfirst = '^' . get(g:,'javascript_opfirst',
-      \ '\%([<>=,?^%|*/&]\|\([-.:+]\)\1\@!\|!=\|in\%(stanceof\)\=\>\)')
+      \ '\C\%([<>=,?^%|*/&]\|\([-.:+]\)\1\@!\|!=\|in\%(stanceof\)\=\>\)')
 let s:continuation = get(g:,'javascript_continuation',
       \ '\C\%([-+<>=,.~!?/*^%|&:]\|\<\%(typeof\|new\|delete\|void\|in\|instanceof\|await\)\)') . '$'
 
 function s:continues(ln,con)
   return !cursor(a:ln, match(' '.a:con,s:continuation)) &&
-        \ eval( (['s:syn_at(line("."),col(".")) !~? "regex"'] +
-        \ repeat(['getline(".")[col(".")-2] != tr(s:looking_at(),">","=")'],3) +
-        \ repeat(['s:previous_token() != "."'],7) + ['s:expr_col()',1])[
-        \ index(split('/ > - + typeof new delete void in instanceof await :'),s:token())])
+        \ eval(['s:syn_at(line("."),col(".")) !~? "regex"',
+        \ 'getline(".")[col(".")-2] != tr(s:looking_at(),">","=")',
+        \ 's:previous_token() != "."','s:expr_col()',1][
+        \ match(matchlist(s:looking_at(),'\(\/\)\|\([-+>]\)\|\(\l\)\|\(:\)')[1:],'.')])
 endfunction
 
 " get the line of code stripped of comments and move cursor to the last
@@ -248,7 +248,7 @@ function s:IsBlock()
     if match(s:stack,'\cxml\|jsx') + 1 && s:syn_at(line('.'),col('.')-1) =~? 'xml\|jsx'
       return char != '{'
     elseif char =~ '\k'
-      return index(split('return const let import export yield default delete var await void typeof throw case new of in instanceof')
+      return index(split('return const let import export extends yield default delete var await void typeof throw case new of in instanceof')
             \ ,char) < (line('.') != l:n) || s:save_pos('s:previous_token') == '.'
     elseif char == '>'
       return getline('.')[col('.')-2] == '=' || s:syn_at(line('.'),col('.')) =~? '^jsflow'
@@ -268,8 +268,8 @@ function GetJavascriptIndent()
   call cursor(v:lnum,1)
   let l:line = getline('.')
   " use synstack as it validates syn state and works in an empty line
-  let s:stack = synstack(v:lnum,1)
-  let syns = synIDattr(get(s:stack,-1),'name')
+  let s:stack = map(synstack(v:lnum,1),"synIDattr(v:val,'name')")
+  let syns = get(s:stack,-1,'')
 
   " start with strings,comments,etc.
   if syns =~? s:syng_com
@@ -278,7 +278,7 @@ function GetJavascriptIndent()
     elseif l:line !~ '^\s*\/[/*]'
       return -1
     endif
-  elseif syns =~? s:syng_str && l:line !~ '^[''"]'
+  elseif syns =~? s:syng_str
     if b:js_cache[0] == v:lnum - 1 && s:Balanced(v:lnum-1)
       let b:js_cache[0] = v:lnum
     endif
