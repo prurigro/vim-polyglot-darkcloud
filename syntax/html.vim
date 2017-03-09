@@ -1,7 +1,8 @@
 " Vim syntax file
 " Language:     HTML (version 5.1)
-"               SVG (SVG 1.1 (Second Edition) )
-" Last Change:  2017 Feb 15
+"               SVG (SVG 1.1 Second Edition)
+"               MathML (MathML 3.0 Second Edition)
+" Last Change:  2017 Mar 07
 " License:      Public domain
 "               (but let me know if you like :) )
 "
@@ -15,6 +16,15 @@
 " URL:          http://rm.blog.br/vim/syntax/html.vim
 " Modified:     htdebeer <H.T.de.Beer@gmail.com>
 " Changes:      add common SVG elements and attributes for inline SVG
+
+" Patch 7.4.1142
+if has("patch-7.4-1142")
+  if has("win32")
+    syn iskeyword @,48-57,_,128-167,224-235,-
+  else
+    syn iskeyword @,48-57,_,192-255,-
+  endif
+endif
 
 " HTML 5 tags
 syn keyword htmlTagName contained article aside audio canvas command
@@ -115,11 +125,11 @@ syn keyword htmlArg contained integrity crossorigin
 
 " Custom Data Attributes
 " http://w3c.github.io/html/single-page.html#embedding-custom-non-visible-data-with-the-data-attributes
-syn match   htmlArg "\<\(data\-\([a-z_][a-z0-9_.\-]*\)\+\)\{1,}\>" contained
+syn match   htmlArg "\<data[-.0-9_a-z]*-[-.0-9_a-z]*\>" contained
 
 " Vendor Extension Attributes
 " http://w3c.github.io/html/single-page.html#conformance-requirements-extensibility
-syn match   htmlArg "\<\(x\-\([a-z_][a-z0-9_.\-]*\)\+\)\{2,}\>" contained
+syn match   htmlArg "\<x[-.0-9_a-z]*-[-.0-9_a-z]*\>" contained
 
 " Microdata
 " http://dev.w3.org/html5/md/

@@ -249,4 +249,6 @@ autocmd BufNewFile,BufRead *.ts,*.tsx setlocal filetype=typescript
 autocmd BufRead *.vala,*.vapi set efm=%f:%l.%c-%[%^:]%#:\ %t%[%^:]%#:\ %m
 au BufRead,BufNewFile *.vala,*.vapi setfiletype vala
 au BufRead,BufNewFile *.vm set ft=velocity syntax=velocity
+autocmd BufNewFile,BufRead *.litcoffee set filetype=litcoffee
+autocmd BufNewFile,BufRead *.coffee.md set filetype=litcoffee
 au BufNewFile,BufRead *.vue setf vue.html.javascript.css

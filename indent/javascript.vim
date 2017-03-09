@@ -36,6 +36,10 @@ else
   endfunction
 endif
 
+" Performance for forwards search(): start search at pos rather than masking
+" matches before pos.
+let s:z = has('patch-7.4.984') ? 'z' : ''
+
 " searchpair() wrapper
 if has('reltime')
   function s:GetPair(start,end,flags,skip,time,...)
@@ -54,21 +58,29 @@ let s:syng_com = 'comment\|doc'
 " Expression used to check whether we should skip a match with searchpair().
 let s:skip_expr = "synIDattr(synID(line('.'),col('.'),0),'name') =~? '".s:syng_strcom."'"
 
+function s:parse_cino(f)
+  silent! return float2nr(eval(substitute(substitute(join(split(
+        \ matchstr(&cino,'.*'.a:f.'\zs[^,]*'), 's',1), '*'.s:W)
+        \ , '^-\=\zs\*','',''), '^-\=\zs\.','0.','')))
+endfunction
+
 function s:skip_func()
   if getline('.') =~ '\%<'.col('.').'c\/.\{-}\/\|\%>'.col('.').'c[''"]\|\\$'
     return eval(s:skip_expr)
-  elseif !s:free || search('\m`\|\${\|\*\/','nW',s:looksyn)
-    let s:free = !eval(s:skip_expr)
+  elseif s:checkIn || search('\m`\|\${\|\*\/','nW'.s:z,s:looksyn)
+    let s:checkIn = eval(s:skip_expr)
   endif
   let s:looksyn = line('.')
-  return !s:free
+  return s:checkIn
 endfunction
 
 function s:alternatePair(stop)
   let pos = getpos('.')[1:2]
-  while search('\m[][(){}]','bW',a:stop)
+  let pat = '[][(){};]'
+  while search('\m'.pat,'bW',a:stop)
     if s:skip_func() | continue | endif
-    let idx = stridx('])}',s:looking_at())
+    let idx = stridx('])};',s:looking_at())
+    if idx is 3 | let pat = '[{}()]' | continue | endif
     if idx + 1
       if s:GetPair(['\[','(','{'][idx], '])}'[idx],'bW','s:skip_func()',2000,a:stop) <= 0
         break
@@ -101,7 +113,7 @@ endfunction
 
 function s:previous_token()
   let l:pos = getpos('.')[1:2]
-  if (s:looking_at() !~ '\k' || search('\m\<','cbW')) && search('\m\S','bW')
+  if search('\m\k\{1,}\zs\k\|\S','bW')
     if (getline('.')[col('.')-2:col('.')-1] == '*/' || line('.') != l:pos[0] &&
           \ getline('.') =~ '\%<'.col('.').'c\/\/') && s:syn_at(line('.'),col('.')) =~? s:syng_com
       while search('\m\S\ze\_s*\/[/*]','bW')
@@ -200,7 +212,9 @@ function s:Balanced(lnum)
         return
       endif
     endif
-    let pos = match(l:line, '[][(){}]', pos + 1)
+    let pos = match(l:line, (l:open ?
+          \ '['.escape(tr(l:line[pos],'({[]})',')}][{(').l:line[pos],']').']' :
+          \ '[][(){}]'), pos + 1)
   endwhile
   return !l:open
 endfunction
@@ -303,7 +317,7 @@ function GetJavascriptIndent()
         \ (b:js_cache[0] > l:lnum || s:Balanced(l:lnum))
     call call('cursor',b:js_cache[1:])
   else
-    let [s:looksyn, s:free, top] = [v:lnum - 1, 1, (!indent(l:lnum) &&
+    let [s:looksyn, s:checkIn, top] = [v:lnum - 1, 0, (!indent(l:lnum) &&
           \ s:syn_at(l:lnum,1) !~? s:syng_str) * l:lnum]
     if idx + 1
       call s:GetPair(['\[','(','{'][idx],'])}'[idx],'bW','s:skip_func()',2000,top)
@@ -327,26 +341,27 @@ function GetJavascriptIndent()
         if &cino !~ ':'
           let switch_offset = s:W
         else
-          let cinc = matchlist(&cino,'.*:\zs\(-\)\=\(\d*\)\(\.\d\+\)\=\(s\)\=\C')
-          let switch_offset = max([cinc[0] is '' ? 0 : (cinc[1].1) *
-                \ ((strlen(cinc[2].cinc[3]) ? str2nr(cinc[2].str2nr(cinc[3][1])) : 10) *
-                \ (cinc[4] is '' ? 1 : s:W)) / 10, -indent(num)])
+          let switch_offset = max([-indent(num),s:parse_cino(':')])
         endif
         if pline[-1:] != '.' && l:line =~# '^\%(default\|case\)\>'
           return indent(num) + switch_offset
         endif
       endif
     endif
-    if idx < 0 && pline !~ '[{;]$'
+    if idx < 0 && pline[-1:] !~ '[{;]'
       let isOp = (l:line =~# s:opfirst || s:continues(l:lnum,pline)) * s:W
       let bL = s:iscontOne(l:lnum,b:js_cache[1],isOp)
       let bL -= (bL && l:line[0] == '{') * s:W
     endif
+  elseif idx < 0 && getline(b:js_cache[1])[b:js_cache[2]-1] == '(' && &cino =~ '('
+    let pval = s:parse_cino('(')
+    return !pval ? (s:parse_cino('w') ? 0 : -(!!search('\m\S','W'.s:z,num))) + col('.') :
+          \ max([indent('.') + pval + (s:GetPair('(',')','nbrmW',s:skip_expr,100,num) * s:W),0])
   endif
 
   " main return
-  if idx + 1 || l:line[:1] == '|}'
-    return indent(num)
+  if l:line =~ '^\%([])}]\||}\)'
+    return max([indent(num),0])
   elseif num
     return indent(num) + s:W + switch_offset + bL + isOp
   endif
