@@ -245,7 +245,8 @@ autocmd BufNewFile,BufRead {.,}tmux*.conf set ft=tmux | compiler tmux
 autocmd BufNewFile,BufRead *.toml,Cargo.lock,*/.cargo/config set filetype=toml
 autocmd BufNewFile,BufRead *.twig set filetype=twig
 autocmd BufNewFile,BufRead *.html.twig set filetype=html.twig
-autocmd BufNewFile,BufRead *.ts,*.tsx setlocal filetype=typescript
+autocmd BufNewFile,BufRead *.ts  set filetype=typescript
+autocmd BufNewFile,BufRead *.tsx setfiletype typescript
 autocmd BufRead *.vala,*.vapi set efm=%f:%l.%c-%[%^:]%#:\ %t%[%^:]%#:\ %m
 au BufRead,BufNewFile *.vala,*.vapi setfiletype vala
 au BufRead,BufNewFile *.vm set ft=velocity syntax=velocity
