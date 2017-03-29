@@ -16,20 +16,20 @@ function! elixir#indent(lnum)
   let prev_nb_lnum = prevnonblank(lnum-1)
   let prev_nb_text = getline(prev_nb_lnum)
 
-  call elixir#indent#debug("Indenting line " . lnum)
-  call elixir#indent#debug("text = " . text)
+  call elixir#indent#debug("==> Indenting line " . lnum)
+  call elixir#indent#debug("text = '" . text . "'")
 
   let handlers = [
         \'top_of_file',
+        \'starts_with_after',
+        \'starts_with_else',
+        \'starts_with_end',
+        \'starts_with_rescue',
+        \'starts_with_catch',
         \'following_trailing_do',
         \'following_trailing_else',
         \'following_trailing_binary_operator',
         \'starts_with_pipe',
-        \'starts_with_end',
-        \'starts_with_else',
-        \'starts_with_rescue',
-        \'starts_with_catch',
-        \'starts_with_after',
         \'starts_with_close_sq_bracket',
         \'starts_with_close_curly_brace',
         \'starts_with_binary_operator',
@@ -42,11 +42,13 @@ function! elixir#indent(lnum)
         \'inside_receive',
         \'inside_data_structure',
         \'inside_parens',
+        \'starts_with_comment',
         \'inside_generic_block'
         \]
   for handler in handlers
     let indent = function('elixir#indent#handle_'.handler)(lnum, text, prev_nb_lnum, prev_nb_text)
     if indent != -1
+      call elixir#indent#debug('line '.lnum.': elixir#indent#handle_'.handler.' returned '.indent)
       return indent
     endif
   endfor
