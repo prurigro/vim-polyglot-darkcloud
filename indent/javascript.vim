@@ -2,13 +2,16 @@
 " Language: Javascript
 " Maintainer: Chris Paul ( https://github.com/bounceme )
 " URL: https://github.com/pangloss/vim-javascript
-" Last Change: March 25, 2017
+" Last Change: March 31, 2017
 
 " Only load this indent file when no other was loaded.
 if exists('b:did_indent')
   finish
 endif
 let b:did_indent = 1
+
+" indent correctly if inside <script>
+let b:html_indent_script1 = 'inc'
 
 " Now, set up our indentation expression and keys that trigger it.
 setlocal indentexpr=GetJavascriptIndent()
@@ -83,9 +86,13 @@ function s:alternatePair(stop)
   while search('\m'.pat,'bW',a:stop)
     if s:skip_func() | continue | endif
     let idx = stridx('])};',s:looking_at())
-    if idx is 3 | let l:for -= 1 | let pat = !l:for ? '[{}]' : '[{}();]' | continue | endif
-    if idx + 1
-      if s:GetPair(['\[','(','{'][idx], '])}'[idx],'bW','s:skip_func()',2000,a:stop) <= 0
+    if idx is 3
+      if l:for is 1
+        return s:GetPair('{','}','bW','s:skip_func()',2000,a:stop) > 0 || call('cursor',pos)
+      endif
+      let [pat, l:for] = ['[{}();]', l:for - 1]
+    elseif idx + 1
+      if s:GetPair(['\[','(','{'][idx], '])}'[idx],'bW','s:skip_func()',2000,a:stop) < 1
         break
       endif
     else
@@ -118,7 +125,7 @@ function s:previous_token()
   let l:pos = getpos('.')[1:2]
   if search('\m\k\{1,}\|\S','ebW')
     if (strpart(getline('.'),col('.')-2,2) == '*/' || line('.') != l:pos[0] &&
-          \ getline('.') =~ '\%<'.col('.').'c\/\/') && s:syn_at(line('.'),col('.')) =~? s:syng_com
+          \ getline('.')[:col('.')-1] =~ '\/\/') && s:syn_at(line('.'),col('.')) =~? s:syng_com
       while search('\m\S\ze\_s*\/[/*]','bW')
         if s:syn_at(line('.'),col('.')) !~? s:syng_com
           return s:token()
@@ -137,10 +144,10 @@ function s:expr_col()
     return 1
   endif
   let bal = 0
-  while search('\m[{}?:;]','bW')
+  while search('\m[{}?:;]','bW',s:scriptTag)
     if eval(s:skip_expr) | continue | endif
     " switch (looking_at())
-    exe {   '}': "if s:GetPair('{','}','bW',s:skip_expr,200) <= 0 | return | endif",
+    exe {   '}': "if s:GetPair('{','}','bW',s:skip_expr,200) < 1 | return | endif",
           \ ';': "return",
           \ '{': "return getpos('.')[1:2] != b:js_cache[1:] && !s:IsBlock()",
           \ ':': "let bal -= strpart(getline('.'),col('.')-2,3) !~ '::'",
@@ -159,8 +166,10 @@ function s:continues(ln,con)
     let teol = s:looking_at()
     if teol == '/'
       return s:syn_at(line('.'),col('.')) !~? 'regex'
-    elseif teol =~ '[-+>]'
-      return getline('.')[col('.')-2] != tr(teol,'>','=')
+    elseif teol == '>'
+      return getline('.')[col('.')-2] != '=' && s:syn_at(line('.'),col('.')) !~? 'jsflow\|^html'
+    elseif teol =~ '[-+]'
+      return getline('.')[col('.')-2] != teol
     elseif teol =~ '\l'
       return s:previous_token() != '.'
     elseif teol == ':'
@@ -238,10 +247,10 @@ function s:doWhile()
   if expand('<cword>') ==# 'while'
     call search('\m\<','cbW')
     let bal = 0
-    while search('\m\C[{}]\|\<\%(do\|while\)\>','bW',b:js_cache[1])
+    while search('\m\C[{}]\|\<\%(do\|while\)\>','bW')
       if eval(s:skip_expr) | continue | endif
       " switch (token())
-      exe get({'}': "if s:GetPair('{','}','bW',s:skip_expr,200) <= 0 | return | endif",
+      exe get({'}': "if s:GetPair('{','}','bW',s:skip_expr,200) < 1 | return | endif",
             \  '{': "return",
             \  'do': "let bal += s:save_pos('s:IsBlock',1)"}, s:token(),
             \        "let bal -= s:save_pos('s:previous_token') != '.'")
@@ -282,18 +291,20 @@ function s:IsBlock(...)
       return char != '{'
     elseif char =~ '\k'
       if char ==# 'type'
-        return s:previous_token() !~# '^\%(im\|ex\)port$'
+        return s:save_pos('s:previous_token') !~# '^\%(im\|ex\)port$'
       endif
       return index(split('return const let import export extends yield default delete var await void typeof throw case new of in instanceof')
             \ ,char) < (line('.') != l:n) || s:save_pos('s:previous_token') == '.'
     elseif char == '>'
-      return getline('.')[col('.')-2] == '=' || s:syn_at(line('.'),col('.')) =~? '^jsflow'
+      return getline('.')[col('.')-2] == '=' || s:syn_at(line('.'),col('.')) =~? 'jsflow\|^html'
+    elseif char == '*'
+      return s:save_pos('s:previous_token') == ':'
     elseif char == ':'
       return !s:save_pos('s:expr_col')
     elseif char == '/'
       return s:syn_at(line('.'),col('.')) =~? 'regex'
     endif
-    return char !~ '[=~!<*,.?^%|&([]' &&
+    return char !~ '[=~!<,.?^%|&([]' &&
           \ (char !~ '[-+]' || l:n != line('.') && getline('.')[col('.')-2] == char)
   endif
 endfunction
@@ -334,13 +345,16 @@ function GetJavascriptIndent()
   endif
 
   " the containing paren, bracket, or curly. Many hacks for performance
+  let s:scriptTag = &indentexpr =~? '^html' ? b:hi_indent.blocklnr : 0
   let idx = index([']',')','}'],l:line[0])
   if b:js_cache[0] >= l:lnum && b:js_cache[0] < v:lnum &&
         \ (b:js_cache[0] > l:lnum || s:Balanced(l:lnum))
-    call call('cursor',b:js_cache[1:])
+    if b:js_cache[2]
+      call call('cursor',b:js_cache[1:])
+    endif
   else
-    let [s:looksyn, s:checkIn, top] = [v:lnum - 1, 0, (!indent(l:lnum) &&
-          \ s:syn_at(l:lnum,1) !~? s:syng_str) * l:lnum]
+    let [s:looksyn, s:checkIn, top] = [v:lnum - 1, 0, max([s:scriptTag,
+          \ (!indent(l:lnum) && s:syn_at(l:lnum,1) !~? s:syng_str) * l:lnum])]
     if idx + 1
       call s:GetPair(['\[','(','{'][idx],'])}'[idx],'bW','s:skip_func()',2000,top)
     elseif getline(v:lnum) !~ '^\S' && syns =~? 'block'
@@ -350,21 +364,17 @@ function GetJavascriptIndent()
     endif
   endif
 
-  let b:js_cache = [v:lnum] + (line('.') == v:lnum ? [0,0] : getpos('.')[1:2])
+  let b:js_cache = [v:lnum] + (line('.') == v:lnum ? [s:scriptTag,0] : getpos('.')[1:2])
   let num = b:js_cache[1]
 
   let [s:W, isOp, bL, switch_offset] = [s:sw(),0,0,0]
-  if !num || s:IsBlock()
+  if !b:js_cache[2] || s:IsBlock()
     let ilnum = line('.')
     let pline = s:Trim(l:lnum)
-    if num && s:looking_at() == ')' && s:GetPair('(', ')', 'bW', s:skip_expr, 100) > 0
+    if b:js_cache[2] && s:looking_at() == ')' && s:GetPair('(',')','bW',s:skip_expr,100) > 0
       let num = ilnum == num ? line('.') : num
       if idx < 0 && s:previous_token() ==# 'switch' && s:previous_token() != '.'
-        if &cino !~ ':'
-          let switch_offset = s:W
-        else
-          let switch_offset = max([-indent(num),s:parse_cino(':')])
-        endif
+        let switch_offset = &cino !~ ':' ? s:W : max([-indent(num),s:parse_cino(':')])
         if pline[-1:] != '.' && l:line =~# '^\%(default\|case\)\>'
           return indent(num) + switch_offset
         endif
@@ -382,7 +392,7 @@ function GetJavascriptIndent()
   endif
 
   " main return
-  if l:line =~ '^\%([])}]\||}\)'
+  if l:line =~ '^[])}]\|^|}'
     return max([indent(num),0])
   elseif num
     return indent(num) + s:W + switch_offset + bL + isOp
