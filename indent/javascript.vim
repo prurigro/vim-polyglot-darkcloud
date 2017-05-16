@@ -2,7 +2,7 @@
 " Language: Javascript
 " Maintainer: Chris Paul ( https://github.com/bounceme )
 " URL: https://github.com/pangloss/vim-javascript
-" Last Change: May 4, 2017
+" Last Change: May 16, 2017
 
 " Only load this indent file when no other was loaded.
 if exists('b:did_indent')
@@ -125,8 +125,6 @@ function s:skip_func()
   return s:checkIn
 endfunction
 
-let s:__ = {}
-
 function s:alternatePair()
   let [l:pos, pat, l:for] = [getpos('.'), '[][(){};]', 3]
   while search('\m'.pat,'bW')
@@ -174,42 +172,37 @@ function s:previous_token()
   return ''
 endfunction
 
-function s:rdr(func)
-  exe '0verbose function s:'.a:func
-endfunction
-" creates (s:) scoped, stationary functions
-function s:anon(d)
-  for key in keys(s:[a:d])
-    redir => func
-    silent call s:rdr(key[:1] == '__' ? s:[a:d][key] : (a:d.'.'.key))
-    redir END
-    let body = join(map(filter(split(func,"\n"),'v:val =~ "^\\s*\\d"'),'substitute(v:val,"^\\s*\\d*","","")'),"\n")
-    exe "func s:".key.matchstr(func,'\%^.\{-}\zs(.\{-})')."\n"
-        \ "let l:pos = getpos('.')\n"
-        \ "try\n"
-        \ .body."\n"
-        \ "finally\n"
-        \ "call setpos('.',l:pos)\n"
-        \ "endtry\n"
-      \ "endfunc"
-  endfor
-  return 'delfunc s:anon | delfunc s:rdr | unlet s:'.a:d
-endfunction
+for s:__ in ['__previous_token','__IsBlock']
+  function s:{s:__}(...)
+    let l:pos = getpos('.')
+    try
+      return call('s:'.matchstr(expand('<sfile>'),'.*__\zs\w\+'),a:000)
+    catch
+    finally
+      call setpos('.',l:pos)
+    endtry
+  endfunction
+endfor
 
-function s:__.expr_col()
+function s:expr_col()
   if getline('.')[col('.')-2] == ':'
     return 1
   endif
-  let bal = 0
+  let [bal, l:pos] = [0, getpos('.')]
   while bal < 1 && search('\m[{}?:;]','bW',s:scriptTag)
-    if eval(s:skip_expr) | continue | endif
-    " switch (looking_at())
-    exe {   '}': "if s:GetPair('{','}','bW',s:skip_expr,200) < 1 | return | endif",
-          \ ';': "return",
-          \ '{': "return getpos('.')[1:2] != b:js_cache[1:] && !s:IsBlock()",
-          \ ':': "let bal -= strpart(getline('.'),col('.')-2,3) !~ '::'",
-          \ '?': "let bal += 1" }[s:looking_at()]
+    if eval(s:skip_expr)
+      continue
+    elseif s:looking_at() == ':'
+      let bal -= strpart(getline('.'),col('.')-2,3) !~ '::'
+    elseif s:looking_at() == '?'
+      let bal += 1
+    elseif s:looking_at() == '{' && getpos('.')[1:2] != b:js_cache[1:] && !s:IsBlock()
+      let bal = 1
+    elseif s:looking_at() != '}' || s:GetPair('{','}','bW',s:skip_expr,200) < 1
+      break
+    endif
   endwhile
+  call setpos('.',l:pos)
   return max([bal,0])
 endfunction
 
@@ -251,7 +244,7 @@ function s:Trim(ln)
 endfunction
 
 " Find line above 'lnum' that isn't empty or in a comment
-function s:__.PrevCodeLine(lnum)
+function s:PrevCodeLine(lnum)
   let l:n = prevnonblank(a:lnum)
   while l:n
     if getline(l:n) =~ '^\s*\/[/*]'
@@ -261,9 +254,10 @@ function s:__.PrevCodeLine(lnum)
       endif
       let l:n = prevnonblank(l:n-1)
     elseif stridx(getline(l:n), '*/') + 1 && s:syn_at(l:n,1) =~? s:syng_com
+      let l:pos = getpos('.')
       call cursor(l:n,1)
-      keepjumps norm! [*
-      let l:n = search('\m\S','nbW')
+      let l:n = search('\m\S\_s*\/\*','nbW')
+      call setpos('.',l:pos)
     else
       break
     endif
@@ -306,18 +300,22 @@ function s:OneScope(lnum)
         \ s:__previous_token() != '.' && !s:doWhile()
 endfunction
 
-function s:__.doWhile()
+function s:doWhile()
   if expand('<cword>') ==# 'while'
+    let [bal, l:pos] = [0, getpos('.')]
     call search('\m\<','cbW')
-    let bal = 0
     while bal < 1 && search('\m\C[{}]\|\<\%(do\|while\)\>','bW')
-      if eval(s:skip_expr) | continue | endif
-      " switch (looking_at())
-      exe {    '}': "if s:GetPair('{','}','bW',s:skip_expr,200) < 1 | return | endif",
-            \  '{': "return",
-            \  'd': "let bal += s:__IsBlock(1)",
-            \  'w': "let bal -= s:__previous_token() != '.'" }[s:looking_at()]
+      if eval(s:skip_expr)
+        continue
+      elseif s:looking_at() ==# 'd'
+        let bal += s:__IsBlock(1)
+      elseif s:looking_at() ==# 'w'
+        let bal -= s:__previous_token() != '.'
+      elseif s:looking_at() != '}' || s:GetPair('{','}','bW',s:skip_expr,200) < 1
+        break
+      endif
     endwhile
+    call setpos('.',l:pos)
     return max([bal,0])
   endif
 endfunction
@@ -369,8 +367,6 @@ function s:IsBlock(...)
   endif
 endfunction
 
-call extend(s:__, {'__previous_token': 'previous_token', '__IsBlock': 'IsBlock'})
-exe s:anon('__')
 
 function GetJavascriptIndent()
   let b:js_cache = get(b:,'js_cache',[0,0,0])
