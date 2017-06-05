@@ -186,7 +186,7 @@ au BufNewFile,BufRead .simplecov		call s:setf('ruby')
 au BufNewFile,BufRead [tT]horfile,*.thor	call s:setf('ruby')
 au BufNewFile,BufRead [vV]agrantfile		call s:setf('ruby')
 function! s:setf(filetype) abort
-  if &filetype !=# a:filetype
+  if &filetype !~# '\<'.a:filetype.'\>'
     let &filetype = a:filetype
   endif
 endfunction

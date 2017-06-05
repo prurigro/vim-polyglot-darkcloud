@@ -339,6 +339,22 @@ function s:iscontOne(i,num,cont)
   return bL
 endfunction
 
+function s:isSwitch()
+  if s:previous_token() !~ '[.*]'
+    if s:GetPair('{','}','cbW',s:skip_expr,100) > 0
+      if s:IsBlock()
+        let tok = s:token()
+        if tok == '}' && s:GetPair('{','}','bW',s:skip_expr,100) > 0 || tok =~ '\K\k*'
+          return s:IsBlock()
+        endif
+      else
+        return
+      endif
+    endif
+    return 1
+  endif
+endfunction
+
 " https://github.com/sweet-js/sweet.js/wiki/design#give-lookbehind-to-the-reader
 function s:IsBlock()
   let l:n = line('.')
@@ -392,6 +408,7 @@ function GetJavascriptIndent()
   endif
 
   let l:line = substitute(l:line,'^\s*','','')
+  let l:lineRaw = l:line
   if l:line[:1] == '/*'
     let l:line = substitute(l:line,'^\%(\/\*.\{-}\*\/\s*\)*','','')
   endif
@@ -427,7 +444,7 @@ function GetJavascriptIndent()
       if ilnum == num
         let [num, numInd] = [line('.'), indent('.')]
       endif
-      if idx == -1 && s:previous_token() ==# 'switch' && s:previous_token() != '.'
+      if idx == -1 && s:previous_token() ==# 'switch' && s:isSwitch()
         let l:switch_offset = &cino !~ ':' ? s:sw() : s:parse_cino(':')
         if pline[-1:] != '.' && l:line =~# '^\%(default\|case\)\>'
           return s:Nat(numInd + l:switch_offset)
@@ -437,6 +454,12 @@ function GetJavascriptIndent()
       endif
     endif
     if idx == -1 && pline[-1:] !~ '[{;]'
+      if l:line =~# '^\%(in\%(stanceof\)\=\>\|\*\)' && pline[-1:] == '}'
+        call cursor(l:lnum,strlen(pline))
+        if s:GetPair('{','}','bW',s:skip_expr,200) && s:IsBlock()
+          return numInd + s:sw()
+        endif
+      endif
       let isOp = (l:line =~# s:opfirst || s:continues(l:lnum,pline)) * s:sw()
       let bL = s:iscontOne(l:lnum,b:js_cache[1],isOp)
       let bL -= (bL && l:line[0] == '{') * s:sw()
@@ -450,6 +473,13 @@ function GetJavascriptIndent()
 
   " main return
   if l:line =~ '^[])}]\|^|}'
+    if l:lineRaw[0] == ')' && getline(b:js_cache[1])[b:js_cache[2]-1] == '('
+      if s:parse_cino('M')
+        return indent(l:lnum)
+      elseif &cino =~# 'm' && !s:parse_cino('m')
+        return virtcol('.') - 1
+      endif
+    endif
     return numInd
   elseif num
     return s:Nat(numInd + get(l:,'case_offset',s:sw()) + l:switch_offset + bL + isOp)
