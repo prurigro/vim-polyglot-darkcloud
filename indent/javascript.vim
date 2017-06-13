@@ -256,11 +256,11 @@ function s:PrevCodeLine(lnum)
       endif
       let l:n = prevnonblank(l:n-1)
     elseif stridx(getline(l:n), '*/') != -1 && s:SynAt(l:n,1) =~? s:syng_com
-      for l:n in range(l:n-1, s:Nat(l:n-(&cino =~ '\*' ? s:ParseCino('*') : 70)-1), -1)
-        if stridx(getline(l:n),'/*') != -1
-          break
-        endif
-      endfor
+      let l:pos = getpos('.')
+      call cursor(l:n,1)
+      keepjumps norm! [*
+      let l:n = line('.') % l:n
+      call setpos('.',l:pos)
     else
       break
     endif
@@ -425,13 +425,19 @@ function GetJavascriptIndent()
   else
     call cursor(v:lnum,1)
     let [s:looksyn, s:check_in, s:top_col] = [v:lnum - 1, 0, 0]
-    if idx != -1
-      call s:GetPair(['\[','(','{'][idx],'])}'[idx],'bW','s:SkipFunc()',2000)
-    elseif getline(v:lnum) !~ '^\S' && syns =~? 'block'
-      call s:GetPair('{','}','bW','s:SkipFunc()',2000)
-    else
-      call s:AlternatePair()
-    endif
+    try
+      if idx != -1
+        call s:GetPair(['\[','(','{'][idx],'])}'[idx],'bW','s:SkipFunc()',2000)
+      elseif getline(v:lnum) !~ '^\S' && syns =~? 'block'
+        call s:GetPair('{','}','bW','s:SkipFunc()',2000)
+      else
+        call s:AlternatePair()
+      endif
+    catch /E728/
+      " DEBUG: set debug=throw ; sentinel exception
+      call cursor(v:lnum,1)
+      echom v:throwpoint
+    endtry
   endif
 
   let b:js_cache = [v:lnum] + (line('.') == v:lnum ? [s:script_tag,0] : getpos('.')[1:2])

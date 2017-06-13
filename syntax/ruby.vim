@@ -45,7 +45,7 @@ function! s:foldable(...) abort
   return 0
 endfunction " }}}
 
-syn cluster rubyNotTop contains=@rubyExtendedStringSpecial,@rubyRegexpSpecial,@rubyDeclaration,rubyConditional,rubyExceptional,rubyMethodExceptional,rubyTodo
+syn cluster rubyNotTop contains=@rubyExtendedStringSpecial,@rubyRegexpSpecial,@rubyDeclaration,rubyConditional,rubyExceptional,rubyMethodExceptional,rubyTodo,rubyModuleName,rubyClassName
 
 " Whitespace Errors {{{1
 if exists("ruby_space_errors")
@@ -277,31 +277,31 @@ else
 endif
 
 " Here Document {{{1
-syn region rubyHeredocStart matchgroup=rubyStringDelimiter start=+\%(\%(class\|::\)\_s*\|\%([]})"'.]\)\s\|\w\)\@<!<<[-~]\=\zs\%(\%(\h\|[^\x00-\x7F]\)\%(\w\|[^\x00-\x7F]\)*\)+	 end=+$+ oneline contains=ALLBUT,@rubyNotTop
-syn region rubyHeredocStart matchgroup=rubyStringDelimiter start=+\%(\%(class\|::\)\_s*\|\%([]})"'.]\)\s\|\w\)\@<!<<[-~]\=\zs"\%([^"]*\)"+ end=+$+ oneline contains=ALLBUT,@rubyNotTop
-syn region rubyHeredocStart matchgroup=rubyStringDelimiter start=+\%(\%(class\|::\)\_s*\|\%([]})"'.]\)\s\|\w\)\@<!<<[-~]\=\zs'\%([^']*\)'+ end=+$+ oneline contains=ALLBUT,@rubyNotTop
-syn region rubyHeredocStart matchgroup=rubyStringDelimiter start=+\%(\%(class\|::\)\_s*\|\%([]})"'.]\)\s\|\w\)\@<!<<[-~]\=\zs`\%([^`]*\)`+ end=+$+ oneline contains=ALLBUT,@rubyNotTop
+syn match rubyStringDelimiter +\%(\%(class\|::\)\_s*\|\%([]})"'.]\)\s\|\w\)\@<!<<[-~]\=\zs\%(\%(\h\|[^\x00-\x7F]\)\%(\w\|[^\x00-\x7F]\)*\)+
+syn match rubyStringDelimiter +\%(\%(class\|::\)\_s*\|\%([]})"'.]\)\s\|\w\)\@<!<<[-~]\=\zs"\%([^"]*\)"+
+syn match rubyStringDelimiter +\%(\%(class\|::\)\_s*\|\%([]})"'.]\)\s\|\w\)\@<!<<[-~]\=\zs'\%([^']*\)'+
+syn match rubyStringDelimiter +\%(\%(class\|::\)\_s*\|\%([]})"'.]\)\s\|\w\)\@<!<<[-~]\=\zs`\%([^`]*\)`+
 
 if s:foldable('<<')
-  syn region rubyString start=+\%(\%(class\|::\)\_s*\|\%([]})"'.]\)\s\|\w\)\@<!<<\z(\%(\h\|[^\x00-\x7F]\)\%(\w\|[^\x00-\x7F]\)*\)\ze\%(.*<<[-~]\=['`"]\=\h\)\@!+hs=s+2	matchgroup=rubyStringDelimiter end=+^\z1$+ contains=rubyHeredocStart,rubyHeredoc,@rubyStringSpecial fold keepend
-  syn region rubyString start=+\%(\%(class\|::\)\_s*\|\%([]})"'.]\)\s\|\w\)\@<!<<"\z([^"]*\)"\ze\%(.*<<[-~]\=['`"]\=\h\)\@!+hs=s+2	matchgroup=rubyStringDelimiter end=+^\z1$+ contains=rubyHeredocStart,rubyHeredoc,@rubyStringSpecial fold keepend
-  syn region rubyString start=+\%(\%(class\|::\)\_s*\|\%([]})"'.]\)\s\|\w\)\@<!<<'\z([^']*\)'\ze\%(.*<<[-~]\=['`"]\=\h\)\@!+hs=s+2	matchgroup=rubyStringDelimiter end=+^\z1$+ contains=rubyHeredocStart,rubyHeredoc		    fold keepend
-  syn region rubyString start=+\%(\%(class\|::\)\_s*\|\%([]})"'.]\)\s\|\w\)\@<!<<`\z([^`]*\)`\ze\%(.*<<[-~]\=['`"]\=\h\)\@!+hs=s+2	matchgroup=rubyStringDelimiter end=+^\z1$+ contains=rubyHeredocStart,rubyHeredoc,@rubyStringSpecial fold keepend
+  syn region rubyString start=+\%(^.*\%(\%(class\|::\)\s*\|\%([]}).]\)\s\|\w\)\@<!<<\z(\%(\h\|[^\x00-\x7F]\)\%(\w\|[^\x00-\x7F]\)*\).*$\)\@<=\n+    matchgroup=rubyStringDelimiter end=+^\s*\zs\z1$+ contains=rubyHeredocStart,@rubyStringSpecial fold keepend
+  syn region rubyString start=+\%(^.*\%(\%(class\|::\)\s*\|\%([]}).]\)\s\|\w\)\@<!<<"\z([^"]*\)".*\)\@<=\n+  matchgroup=rubyStringDelimiter end=+^\z1$+ contains=@rubyStringSpecial fold keepend
+  syn region rubyString start=+\%(^.*\%(\%(class\|::\)\s*\|\%([]}).]\)\s\|\w\)\@<!<<'\z([^']*\)'.*\)\@<=\n+  matchgroup=rubyStringDelimiter end=+^\z1$+ fold keepend
+  syn region rubyString start=+\%(^.*\%(\%(class\|::\)\s*\|\%([]}).]\)\s\|\w\)\@<!<<`\z([^`]*\)`.*\)\@<=\n+  matchgroup=rubyStringDelimiter end=+^\z1$+ contains=@rubyStringSpecial fold keepend
 
-  syn region rubyString start=+\%(\%(class\|::\)\_s*\|\%([]}).]\)\s\|\w\)\@<!<<[-~]\z(\%(\h\|[^\x00-\x7F]\)\%(\w\|[^\x00-\x7F]\)*\)\ze\%(.*<<[-~]\=['`"]\=\h\)\@!+hs=s+3    matchgroup=rubyStringDelimiter end=+^\s*\zs\z1$+ contains=rubyHeredocStart,@rubyStringSpecial fold keepend
-  syn region rubyString start=+\%(\%(class\|::\)\_s*\|\%([]}).]\)\s\|\w\)\@<!<<[-~]"\z([^"]*\)"\ze\%(.*<<[-~]\=['`"]\=\h\)\@!+hs=s+3  matchgroup=rubyStringDelimiter end=+^\s*\zs\z1$+ contains=rubyHeredocStart,@rubyStringSpecial fold keepend
-  syn region rubyString start=+\%(\%(class\|::\)\_s*\|\%([]}).]\)\s\|\w\)\@<!<<[-~]'\z([^']*\)'\ze\%(.*<<[-~]\=['`"]\=\h\)\@!+hs=s+3  matchgroup=rubyStringDelimiter end=+^\s*\zs\z1$+ contains=rubyHeredocStart		    fold keepend
-  syn region rubyString start=+\%(\%(class\|::\)\_s*\|\%([]}).]\)\s\|\w\)\@<!<<[-~]`\z([^`]*\)`\ze\%(.*<<[-~]\=['`"]\=\h\)\@!+hs=s+3  matchgroup=rubyStringDelimiter end=+^\s*\zs\z1$+ contains=rubyHeredocStart,@rubyStringSpecial fold keepend
+  syn region rubyString start=+\%(^.*\%(\%(class\|::\)\s*\|\%([]}).]\)\s\|\w\)\@<!<<[-~]\z(\%(\h\|[^\x00-\x7F]\)\%(\w\|[^\x00-\x7F]\)*\).*$\)\@<=\n+    matchgroup=rubyStringDelimiter end=+^\s*\zs\z1$+ contains=rubyHeredocStart,@rubyStringSpecial fold keepend
+  syn region rubyString start=+\%(^.*\%(\%(class\|::\)\s*\|\%([]}).]\)\s\|\w\)\@<!<<[-~]"\z([^"]*\)".*\)\@<=\n+  matchgroup=rubyStringDelimiter end=+^\s*\zs\z1$+ contains=@rubyStringSpecial fold keepend
+  syn region rubyString start=+\%(^.*\%(\%(class\|::\)\s*\|\%([]}).]\)\s\|\w\)\@<!<<[-~]'\z([^']*\)'.*\)\@<=\n+  matchgroup=rubyStringDelimiter end=+^\s*\zs\z1$+ fold keepend
+  syn region rubyString start=+\%(^.*\%(\%(class\|::\)\s*\|\%([]}).]\)\s\|\w\)\@<!<<[-~]`\z([^`]*\)`.*\)\@<=\n+  matchgroup=rubyStringDelimiter end=+^\s*\zs\z1$+ contains=@rubyStringSpecial fold keepend
 else
-  syn region rubyString start=+\%(\%(class\|::\)\_s*\|\%([]})"'.]\)\s\|\w\)\@<!<<\z(\%(\h\|[^\x00-\x7F]\)\%(\w\|[^\x00-\x7F]\)*\)\ze\%(.*<<[-~]\=['`"]\=\h\)\@!+hs=s+2	matchgroup=rubyStringDelimiter end=+^\z1$+ contains=rubyHeredocStart,rubyHeredoc,@rubyStringSpecial keepend
-  syn region rubyString start=+\%(\%(class\|::\)\_s*\|\%([]})"'.]\)\s\|\w\)\@<!<<"\z([^"]*\)"\ze\%(.*<<[-~]\=['`"]\=\h\)\@!+hs=s+2	matchgroup=rubyStringDelimiter end=+^\z1$+ contains=rubyHeredocStart,rubyHeredoc,@rubyStringSpecial keepend
-  syn region rubyString start=+\%(\%(class\|::\)\_s*\|\%([]})"'.]\)\s\|\w\)\@<!<<'\z([^']*\)'\ze\%(.*<<[-~]\=['`"]\=\h\)\@!+hs=s+2	matchgroup=rubyStringDelimiter end=+^\z1$+ contains=rubyHeredocStart,rubyHeredoc		    keepend
-  syn region rubyString start=+\%(\%(class\|::\)\_s*\|\%([]})"'.]\)\s\|\w\)\@<!<<`\z([^`]*\)`\ze\%(.*<<[-~]\=['`"]\=\h\)\@!+hs=s+2	matchgroup=rubyStringDelimiter end=+^\z1$+ contains=rubyHeredocStart,rubyHeredoc,@rubyStringSpecial keepend
+  syn region rubyString start=+\%(^.*\%(\%(class\|::\)\s*\|\%([]}).]\)\s\|\w\)\@<!<<\z(\%(\h\|[^\x00-\x7F]\)\%(\w\|[^\x00-\x7F]\)*\).*$\)\@<=\n+    matchgroup=rubyStringDelimiter end=+^\s*\zs\z1$+ contains=rubyHeredocStart,@rubyStringSpecial keepend
+  syn region rubyString start=+\%(^.*\%(\%(class\|::\)\s*\|\%([]}).]\)\s\|\w\)\@<!<<"\z([^"]*\)".*\)\@<=\n+  matchgroup=rubyStringDelimiter end=+^\z1$+ contains=@rubyStringSpecial keepend
+  syn region rubyString start=+\%(^.*\%(\%(class\|::\)\s*\|\%([]}).]\)\s\|\w\)\@<!<<'\z([^']*\)'.*\)\@<=\n+  matchgroup=rubyStringDelimiter end=+^\z1$+ keepend
+  syn region rubyString start=+\%(^.*\%(\%(class\|::\)\s*\|\%([]}).]\)\s\|\w\)\@<!<<`\z([^`]*\)`.*\)\@<=\n+  matchgroup=rubyStringDelimiter end=+^\z1$+ contains=@rubyStringSpecial keepend
 
-  syn region rubyString start=+\%(\%(class\|::\)\_s*\|\%([]}).]\)\s\|\w\)\@<!<<[-~]\z(\%(\h\|[^\x00-\x7F]\)\%(\w\|[^\x00-\x7F]\)*\)\ze\%(.*<<[-~]\=['`"]\=\h\)\@!+hs=s+3    matchgroup=rubyStringDelimiter end=+^\s*\zs\z1$+ contains=rubyHeredocStart,@rubyStringSpecial keepend
-  syn region rubyString start=+\%(\%(class\|::\)\_s*\|\%([]}).]\)\s\|\w\)\@<!<<[-~]"\z([^"]*\)"\ze\%(.*<<[-~]\=['`"]\=\h\)\@!+hs=s+3  matchgroup=rubyStringDelimiter end=+^\s*\zs\z1$+ contains=rubyHeredocStart,@rubyStringSpecial keepend
-  syn region rubyString start=+\%(\%(class\|::\)\_s*\|\%([]}).]\)\s\|\w\)\@<!<<[-~]'\z([^']*\)'\ze\%(.*<<[-~]\=['`"]\=\h\)\@!+hs=s+3  matchgroup=rubyStringDelimiter end=+^\s*\zs\z1$+ contains=rubyHeredocStart		    keepend
-  syn region rubyString start=+\%(\%(class\|::\)\_s*\|\%([]}).]\)\s\|\w\)\@<!<<[-~]`\z([^`]*\)`\ze\%(.*<<[-~]\=['`"]\=\h\)\@!+hs=s+3  matchgroup=rubyStringDelimiter end=+^\s*\zs\z1$+ contains=rubyHeredocStart,@rubyStringSpecial keepend
+  syn region rubyString start=+\%(^.*\%(\%(class\|::\)\s*\|\%([]}).]\)\s\|\w\)\@<!<<[-~]\z(\%(\h\|[^\x00-\x7F]\)\%(\w\|[^\x00-\x7F]\)*\).*$\)\@<=\n+    matchgroup=rubyStringDelimiter end=+^\s*\zs\z1$+ contains=rubyHeredocStart,@rubyStringSpecial keepend
+  syn region rubyString start=+\%(^.*\%(\%(class\|::\)\s*\|\%([]}).]\)\s\|\w\)\@<!<<[-~]"\z([^"]*\)".*\)\@<=\n+  matchgroup=rubyStringDelimiter end=+^\s*\zs\z1$+ contains=@rubyStringSpecial keepend
+  syn region rubyString start=+\%(^.*\%(\%(class\|::\)\s*\|\%([]}).]\)\s\|\w\)\@<!<<[-~]'\z([^']*\)'.*\)\@<=\n+  matchgroup=rubyStringDelimiter end=+^\s*\zs\z1$+ keepend
+  syn region rubyString start=+\%(^.*\%(\%(class\|::\)\s*\|\%([]}).]\)\s\|\w\)\@<!<<[-~]`\z([^`]*\)`.*\)\@<=\n+  matchgroup=rubyStringDelimiter end=+^\s*\zs\z1$+ contains=@rubyStringSpecial keepend
 endif
 
 " eRuby Config {{{1
@@ -379,8 +379,6 @@ if !exists("b:ruby_no_expensive") && !exists("ruby_no_expensive")
 
   if s:foldable('[')
     syn region rubyArrayLiteral	matchgroup=rubyArrayDelimiter start="\%(\w\|[\]})]\)\@<!\[" end="]" contains=ALLBUT,@rubyNotTop fold
-  else
-    syn region rubyArrayLiteral	matchgroup=rubyArrayDelimiter start="\%(\w\|[\]})]\)\@<!\[" end="]" contains=ALLBUT,@rubyNotTop
   endif
 
   " statements without 'do'
@@ -463,7 +461,7 @@ syn match rubyKeywordAsMethod "\(defined?\|exit!\)\@!\<[_[:lower:]][_[:alnum:]]*
 
 " More Symbols {{{1
 syn match  rubySymbol		"\%([{(,]\_s*\)\zs\l\w*[!?]\=::\@!"he=e-1
-syn match  rubySymbol		"[]})\"':]\@<!\<\%(\h\|[^\x00-\x7F]\)\%(\w\|[^\x00-\x7F]\)*[!?]\=:[[:space:],]\@="he=e-1
+syn match  rubySymbol		"[]})\"':]\@1<!\<\%(\h\|[^\x00-\x7F]\)\%(\w\|[^\x00-\x7F]\)*[!?]\=:[[:space:],]\@="he=e-1
 syn match  rubySymbol		"\%([{(,]\_s*\)\zs[[:space:],{]\l\w*[!?]\=::\@!"hs=s+1,he=e-1
 syn match  rubySymbol		"[[:space:],{(]\%(\h\|[^\x00-\x7F]\)\%(\w\|[^\x00-\x7F]\)*[!?]\=:[[:space:],]\@="hs=s+1,he=e-1
 
@@ -478,6 +476,8 @@ endif
 hi def link rubyClass			rubyDefine
 hi def link rubyModule			rubyDefine
 hi def link rubyMethodExceptional	rubyDefine
+hi def link rubyAccess			rubyDefine
+hi def link rubyAttribute		rubyDefine
 hi def link rubyDefine			Define
 hi def link rubyFunction		Function
 hi def link rubyConditional		Conditional
@@ -512,8 +512,6 @@ hi def link rubySymbol			Constant
 hi def link rubyKeyword			Keyword
 hi def link rubyOperator		Operator
 hi def link rubyBeginEnd		Statement
-hi def link rubyAccess			Statement
-hi def link rubyAttribute		Statement
 hi def link rubyEval			Statement
 hi def link rubyPseudoVariable		Constant
 hi def link rubyCapitalizedMethod	rubyLocalVariableOrMethod
