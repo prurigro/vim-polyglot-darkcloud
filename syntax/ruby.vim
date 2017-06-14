@@ -45,7 +45,7 @@ function! s:foldable(...) abort
   return 0
 endfunction " }}}
 
-syn cluster rubyNotTop contains=@rubyExtendedStringSpecial,@rubyRegexpSpecial,@rubyDeclaration,rubyConditional,rubyExceptional,rubyMethodExceptional,rubyTodo,rubyModuleName,rubyClassName
+syn cluster rubyNotTop contains=@rubyExtendedStringSpecial,@rubyRegexpSpecial,@rubyDeclaration,rubyConditional,rubyExceptional,rubyMethodExceptional,rubyTodo,rubyModuleName,rubyClassName,rubySymbolDelimiter
 
 " Whitespace Errors {{{1
 if exists("ruby_space_errors")
@@ -128,17 +128,18 @@ syn match  rubyConstant		"\%(\%(^\|[^.]\)\.\s*\)\@<!\<\u\%(\w\|[^\x00-\x7F]\)*\>
 syn match  rubyClassVariable	"@@\%(\h\|[^\x00-\x7F]\)\%(\w\|[^\x00-\x7F]\)*" display
 syn match  rubyInstanceVariable "@\%(\h\|[^\x00-\x7F]\)\%(\w\|[^\x00-\x7F]\)*"	display
 syn match  rubyGlobalVariable	"$\%(\%(\h\|[^\x00-\x7F]\)\%(\w\|[^\x00-\x7F]\)*\|-.\)"
-syn match  rubySymbol		"[]})\"':]\@1<!:\%(\^\|\~@\|\~\|<<\|<=>\|<=\|<\|===\|[=!]=\|[=!]\~\|!@\|!\|>>\|>=\|>\||\|-@\|-\|/\|\[]=\|\[]\|\*\*\|\*\|&\|%\|+@\|+\|`\)"
-syn match  rubySymbol		"[]})\"':]\@1<!:\$\%(-.\|[`~<=>_,;:!?/.'"@$*\&+0]\)"
-syn match  rubySymbol		"[]})\"':]\@1<!:\%(\$\|@@\=\)\=\%(\h\|[^\x00-\x7F]\)\%(\w\|[^\x00-\x7F]\)*"
-syn match  rubySymbol		"[]})\"':]\@1<!:\%(\h\|[^\x00-\x7F]\)\%(\w\|[^\x00-\x7F]\)*\%([?!=]>\@!\)\="
+syn match  rubySymbolDelimiter	":" contained
+syn match  rubySymbol		"[]})\"':]\@1<!:\%(\^\|\~@\|\~\|<<\|<=>\|<=\|<\|===\|[=!]=\|[=!]\~\|!@\|!\|>>\|>=\|>\||\|-@\|-\|/\|\[]=\|\[]\|\*\*\|\*\|&\|%\|+@\|+\|`\)" contains=rubySymbolDelimiter
+syn match  rubySymbol		"[]})\"':]\@1<!:\$\%(-.\|[`~<=>_,;:!?/.'"@$*\&+0]\)" contains=rubySymbolDelimiter
+syn match  rubySymbol		"[]})\"':]\@1<!:\%(\$\|@@\=\)\=\%(\h\|[^\x00-\x7F]\)\%(\w\|[^\x00-\x7F]\)*" contains=rubySymbolDelimiter
+syn match  rubySymbol		"[]})\"':]\@1<!:\%(\h\|[^\x00-\x7F]\)\%(\w\|[^\x00-\x7F]\)*\%([?!=]>\@!\)\=" contains=rubySymbolDelimiter
 
 if s:foldable(':')
-  syn region rubySymbol		start="[]})\"':]\@1<!:'"  end="'"  skip="\\\\\|\\'"  contains=rubyQuoteEscape fold
-  syn region rubySymbol		start="[]})\"':]\@1<!:\"" end="\"" skip="\\\\\|\\\"" contains=@rubyStringSpecial fold
+  syn region rubySymbol		matchgroup=rubySymbolDelimiter start="[]})\"':]\@1<!:'"  end="'"  skip="\\\\\|\\'"  contains=rubyQuoteEscape fold
+  syn region rubySymbol		matchgroup=rubySymbolDelimiter start="[]})\"':]\@1<!:\"" end="\"" skip="\\\\\|\\\"" contains=@rubyStringSpecial fold
 else
-  syn region rubySymbol		start="[]})\"':]\@1<!:'"  end="'"  skip="\\\\\|\\'"  contains=rubyQuoteEscape
-  syn region rubySymbol		start="[]})\"':]\@1<!:\"" end="\"" skip="\\\\\|\\\"" contains=@rubyStringSpecial
+  syn region rubySymbol		matchgroup=rubySymbolDelimiter start="[]})\"':]\@1<!:'"  end="'"  skip="\\\\\|\\'"  contains=rubyQuoteEscape
+  syn region rubySymbol		matchgroup=rubySymbolDelimiter start="[]})\"':]\@1<!:\"" end="\"" skip="\\\\\|\\\"" contains=@rubyStringSpecial
 endif
 
 syn match  rubyCapitalizedMethod	"\%(\%(^\|[^.]\)\.\s*\)\@<!\<\u\%(\w\|[^\x00-\x7F]\)*\>\%(\s*(\)*\s*(\@="
@@ -437,10 +438,12 @@ if !exists("ruby_no_special_methods")
   syn match   rubyControl   "\<\%(exit!\|\%(abort\|at_exit\|exit\|fork\|loop\|trap\)\>[?!]\@!\)"
   syn keyword rubyEval	    eval class_eval instance_eval module_eval
   syn keyword rubyException raise fail catch throw
-  " false positive with 'include?'
-  syn match   rubyInclude   "\<include\>[?!]\@!"
-  syn keyword rubyInclude   autoload extend load prepend refine require require_relative using
+  syn keyword rubyInclude   autoload load require require_relative
   syn keyword rubyKeyword   callcc caller lambda proc
+  " false positive with 'include?'
+  syn match   rubyMacro     "\<include\>[?!]\@!"
+  syn keyword rubyMacro     extend prepend refine using
+  syn keyword rubyMacro     alias_method define_method define_singleton_method remove_method undef_method
 endif
 
 " Comments and Documentation {{{1
@@ -476,8 +479,9 @@ endif
 hi def link rubyClass			rubyDefine
 hi def link rubyModule			rubyDefine
 hi def link rubyMethodExceptional	rubyDefine
-hi def link rubyAccess			rubyDefine
-hi def link rubyAttribute		rubyDefine
+hi def link rubyAccess			rubyMacro
+hi def link rubyAttribute		rubyMacro
+hi def link rubyMacro			Macro
 hi def link rubyDefine			Define
 hi def link rubyFunction		Function
 hi def link rubyConditional		Conditional
