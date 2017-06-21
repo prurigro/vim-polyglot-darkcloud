@@ -73,12 +73,15 @@ syn match   puppetVariable      "${[a-zA-Z0-9_:]\+}" contains=@NoSpell
 " match anything between simple/double quotes.
 " don't match variables if preceded by a backslash.
 syn region  puppetString        start=+'+ skip=+\\\\\|\\'+ end=+'+
+syn region  puppetString        start=+@(\z\([^/)]*\)\(/[\\nts$uL]*\)\?)$+ end=+|-\? *\z1 *$+
 syn region  puppetString        start=+"+ skip=+\\\\\|\\"+ end=+"+ contains=puppetVariable,puppetNotVariable
+syn region  puppetString        start=+@("\z\([^/)]*\)"\(/[\\nts$uL]*\)\?)$+ end=+|-\? *\z1 *$+ contains=puppetVariable,puppetNotVariable
 syn match   puppetNotVariable   "\\$\w\+" contained
 syn match   puppetNotVariable   "\\${\w\+}" contained
 
-syn keyword puppetKeyword       import inherits include require contain
-syn keyword puppetControl       case default if else elsif
+" match keywords and control words except when used as a parameter
+syn match   puppetKeyword       "\(import\|inherits\|include\|require\|contain\)\(\s*=>\)\@!"
+syn match   puppetControl       "\(case\|default\|if\|else\|elsif\)\(\s*=>\)\@!"
 syn keyword puppetSpecial       true false undef
 
 syn match   puppetClass         "[A-Za-z0-9_-]\+\(::[A-Za-z0-9_-]\+\)\+" contains=@NoSpell
