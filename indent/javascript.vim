@@ -2,7 +2,7 @@
 " Language: Javascript
 " Maintainer: Chris Paul ( https://github.com/bounceme )
 " URL: https://github.com/pangloss/vim-javascript
-" Last Change: June 27, 2017
+" Last Change: July 2, 2017
 
 " Only load this indent file when no other was loaded.
 if exists('b:did_indent')
@@ -252,16 +252,28 @@ function s:PrevCodeLine(lnum)
   let l:n = prevnonblank(a:lnum)
   while l:n
     if getline(l:n) =~ '^\s*\/[/*]'
-      if (stridx(getline(l:n),'`') != -1 || getline(l:n-1)[-1:] == '\') &&
+      if (getline(l:n) =~ '`' || getline(l:n-1)[-1:] == '\') &&
             \ s:SynAt(l:n,1) =~? b:syng_str
         break
       endif
       let l:n = prevnonblank(l:n-1)
-    elseif stridx(getline(l:n), '*/') != -1 && s:SynAt(l:n,1) =~? s:syng_com
+    elseif getline(l:n) =~ '\*\/' && s:SynAt(l:n,1) =~? s:syng_com
       let l:pos = getpos('.')
       call cursor(l:n,1)
-      keepjumps norm! [*
-      let l:n = line('.') % l:n
+      let l:n = search('\m\/\*','bW')
+      while search('\m\/\*\|\(\*\/\)','bWp') == 1
+        let br = 0
+        for l:i in range(l:n,line('.'),-1)
+          if s:SynAt(l:i,l:i == line('.') ? col('.') : 1) !~? s:syng_com
+            let br = 1
+            break
+          endif
+        endfor
+        if br
+          break
+        endif
+        let l:n = line('.')
+      endwhile
       call setpos('.',l:pos)
     else
       break
@@ -305,7 +317,7 @@ endfunction
 
 function s:DoWhile()
   if expand('<cword>') ==# 'while'
-    let l:pos = searchpos('\m\<','cbW')
+    let cpos = searchpos('\m\<','cbW')
     while search('\m\C[{}]\|\<\%(do\|while\)\>','bW')
       if !eval(s:skip_expr)
         if (s:LookingAt() == '}' && s:GetPair('{','}','bW',s:skip_expr,200) ?
@@ -315,7 +327,7 @@ function s:DoWhile()
         break
       endif
     endwhile
-    call setpos('.',l:pos)
+    call call('cursor',cpos)
   endif
 endfunction
 
@@ -342,14 +354,8 @@ endfunction
 function s:IsSwitch()
   if s:PreviousToken() !~ '[.*]'
     if s:GetPair('{','}','cbW',s:skip_expr,100)
-      if s:IsBlock()
-        let tok = s:Token()
-        if tok == '}' && s:GetPair('{','}','bW',s:skip_expr,100) || tok =~ '\K\k*'
-          return s:IsBlock() && (tok == '}' || s:Token() !=# 'class' || s:PreviousToken() == '.')
-        endif
-      else
-        return
-      endif
+      return s:IsBlock() && (s:Token() !~# '^\K\k*$' || s:Token() !=# 'class'
+            \ && s:PreviousToken() !~# '^class$\|^extends$' || s:PreviousToken() == '.')
     endif
     return 1
   endif
