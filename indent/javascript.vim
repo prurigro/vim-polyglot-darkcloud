@@ -217,7 +217,7 @@ endfunction
 
 " configurable regexes that define continuation lines, not including (, {, or [.
 let s:opfirst = '^' . get(g:,'javascript_opfirst',
-      \ '\C\%([<>=,?^%|*/&]\|\([-.:+]\)\1\@!\|!=\|in\%(stanceof\)\=\>\)')
+      \ '\C\%([<>=,.?^%|*/&]\|\([-:+]\)\1\@!\|!=\|in\%(stanceof\)\=\>\)')
 let s:continuation = get(g:,'javascript_continuation',
       \ '\C\%([<=,.~!?/*^%|&:]\|+\@<!+\|-\@<!-\|=\@<!>\|\<\%(typeof\|new\|delete\|void\|in\|instanceof\|await\)\)') . '$'
 
@@ -354,7 +354,7 @@ endfunction
 function s:IsSwitch()
   if s:PreviousToken() !~ '[.*]'
     if s:GetPair('{','}','cbW',s:skip_expr,100)
-      return s:IsBlock() && (s:Token() !~# '^\K\k*$' || s:Token() !=# 'class'
+      return s:IsBlock() && (s:Token() !~ '^\K\k*$' || expand('<cword>') !=# 'class'
             \ && s:PreviousToken() !~# '^class$\|^extends$' || s:PreviousToken() == '.')
     endif
     return 1
@@ -466,7 +466,7 @@ function GetJavascriptIndent()
       endif
     endif
     if idx == -1 && pline[-1:] !~ '[{;]'
-      if l:line =~# '^\%(in\%(stanceof\)\=\>\|\*\)' && pline[-1:] == '}'
+      if l:line =~# '^\%(in\%(stanceof\)\=\>\|\*\*\@!\)' && pline[-1:] == '}'
         call cursor(l:lnum,strlen(pline))
         if s:GetPair('{','}','bW',s:skip_expr,200) && s:IsBlock()
           return num_ind + s:sw()
@@ -475,11 +475,17 @@ function GetJavascriptIndent()
       let is_op = (l:line =~# s:opfirst || s:Continues(l:lnum,pline)) * s:sw()
       let b_l = s:Nat(s:IsContOne(l:lnum,b:js_cache[1],is_op) - (l:line =~ '^{')) * s:sw()
     endif
-  elseif idx == -1 && getline(b:js_cache[1])[b:js_cache[2]-1] == '(' && &cino =~ '('
+  elseif idx == -1 && getline(b:js_cache[1])[b:js_cache[2]-1] == '(' && &cino =~ '(' &&
+        \ (search('\m\S','nbW',num) || s:ParseCino('U'))
     let pval = s:ParseCino('(')
-    return !pval || !search('\m\S','nbW',num) && !s:ParseCino('U') ?
-          \ (s:ParseCino('w') ? 0 : -!!search('\m\S','W'.s:z,num)) + virtcol('.') :
-          \ s:Nat(num_ind + pval + s:GetPair('(',')','nbrmW',s:skip_expr,100,num) * s:sw())
+    if !pval
+      let [Wval, vcol] = [s:ParseCino('W'), virtcol('.')]
+      if search('\m\S','W',num)
+        return s:ParseCino('w') ? vcol : virtcol('.')-1
+      endif
+      return Wval ? s:Nat(num_ind + Wval) : vcol
+    endif
+    return s:Nat(num_ind + pval + s:GetPair('(',')','nbrmW',s:skip_expr,100,num) * s:sw())
   endif
 
   " main return
