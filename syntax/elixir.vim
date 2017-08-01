@@ -36,7 +36,7 @@ syn keyword elixirSelf self
 " This unfortunately also matches function names in function calls
 syn match elixirUnusedVariable contained '\v%(^|[^.])@<=<_\w*>'
 
-syn keyword elixirOperator and not or in
+syn match   elixirOperator '\v\.@<!<%(and|or|in|not)>'
 syn match   elixirOperator '!==\|!=\|!'
 syn match   elixirOperator '=\~\|===\|==\|='
 syn match   elixirOperator '<<<\|<<\|<=\|<-\|<'
@@ -81,10 +81,10 @@ syn region elixirStruct matchgroup=elixirStructDelimiter start="%\(\w\+{\)\@=" e
 
 syn region elixirMap matchgroup=elixirMapDelimiter start="%{" end="}" contains=ALLBUT,@elixirNotTop
 
-syn region elixirString  matchgroup=elixirStringDelimiter start=+\z('\)+   end=+\z1+ skip=+\\\\\|\\\z1+  contains=@elixirStringContained
-syn region elixirString  matchgroup=elixirStringDelimiter start=+\z("\)+   end=+\z1+ skip=+\\\\\|\\\z1+  contains=@elixirStringContained
-syn region elixirString  matchgroup=elixirStringDelimiter start=+\z('''\)+ end=+^\s*\z1+ contains=@elixirStringContained
-syn region elixirString  matchgroup=elixirStringDelimiter start=+\z("""\)+ end=+^\s*\z1+ contains=@elixirStringContained
+syn region elixirString  matchgroup=elixirStringDelimiter start=+\z('\)+   end=+\z1+ skip=+\\\\\|\\\z1+  contains=@Spell,@elixirStringContained
+syn region elixirString  matchgroup=elixirStringDelimiter start=+\z("\)+   end=+\z1+ skip=+\\\\\|\\\z1+  contains=@Spell,@elixirStringContained
+syn region elixirString  matchgroup=elixirStringDelimiter start=+\z('''\)+ end=+^\s*\z1+ contains=@Spell,@elixirStringContained
+syn region elixirString  matchgroup=elixirStringDelimiter start=+\z("""\)+ end=+^\s*\z1+ contains=@Spell,@elixirStringContained
 syn region elixirInterpolation matchgroup=elixirInterpolationDelimiter start="#{" end="}" contained contains=ALLBUT,elixirKernelFunction,elixirComment,@elixirNotTop
 
 syn match elixirAtomInterpolated   ':\("\)\@=' contains=elixirString
