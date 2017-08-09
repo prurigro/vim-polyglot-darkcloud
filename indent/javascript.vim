@@ -106,25 +106,28 @@ function s:ParseCino(f)
   return sign * str2nr(n) / max([str2nr(divider),1])
 endfunction
 
-" Optimized {skip} expr, used only once per GetJavascriptIndent() call
+" Optimized {skip} expr, only callable from the search loop which
+" GetJavascriptIndent does to find the containing [[{(] (relies on s:vars)
 function s:SkipFunc()
   if s:top_col == 1
     throw 'out of bounds'
   endif
-  let s:top_col = col('.')
-  if getline('.') =~ '\%<'.s:top_col.'c\/.\{-}\/\|\%>'.s:top_col.'c[''"]\|\\$'
+  let s:top_col = 0
+  if s:check_in
     if eval(s:skip_expr)
-      let s:top_col = 0
+      return 1
     endif
-    return !s:top_col
-  elseif s:check_in || search('\m`\|\${\|\*\/','nW'.s:z,s:looksyn)
-    let s:check_in = eval(s:skip_expr)
-    if s:check_in
-      let s:top_col = 0
+    let s:check_in = 0
+  elseif getline('.') =~ '\%<'.col('.').'c\/.\{-}\/\|\%>'.col('.').'c[''"]\|\\$'
+    if eval(s:skip_expr)
+      let s:looksyn = line('.')
+      return 1
     endif
+  elseif search('\m`\|\${\|\*\/','nW'.s:z,s:looksyn) && eval(s:skip_expr)
+    let s:check_in = 1
+    return 1
   endif
-  let s:looksyn = line('.')
-  return s:check_in
+  let [s:looksyn, s:top_col] = getpos('.')[1:2]
 endfunction
 
 function s:AlternatePair()
@@ -246,29 +249,22 @@ endfunction
 
 " Find line above 'lnum' that isn't empty or in a comment
 function s:PrevCodeLine(lnum)
-  let l:n = prevnonblank(a:lnum)
+  let [l:multi, l:n, l:pos] = [0, prevnonblank(a:lnum), getpos('.')]
   while l:n
-    if getline(l:n) =~ '^\s*\/[/*]'
-      if (getline(l:n) =~ '`' || getline(l:n-1)[-1:] == '\') &&
-            \ s:SynAt(l:n,1) =~? b:syng_str
-        break
-      endif
+    if getline(l:n) =~ '^\s*\/[/*]' && (getline(l:n) !~ '`' &&
+          \ getline(l:n-1)[-1:] != '\' || s:SynAt(l:n,1) !~? b:syng_str)
       let l:n = prevnonblank(l:n-1)
-    elseif getline(l:n) =~ '\*\/' && s:SynAt(l:n,1) =~? s:syng_com
-      let l:pos = getpos('.')
+      continue
+    elseif l:multi || getline(l:n) =~ '\*\/'
       call cursor(l:n,1)
-      let l:n = search('\m\/\*','bW')
-      while l:n == line('.') && search('\m\/\*\|\(\*\/\)','bWp') == 1
-        " /*\n/*\n */ comment region
-        let l:n = filter(range(l:n, line('.'), -1),
-            \ 'v:val == line(".") || !empty(getline(v:val)) &&'.
-            \ 's:SynAt(v:val,1) !~? s:syng_com && {}')[0]
-      endwhile
-      call setpos('.',l:pos)
-    else
-      break
+      if search('\m\/\*\|\(\*\/\)','bWp') == 1 && s:SynAt(l:n,1) =~? s:syng_com
+        let [l:multi, l:n] = [1, line('.')]
+        continue
+      endif
     endif
+    break
   endwhile
+  call setpos('.',l:pos)
   return l:n
 endfunction
 
