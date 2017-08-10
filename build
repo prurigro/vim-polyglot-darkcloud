@@ -113,7 +113,6 @@ lang_packs='
     coffee-script:kchmck/vim-coffee-script
     coloresque:prurigro/vim-coloresque
     css:JulesWang/css.vim
-    csv:chrisbra/csv.vim
     cucumber:tpope/vim-cucumber
     cython:tshirtman/vim-cython
     dockerfile:honza/dockerfile.vim
