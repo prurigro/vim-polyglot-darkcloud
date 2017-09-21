@@ -2,7 +2,7 @@
 " Language: Javascript
 " Maintainer: Chris Paul ( https://github.com/bounceme )
 " URL: https://github.com/pangloss/vim-javascript
-" Last Change: August 30, 2017
+" Last Change: September 18, 2017
 
 " Only load this indent file when no other was loaded.
 if exists('b:did_indent')
@@ -88,7 +88,7 @@ function s:ParseCino(f)
       let divider = 1
     elseif c ==# 's'
       if n !~ '\d'
-        return n . s:sw()
+        return n . s:sw() + 0
       endif
       let n = str2nr(n) * s:sw()
       break
@@ -259,9 +259,9 @@ function s:DoWhile()
   endif
 endfunction
 
-" returns braceless levels started by 'i' and above lines * &sw. 'num' is the
-" lineNr which encloses the entire context, 'cont' if whether line 'i' + 1 is
-" a continued expression, which could have started in a braceless context
+" returns total offset from braceless contexts. 'num' is the lineNr which
+" encloses the entire context, 'cont' if whether a:firstline is a continued
+" expression, which could have started in a braceless context
 function s:IsContOne(num,cont)
   let [l:num, b_l] = [a:num + !a:num, 0]
   let pind = a:num ? indent(a:num) + s:sw() : 0
@@ -358,12 +358,12 @@ function GetJavascriptIndent()
   endif
 
   " the containing paren, bracket, or curly. Many hacks for performance
+  call cursor(v:lnum,1)
   let idx = index([']',')','}'],l:line[0])
   if b:js_cache[0] > l:lnum && b:js_cache[0] < v:lnum ||
         \ b:js_cache[0] == l:lnum && s:Balanced(l:lnum)
-    call call('cursor',b:js_cache[2] ? b:js_cache[1:] : [v:lnum,1])
+    call call('cursor',b:js_cache[1:])
   else
-    call cursor(v:lnum,1)
     let [s:looksyn, s:top_col, s:check_in, s:l1] = [v:lnum - 1,0,0,
           \ max([s:l1, &smc ? search('\m^.\{'.&smc.',}','nbW',s:l1 + 1) + 1 : 0])]
     try
@@ -377,15 +377,15 @@ function GetJavascriptIndent()
     catch /^\Cout of bounds$/
       call cursor(v:lnum,1)
     endtry
+    let b:js_cache[1:] = line('.') == v:lnum ? [0,0] : getpos('.')[1:2]
   endif
 
-  let b:js_cache = [v:lnum] + (line('.') == v:lnum ? [0,0] : getpos('.')[1:2])
-  let num = b:js_cache[1]
+  let [b:js_cache[0], num] = [v:lnum, b:js_cache[1]]
 
   let [num_ind, is_op, b_l, l:switch_offset] = [s:Nat(indent(num)),0,0,0]
-  if !b:js_cache[2] || s:LookingAt() == '{' && s:IsBlock()
+  if !num || s:LookingAt() == '{' && s:IsBlock()
     let ilnum = line('.')
-    if b:js_cache[2] && s:LookingAt() == ')' && s:GetPair('(',')','bW',s:skip_expr)
+    if num && s:LookingAt() == ')' && s:GetPair('(',')','bW',s:skip_expr)
       if ilnum == num
         let [num, num_ind] = [line('.'), indent('.')]
       endif
@@ -405,7 +405,7 @@ function GetJavascriptIndent()
         if s:Continues(l:lnum,pline)
           let is_op = s:sw()
         endif
-      elseif b:js_cache[2] && sol =~# '^\%(in\%(stanceof\)\=\|\*\)$'
+      elseif num && sol =~# '^\%(in\%(stanceof\)\=\|\*\)$'
         call call('cursor',b:js_cache[1:])
         if s:PreviousToken() =~ '\k' && s:Class()
           return num_ind + s:sw()
