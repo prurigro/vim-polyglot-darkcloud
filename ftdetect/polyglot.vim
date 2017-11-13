@@ -226,7 +226,7 @@ fun! s:DetectScala()
         set filetype=scala
     endif
 endfun
-au BufRead,BufNewFile *.scala set filetype=scala
+au BufRead,BufNewFile *.scala,*.sc set filetype=scala
 au BufRead,BufNewFile * call s:DetectScala()
 au BufRead,BufNewFile *.sbt setfiletype sbt.scala
 au BufRead,BufNewFile *.scss setfiletype scss
