@@ -70,13 +70,16 @@ function! s:gofiletype_post()
   let &g:fileformats = s:current_fileformats
   let &g:fileencodings = s:current_fileencodings
 endfunction
-au BufNewFile *.go setfiletype go | setlocal fileencoding=utf-8 fileformat=unix
-au BufRead *.go call s:gofiletype_pre("go")
-au BufReadPost *.go call s:gofiletype_post()
-au BufNewFile *.s setfiletype asm | setlocal fileencoding=utf-8 fileformat=unix
-au BufRead *.s call s:gofiletype_pre("asm")
-au BufReadPost *.s call s:gofiletype_post()
-au BufRead,BufNewFile *.tmpl set filetype=gohtmltmpl
+augroup vim-go-filetype
+  autocmd!
+  au BufNewFile *.go setfiletype go | setlocal fileencoding=utf-8 fileformat=unix
+  au BufRead *.go call s:gofiletype_pre("go")
+  au BufReadPost *.go call s:gofiletype_post()
+  au BufNewFile *.s setfiletype asm | setlocal fileencoding=utf-8 fileformat=unix
+  au BufRead *.s call s:gofiletype_pre("asm")
+  au BufReadPost *.s call s:gofiletype_post()
+  au BufRead,BufNewFile *.tmpl set filetype=gohtmltmpl
+augroup end
 autocmd BufNewFile,BufRead *.hx setf haxe
 autocmd BufNewFile,BufRead *Spec.js,*_spec.js set filetype=jasmine.javascript syntax=jasmine
 au BufNewFile,BufRead *.{js,mjs,jsm,es,es6},Jakefile setf javascript
