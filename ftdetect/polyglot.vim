@@ -100,6 +100,7 @@ au BufNewFile,BufRead * call s:SelectJavascript()
 autocmd BufNewFile,BufRead *.json setlocal filetype=json
 autocmd BufNewFile,BufRead *.jsonp setlocal filetype=json
 autocmd BufNewFile,BufRead *.geojson setlocal filetype=json
+autocmd BufNewFile,BufRead *.template setlocal filetype=json
 au BufNewFile,BufRead *.ejs set filetype=jst
 au BufNewFile,BufRead *.jst set filetype=jst
 au BufNewFile,BufRead *.djs set filetype=jst
