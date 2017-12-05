@@ -2,7 +2,7 @@
 " Language: Javascript
 " Maintainer: Chris Paul ( https://github.com/bounceme )
 " URL: https://github.com/pangloss/vim-javascript
-" Last Change: September 18, 2017
+" Last Change: December 4, 2017
 
 " Only load this indent file when no other was loaded.
 if exists('b:did_indent')
@@ -267,8 +267,13 @@ function s:OneScope()
           \ s:Pure('s:PreviousToken') != '.' && !(tok == 'while' && s:DoWhile())
   elseif s:Token() =~# '^else$\|^do$'
     return s:Pure('s:PreviousToken') != '.'
+  elseif strpart(getline('.'),col('.')-2,2) == '=>'
+    call cursor(0,col('.')-1)
+    if s:PreviousToken() == ')'
+      return s:GetPair('(', ')', 'bW', s:skip_expr)
+    endif
+    return 1
   endif
-  return strpart(getline('.'),col('.')-2,2) == '=>'
 endfunction
 
 function s:DoWhile()
