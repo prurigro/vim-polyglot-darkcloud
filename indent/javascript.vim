@@ -294,9 +294,9 @@ endfunction
 " encloses the entire context, 'cont' if whether a:firstline is a continued
 " expression, which could have started in a braceless context
 function s:IsContOne(cont)
-  let [l:num, b_l] = [b:js_cache[1] + !b:js_cache[1], 0]
-  let pind = b:js_cache[1] ? indent(b:js_cache[1]) + s:sw() : 0
-  let ind = indent('.') + !a:cont
+  let [l:num, pind] = b:js_cache[1] ?
+        \ [b:js_cache[1], indent(b:js_cache[1]) + s:sw()] : [1,0]
+  let [ind, b_l] = [indent('.') + !a:cont, 0]
   while line('.') > l:num && ind > pind || line('.') == l:num
     if indent('.') < ind && s:OneScope()
       let b_l += 1
@@ -314,8 +314,8 @@ function s:IsContOne(cont)
 endfunction
 
 function s:IsSwitch()
-  call call('cursor',b:js_cache[1:])
-  return search('\m\C\%#.\_s*\%(\%(\/\/.*\_$\|\/\*\_.\{-}\*\/\)\@>\_s*\)*\%(case\|default\)\>','nWc'.s:z)
+  return search('\m\C\%'.join(b:js_cache[1:],'l\%').
+        \ 'c{\_s*\%(\%(\/\/.*\_$\|\/\*\_.\{-}\*\/\)\@>\_s*\)*\%(case\|default\)\>','nW'.s:z)
 endfunction
 
 " https://github.com/sweet-js/sweet.js/wiki/design#give-lookbehind-to-the-reader
@@ -468,6 +468,10 @@ function GetJavascriptIndent()
     return num_ind
   elseif num
     return s:Nat(num_ind + get(l:,'case_offset',s:sw()) + l:switch_offset + b_l + is_op)
+  endif
+  let nest = get(get(b:,'hi_indent',{}),'blocklnr')
+  if nest
+    return indent(nest) + s:sw() + b_l + is_op
   endif
   return b_l + is_op
 endfunction
