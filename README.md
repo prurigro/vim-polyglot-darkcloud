@@ -49,7 +49,6 @@ Optionally download one of the [releases](https://github.com/sheerun/vim-polyglo
 - [jade](https://github.com/digitaltoad/vim-jade) (syntax, indent, ftplugin, ftdetect)
 - [jasmine](https://github.com/glanotte/vim-jasmine) (syntax, ftdetect)
 - [javascript](https://github.com/pangloss/vim-javascript) (syntax, indent, ftdetect)
-- [*jquery](https://github.com/phongnh/vim-jquery) (syntax)
 - [*json](https://github.com/elzr/vim-json) (syntax, indent, ftplugin, ftdetect)
 - [jst](https://github.com/briancollins/vim-jst) (syntax, indent, ftdetect)
 - [latex](https://github.com/LaTeX-Box-Team/LaTeX-Box) (syntax, indent, ftplugin)

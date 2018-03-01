@@ -129,7 +129,6 @@ lang_packs='
     jade:digitaltoad/vim-jade
     jasmine:glanotte/vim-jasmine
     javascript:pangloss/vim-javascript
-    jquery:phongnh/vim-jquery
     json:elzr/vim-json
     jst:briancollins/vim-jst
     latex:LaTeX-Box-Team/LaTeX-Box
