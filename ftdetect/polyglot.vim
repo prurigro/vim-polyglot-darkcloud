@@ -40,7 +40,7 @@ else
   autocmd BufNewFile,BufRead *.em,*.emblem set filetype=emblem
 endif
 autocmd FileType emblem set tabstop=2|set shiftwidth=2|set expandtab
-autocmd BufNewFile,BufRead *.git/{,modules/**/,worktrees/*/}{COMMIT_EDIT,TAG_EDIT,MERGE_,}MSG set ft=gitcommit
+autocmd BufNewFile,BufRead *.git/{,modules/**/,worktrees/*/}{COMMIT_EDIT,PULLREQ_EDIT,TAG_EDIT,MERGE_,}MSG set ft=gitcommit
 autocmd BufNewFile,BufRead *.git/config,.gitconfig,gitconfig,.gitmodules set ft=gitconfig
 autocmd BufNewFile,BufRead */.config/git/config                          set ft=gitconfig
 autocmd BufNewFile,BufRead *.git/modules/**/config                       set ft=gitconfig
