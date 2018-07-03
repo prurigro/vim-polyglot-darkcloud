@@ -79,21 +79,16 @@ au BufReadPost *.s call s:gofiletype_post()
 au BufRead,BufNewFile *.tmpl set filetype=gohtmltmpl
 autocmd BufNewFile,BufRead *.hx setf haxe
 autocmd BufNewFile,BufRead *Spec.js,*_spec.js set filetype=jasmine.javascript syntax=jasmine
-au BufNewFile,BufRead *.{js,mjs,jsm,es,es6},Jakefile setf javascript
-fun! s:SourceFlowSyntax()
-  if !exists('javascript_plugin_flow') && !exists('b:flow_active') &&
-        \ search('\v\C%^\_s*%(//\s*|/\*[ \t\n*]*)\@flow>','nw')
-    runtime extras/flow.vim
-    let b:flow_active = 1
-  endif
-endfun
-au FileType javascript au BufRead,BufWritePost <buffer> call s:SourceFlowSyntax()
 fun! s:SelectJavascript()
   if getline(1) =~# '^#!.*/bin/\%(env\s\+\)\?node\>'
     set ft=javascript
   endif
 endfun
-au BufNewFile,BufRead * call s:SelectJavascript()
+augroup javascript_syntax_detection
+  autocmd!
+  autocmd BufNewFile,BufRead *.{js,mjs,jsm,es,es6},Jakefile setfiletype javascript
+  autocmd BufNewFile,BufRead * call s:SelectJavascript()
+augroup END
 autocmd BufNewFile,BufRead *.json setlocal filetype=json
 autocmd BufNewFile,BufRead *.jsonl setlocal filetype=json
 autocmd BufNewFile,BufRead *.jsonp setlocal filetype=json
