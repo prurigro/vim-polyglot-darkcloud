@@ -123,7 +123,7 @@ if has("autocmd")
   au  BufNewFile,BufRead *.handlebars,*.hbs set filetype=html.handlebars syntax=mustache | runtime! ftplugin/mustache.vim ftplugin/mustache*.vim ftplugin/mustache/*.vim
 endif
 au BufRead,BufNewFile /etc/nginx/*,/usr/local/nginx/*,*/nginx/vhosts.d/*,nginx.conf if &ft == '' | setfiletype nginx | endif
-au BufNewFile,BufRead *.nim,*.nims set filetype=nim
+au BufNewFile,BufRead *.nim,*.nims,*.nimble set filetype=nim
 au! BufRead,BufNewFile *.cl set filetype=opencl
 function! s:DetectPerl6()
   let line_no = 1
