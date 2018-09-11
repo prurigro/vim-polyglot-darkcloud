@@ -14,7 +14,7 @@ function! s:DetectCoffee()
 endfunction
 autocmd BufNewFile,BufRead * call s:DetectCoffee()
 autocmd BufNewFile,BufReadPost *.feature,*.story set filetype=cucumber
-au BufNewFile,BufRead Dockerfile set filetype=dockerfile
+au BufNewFile,BufRead Dockerfile* set filetype=dockerfile
 au BufRead,BufNewFile *.ex,*.exs call s:setf('elixir')
 au BufRead,BufNewFile *.eex call s:setf('eelixir')
 au BufRead,BufNewFile * call s:DetectElixir()
@@ -77,6 +77,19 @@ au BufNewFile *.s setfiletype asm | setlocal fileencoding=utf-8 fileformat=unix
 au BufRead *.s call s:gofiletype_pre("asm")
 au BufReadPost *.s call s:gofiletype_post()
 au BufRead,BufNewFile *.tmpl set filetype=gohtmltmpl
+au BufNewFile,BufRead go.mod call s:gomod()
+fun! s:gomod()
+  for l:i in range(1, line('$'))
+    let l:l = getline(l:i)
+    if l:l ==# '' || l:l[:1] ==# '//'
+      continue
+    endif
+    if l:l =~# '^module .\+'
+      set filetype=gomod
+    endif
+    break
+  endfor
+endfun
 autocmd BufNewFile,BufRead *.hx setf haxe
 autocmd BufNewFile,BufRead *Spec.js,*_spec.js set filetype=jasmine.javascript syntax=jasmine
 fun! s:SelectJavascript()
