@@ -77,6 +77,7 @@ au BufNewFile *.s setfiletype asm | setlocal fileencoding=utf-8 fileformat=unix
 au BufRead *.s call s:gofiletype_pre("asm")
 au BufReadPost *.s call s:gofiletype_post()
 au BufRead,BufNewFile *.tmpl set filetype=gohtmltmpl
+au! BufNewFile,BufRead *.mod,*.MOD
 au BufNewFile,BufRead go.mod call s:gomod()
 fun! s:gomod()
   for l:i in range(1, line('$'))
