@@ -58,6 +58,8 @@ autocmd BufNewFile,BufRead *
       \ if getline(1) =~ '^From \x\{40\} Mon Sep 17 00:00:00 2001$' |
       \   set filetype=gitsendemail |
       \ endif
+let s:cpo_save = &cpo
+set cpo&vim
 let s:current_fileformats = ''
 let s:current_fileencodings = ''
 function! s:gofiletype_pre(type)
@@ -91,6 +93,8 @@ fun! s:gomod()
     break
   endfor
 endfun
+let &cpo = s:cpo_save
+unlet s:cpo_save
 autocmd BufNewFile,BufRead *.hx setf haxe
 autocmd BufNewFile,BufRead *Spec.js,*_spec.js set filetype=jasmine.javascript syntax=jasmine
 fun! s:SelectJavascript()
