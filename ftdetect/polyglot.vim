@@ -183,6 +183,7 @@ function! s:setf(filetype) abort
 endfunction
 au BufNewFile,BufRead Appraisals		call s:setf('ruby')
 au BufNewFile,BufRead .autotest			call s:setf('ruby')
+au BufNewFile,BufRead *.axlsx			call s:setf('ruby')
 au BufNewFile,BufRead [Bb]uildfile		call s:setf('ruby')
 au BufNewFile,BufRead Capfile,*.cap		call s:setf('ruby')
 au BufNewFile,BufRead Cheffile			call s:setf('ruby')
