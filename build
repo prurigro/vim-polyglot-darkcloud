@@ -80,7 +80,7 @@ function copy_dir {
 }
 
 function concat_ftdetect {
-    cat ftdetect/* | egrep '^[^"]' > "$tmpfolder/polyglot.vim"
+    cat ftdetect/* | grep -e '^[^"]' > "$tmpfolder/polyglot.vim"
     rm -f ftdetect/*
     mv "$tmpfolder/polyglot.vim" ftdetect/
 }
@@ -140,6 +140,7 @@ lang_packs='
     ocaml:jrk/vim-ocaml
     octave:vim-scripts/octave.vim--
     opencl:petRUShka/vim-opencl
+    openhab:cyberkov/openhab-vim
     perl:vim-perl/vim-perl
     php:StanAngeloff/php.vim
     protobuf:uarun/vim-protobuf

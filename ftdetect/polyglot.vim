@@ -72,10 +72,10 @@ function! s:gofiletype_post()
   let &g:fileformats = s:current_fileformats
   let &g:fileencodings = s:current_fileencodings
 endfunction
-au BufNewFile *.go setfiletype go | setlocal fileencoding=utf-8 fileformat=unix
+au BufNewFile *.go setfiletype go | if &modifiable | setlocal fileencoding=utf-8 fileformat=unix | endif
 au BufRead *.go call s:gofiletype_pre("go")
 au BufReadPost *.go call s:gofiletype_post()
-au BufNewFile *.s setfiletype asm | setlocal fileencoding=utf-8 fileformat=unix
+au BufNewFile *.s setfiletype asm | if &modifiable | setlocal fileencoding=utf-8 fileformat=unix | endif
 au BufRead *.s call s:gofiletype_pre("asm")
 au BufReadPost *.s call s:gofiletype_post()
 au BufRead,BufNewFile *.tmpl set filetype=gohtmltmpl
@@ -143,6 +143,11 @@ endif
 au BufRead,BufNewFile /etc/nginx/*,/usr/local/nginx/*,*/nginx/vhosts.d/*,nginx.conf if &ft == '' | setfiletype nginx | endif
 au BufNewFile,BufRead *.nim,*.nims,*.nimble set filetype=nim
 au! BufRead,BufNewFile *.cl set filetype=opencl
+au BufRead,BufNewFile *.items set filetype=openhab-items syntax=openhab
+au BufRead,BufNewFile *.rules set filetype=openhab-rules syntax=openhab
+au BufRead,BufNewFile *.persist set filetype=openhab-persist syntax=openhab
+au BufRead,BufNewFile *.sitemap set filetype=openhab-sitemap syntax=openhab
+au BufRead,BufNewFile *.things set filetype=openhab-things syntax=openhab
 function! s:DetectPerl6()
   let line_no = 1
   let eof     = line('$')

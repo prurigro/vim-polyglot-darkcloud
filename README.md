@@ -60,6 +60,7 @@ Optionally download one of the [releases](https://github.com/sheerun/vim-polyglo
 - [ocaml](https://github.com/jrk/vim-ocaml) (syntax, indent, ftplugin)
 - [octave](https://github.com/vim-scripts/octave.vim--) (syntax)
 - [opencl](https://github.com/petRUShka/vim-opencl) (syntax, indent, ftplugin, ftdetect, syntax_checkers)
+- [*openhab](https://github.com/cyberkov/openhab-vim) (syntax, ftdetect)
 - [perl](https://github.com/vim-perl/vim-perl) (syntax, indent, ftplugin, ftdetect)
 - [php](https://github.com/StanAngeloff/php.vim) (syntax)
 - [puppet](https://github.com/rodjek/vim-puppet) (syntax, indent, ftplugin, ftdetect)
