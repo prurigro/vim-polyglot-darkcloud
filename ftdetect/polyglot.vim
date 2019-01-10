@@ -60,27 +60,11 @@ autocmd BufNewFile,BufRead *
       \ endif
 let s:cpo_save = &cpo
 set cpo&vim
-let s:current_fileformats = ''
-let s:current_fileencodings = ''
-function! s:gofiletype_pre(type)
-  let s:current_fileformats = &g:fileformats
-  let s:current_fileencodings = &g:fileencodings
-  set fileencodings=utf-8 fileformats=unix
-  let &l:filetype = a:type
-endfunction
-function! s:gofiletype_post()
-  let &g:fileformats = s:current_fileformats
-  let &g:fileencodings = s:current_fileencodings
-endfunction
-au BufNewFile *.go setfiletype go | if &modifiable | setlocal fileencoding=utf-8 fileformat=unix | endif
-au BufRead *.go call s:gofiletype_pre("go")
-au BufReadPost *.go call s:gofiletype_post()
-au BufNewFile *.s setfiletype asm | if &modifiable | setlocal fileencoding=utf-8 fileformat=unix | endif
-au BufRead *.s call s:gofiletype_pre("asm")
-au BufReadPost *.s call s:gofiletype_post()
-au BufRead,BufNewFile *.tmpl set filetype=gohtmltmpl
-au! BufNewFile,BufRead *.mod,*.MOD
-au BufNewFile,BufRead go.mod call s:gomod()
+au BufRead,BufNewFile *.go setfiletype go
+au BufRead,BufNewFile *.s setfiletype asm
+au BufRead,BufNewFile *.tmpl setfiletype gohtmltmpl
+au! BufRead,BufNewFile *.mod,*.MOD
+au BufRead,BufNewFile go.mod call s:gomod()
 fun! s:gomod()
   for l:i in range(1, line('$'))
     let l:l = getline(l:i)
@@ -88,7 +72,7 @@ fun! s:gomod()
       continue
     endif
     if l:l =~# '^module .\+'
-      set filetype=gomod
+      setfiletype gomod
     endif
     break
   endfor
