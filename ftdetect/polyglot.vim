@@ -15,15 +15,12 @@ endfunction
 autocmd BufNewFile,BufRead * call s:DetectCoffee()
 autocmd BufNewFile,BufReadPost *.feature,*.story set filetype=cucumber
 au BufNewFile,BufRead Dockerfile* set filetype=dockerfile
-au BufRead,BufNewFile *.ex,*.exs call s:setf('elixir')
-au BufRead,BufNewFile *.eex call s:setf('eelixir')
+au BufRead,BufNewFile *.ex,*.exs set filetype=elixir
+au BufRead,BufNewFile *.eex set filetype=eelixir
 au BufRead,BufNewFile * call s:DetectElixir()
-function! s:setf(filetype) abort
-  let &filetype = a:filetype
-endfunction
 function! s:DetectElixir()
-  if getline(1) =~ '^#!.*\<elixir\>'
-    call s:setf('elixir')
+  if &filetype !=# 'elixir' && getline(1) =~# '^#!.*\<elixir\>'
+    set filetype=elixir
   endif
 endfunction
 if !exists('g:vim_ember_script')
@@ -254,7 +251,7 @@ au BufNewFile,BufRead *.target    set filetype=systemd
 au BufNewFile,BufRead *.timer     set filetype=systemd
 au BufRead,BufNewFile *.textile set filetype=textile
 autocmd BufNewFile,BufRead {.,}tmux*.conf set ft=tmux | compiler tmux
-autocmd BufNewFile,BufRead *.toml,Gopkg.lock,Cargo.lock,*/.cargo/config,*/.cargo/credentials,Pipfile set filetype=toml
+autocmd BufNewFile,BufRead *.toml,Gopkg.lock,Cargo.lock,*/.cargo/config,*/.cargo/credentials,Pipfile setf toml
 autocmd BufNewFile,BufRead *.twig set filetype=twig
 autocmd BufNewFile,BufRead *.html.twig set filetype=html.twig
 autocmd BufNewFile,BufRead *.ts  set filetype=typescript
