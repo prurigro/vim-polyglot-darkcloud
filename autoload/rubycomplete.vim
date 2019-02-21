@@ -52,6 +52,23 @@ if !exists("g:rubycomplete_include_objectspace")
 endif
 " }}} configuration failsafe initialization
 
+" {{{ regex patterns
+
+" Regex that defines the start-match for the 'end' keyword.
+let s:end_start_regex =
+      \ '\C\%(^\s*\|[=,*/%+\-|;{]\|<<\|>>\|:\s\)\s*\zs' .
+      \ '\<\%(module\|class\|if\|for\|while\|until\|case\|unless\|begin' .
+      \   '\|\%(\K\k*[!?]\?\s\+\)\=def\):\@!\>' .
+      \ '\|\%(^\|[^.:@$]\)\@<=\<do:\@!\>'
+
+" Regex that defines the middle-match for the 'end' keyword.
+let s:end_middle_regex = '\<\%(ensure\|else\|\%(\%(^\|;\)\s*\)\@<=\<rescue:\@!\>\|when\|elsif\):\@!\>'
+
+" Regex that defines the end-match for the 'end' keyword.
+let s:end_end_regex = '\%(^\|[^.:@$]\)\@<=\<end:\@!\>'
+
+" }}} regex patterns
+
 " {{{ vim-side support functions
 let s:rubycomplete_debug = 0
 
@@ -102,7 +119,7 @@ function! s:GetBufferRubyEntity( name, type, ... )
     endif
 
     let curpos = getpos(".")
-    let [enum,ecol] = searchpairpos( crex, '', '\(end\|}\)', 'W' )
+    let [enum,ecol] = searchpairpos( s:end_start_regex, s:end_middle_regex, s:end_end_regex, 'W' )
     call cursor(lastpos[1], lastpos[2])
 
     if lnum > enum
@@ -670,11 +687,10 @@ class VimRubyCompletion
           methods.delete_if { |c| c.match( /'/ ) }
         end
 
-      when /^::([A-Z][^:\.\(]*)$/ # Absolute Constant or class methods
+      when /^::([A-Z][^:\.\(]*)?$/ # Absolute Constant or class methods
         dprint "const or cls"
         receiver = $1
-        methods = Object.constants
-        methods.grep(/^#{receiver}/).collect{|e| "::" + e}
+        methods = Object.constants.collect{ |c| c.to_s }.grep(/^#{receiver}/)
 
       when /^(((::)?[A-Z][^:.\(]*)+?)::?([^:.]*)$/ # Constant or class methods
         receiver = $1
@@ -683,13 +699,13 @@ class VimRubyCompletion
         load_buffer_class( receiver )
         load_buffer_module( receiver )
         begin
-          classes = eval("#{receiver}.constants")
-          #methods = eval("#{receiver}.methods")
+          constants = eval("#{receiver}.constants").collect{ |c| c.to_s }.grep(/^#{message}/)
+          methods = eval("#{receiver}.methods").collect{ |m| m.to_s }.grep(/^#{message}/)
         rescue Exception
           dprint "exception: %s" % $!
+          constants = []
           methods = []
         end
-        methods.grep(/^#{message}/).collect{|e| receiver + "::" + e}
 
       when /^(:[^:.]+)\.([^.]*)$/ # Symbol
         dprint "symbol"
