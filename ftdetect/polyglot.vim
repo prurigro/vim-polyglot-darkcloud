@@ -163,6 +163,7 @@ autocmd BufNewFile,BufRead *.proto setfiletype proto
 autocmd BufNewFile,BufReadPost *.pug set filetype=pug
 autocmd BufNewFile,BufReadPost *.jade set filetype=pug
 au! BufRead,BufNewFile *.pp setfiletype puppet
+au! BufRead,BufNewFile *.epp setfiletype embeddedpuppet
 au! BufRead,BufNewFile Puppetfile setfiletype ruby
 function! s:setf(filetype) abort
   if &filetype !=# a:filetype
