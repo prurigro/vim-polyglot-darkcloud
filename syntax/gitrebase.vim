@@ -2,7 +2,7 @@
 " Language:	git rebase --interactive
 " Maintainer:	Tim Pope <vimNOSPAM@tpope.org>
 " Filenames:	git-rebase-todo
-" Last Change:	2013 May 30
+" Last Change:	2016 Aug 29
 
 if exists("b:current_syntax")
   finish
@@ -18,7 +18,7 @@ syn match   gitrebaseEdit   "\v^e%(dit)=>"   nextgroup=gitrebaseCommit skipwhite
 syn match   gitrebaseSquash "\v^s%(quash)=>" nextgroup=gitrebaseCommit skipwhite
 syn match   gitrebaseFixup  "\v^f%(ixup)=>"  nextgroup=gitrebaseCommit skipwhite
 syn match   gitrebaseExec   "\v^%(x|exec)>" nextgroup=gitrebaseCommand skipwhite
-syn match   gitrebaseBreak  "\v^b%(reak)=>"  nextgroup=gitrebaseCommit skipwhite
+syn match   gitrebaseBreak  "\v^b%(reak)=>"
 syn match   gitrebaseDrop   "\v^d%(rop)=>"   nextgroup=gitrebaseCommit skipwhite
 syn match   gitrebaseNoop   "\v^noop>"
 syn match   gitrebaseSummary ".*"               contains=gitrebaseHash contained
