@@ -188,6 +188,7 @@ au BufNewFile,BufRead Puppetfile		call s:setf('ruby')
 au BufNewFile,BufRead *.rabl			call s:setf('ruby')
 au BufNewFile,BufRead [rR]outefile		call s:setf('ruby')
 au BufNewFile,BufRead .simplecov		call s:setf('ruby')
+au BufNewFile,BufRead *.rbi		        call s:setf('ruby')
 au BufNewFile,BufRead [tT]horfile,*.thor	call s:setf('ruby')
 au BufNewFile,BufRead [vV]agrantfile		call s:setf('ruby')
 function! s:setf(filetype) abort
