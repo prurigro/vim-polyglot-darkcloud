@@ -32,6 +32,7 @@ lang_packs=(
     'javascript:pangloss/vim-javascript'
     'json:elzr/vim-json:_basic'
     'jst:briancollins/vim-jst'
+    'jsx:MaxMEllon/vim-jsx-pretty'
     'latex:LaTeX-Box-Team/LaTeX-Box'
     'less:groenewege/vim-less'
     'liquid:tpope/vim-liquid'

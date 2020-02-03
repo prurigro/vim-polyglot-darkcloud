@@ -51,6 +51,7 @@ Optionally download one of the [releases](https://github.com/sheerun/vim-polyglo
 - [javascript](https://github.com/pangloss/vim-javascript) (syntax, indent, ftdetect)
 - [*json](https://github.com/elzr/vim-json) (syntax, indent, ftplugin, ftdetect)
 - [jst](https://github.com/briancollins/vim-jst) (syntax, indent, ftdetect)
+- [*jsx](https://github.com/MaxMEllon/vim-jsx-pretty) (syntax, indent, ftplugin)
 - [latex](https://github.com/LaTeX-Box-Team/LaTeX-Box) (syntax, indent, ftplugin)
 - [less](https://github.com/groenewege/vim-less) (syntax, indent, ftplugin, ftdetect)
 - [liquid](https://github.com/tpope/vim-liquid) (syntax, indent, ftplugin, ftdetect)
