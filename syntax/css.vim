@@ -68,7 +68,7 @@ endtry
 " digits
 syn match cssValueInteger contained "[-+]\=\d\+" contains=cssUnitDecorators
 syn match cssValueNumber contained "[-+]\=\d\+\(\.\d*\)\=" contains=cssUnitDecorators
-syn match cssValueLength contained "[-+]\=\d\+\(\.\d*\)\=\(mm\|cm\|in\|pt\|pc\|em\|ex\|px\|rem\|dpi\|dppx\|dpcm\|fr\|vw\|vh\|vmin\|vmax\)\>" contains=cssUnitDecorators
+syn match cssValueLength contained "[-+]\=\d\+\(\.\d*\)\=\(mm\|cm\|in\|pt\|pc\|em\|ex\|px\|rem\|dpi\|dppx\|dpcm\|fr\|vw\|vh\|vmin\|vmax\|ch\)\>" contains=cssUnitDecorators
 syn match cssValueLength contained "[-+]\=\d\+\(\.\d*\)\=%" contains=cssUnitDecorators
 syn match cssValueAngle contained "[-+]\=\d\+\(\.\d*\)\=\(deg\|grad\|rad\)\>" contains=cssUnitDecorators
 syn match cssValueTime contained "+\=\d\+\(\.\d*\)\=\(ms\|s\)\>" contains=cssUnitDecorators
@@ -134,6 +134,7 @@ syn match cssFunctionComma contained ","
 " Common Prop and Attr
 syn keyword cssCommonAttr contained auto none inherit all default normal
 syn keyword cssCommonAttr contained top bottom center stretch hidden visible
+syn match cssCommonAttr contained "\<\(max-\|min-\|fit-\)content\>"
 "------------------------------------------------
 " CSS Animations
 " http://www.w3.org/TR/css3-animations/
