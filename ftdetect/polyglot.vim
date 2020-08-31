@@ -78,6 +78,9 @@ fun! s:gomod()
 endfun
 let &cpo = s:cpo_save
 unlet s:cpo_save
+if has("autocmd")
+  au BufNewFile,BufRead *.handlebars,*.hdbs,*.hbs,*.hb set filetype=html.handlebars
+endif
 autocmd BufNewFile,BufRead *.hx setf haxe
 autocmd BufNewFile,BufRead *Spec.js,*_spec.js set filetype=jasmine.javascript syntax=jasmine
 fun! s:SelectJavascript()
@@ -121,8 +124,7 @@ autocmd BufRead *.html
     \     set filetype=mason |
     \ endif
 if has("autocmd")
-  au BufNewFile,BufRead *.mustache,*.hogan,*.hulk,*.hjs set filetype=html.mustache syntax=mustache | runtime! indent/handlebars.vim
-  au BufNewFile,BufRead *.handlebars,*.hdbs,*.hbs,*.hb set filetype=html.handlebars syntax=mustache | runtime! ftplugin/mustache*.vim ftplugin/mustache/*.vim
+  au BufNewFile,BufRead *.mustache,*.hogan,*.hulk,*.hjs set filetype=html.mustache
 endif
 au BufRead,BufNewFile /etc/nginx/*,/usr/local/nginx/*,*/nginx/vhosts.d/*,nginx.conf if &ft == '' | setfiletype nginx | endif
 au BufNewFile,BufRead *.nim,*.nims,*.nimble set filetype=nim
