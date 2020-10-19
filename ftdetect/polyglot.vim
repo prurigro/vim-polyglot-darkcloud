@@ -127,7 +127,9 @@ if has("autocmd")
   au BufNewFile,BufRead *.mustache,*.hogan,*.hulk,*.hjs set filetype=html.mustache
 endif
 au BufRead,BufNewFile /etc/nginx/*,/usr/local/nginx/*,*/nginx/vhosts.d/*,nginx.conf if &ft == '' | setfiletype nginx | endif
-au BufNewFile,BufRead *.nim,*.nims,*.nimble set filetype=nim
+augroup nim_vim
+  au BufNewFile,BufRead *.nim,*.nims,*.nimble set filetype=nim
+augroup END
 au! BufRead,BufNewFile *.cl set filetype=opencl
 au BufRead,BufNewFile *.items set filetype=openhab-items syntax=openhab
 au BufRead,BufNewFile *.rules set filetype=openhab-rules syntax=openhab
