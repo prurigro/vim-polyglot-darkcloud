@@ -62,6 +62,7 @@ set cpo&vim
 au BufRead,BufNewFile *.go setfiletype go
 au BufRead,BufNewFile *.s setfiletype asm
 au BufRead,BufNewFile *.tmpl setfiletype gohtmltmpl
+au BufRead,BufNewFile go.sum set filetype=gosum
 au! BufRead,BufNewFile *.mod,*.MOD
 au BufRead,BufNewFile go.mod call s:gomod()
 fun! s:gomod()
