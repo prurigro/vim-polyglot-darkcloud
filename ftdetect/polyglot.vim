@@ -17,7 +17,7 @@ autocmd BufNewFile,BufRead * call s:DetectCoffee()
 autocmd BufNewFile,BufReadPost *.feature,*.story set filetype=cucumber
 au BufNewFile,BufRead Dockerfile* set filetype=dockerfile
 au BufRead,BufNewFile *.ex,*.exs set filetype=elixir
-au BufRead,BufNewFile *.eex,*.leex,*.sface set filetype=eelixir
+au BufRead,BufNewFile *.eex,*.heex,*.leex,*.sface,*.lexs set filetype=eelixir
 au BufRead,BufNewFile mix.lock set filetype=elixir
 au BufRead,BufNewFile * call s:DetectElixir()
 function! s:DetectElixir()
@@ -47,15 +47,15 @@ autocmd BufNewFile,BufRead *.git/modules/**/config                       set ft=
 autocmd BufNewFile,BufRead git-rebase-todo                               set ft=gitrebase
 autocmd BufNewFile,BufRead .gitsendemail.*                               set ft=gitsendemail
 autocmd BufNewFile,BufRead *.git/**
-      \ if getline(1) =~ '^\x\{40\}\>\|^ref: ' |
+      \ if getline(1) =~ '^\x\{40,\}\>\|^ref: ' |
       \   set ft=git |
       \ endif
 autocmd BufNewFile,BufRead,StdinReadPost *
-      \ if empty(&filetype) && getline(1) =~# '^\(commit\|tree\|object\) \x\{40\}\>\|^tag \S\+$' |
+      \ if empty(&filetype) && getline(1) =~# '^\(commit\|tree\|object\) \x\{40,\}\>\|^tag \S\+$' |
       \   set ft=git |
       \ endif
 autocmd BufNewFile,BufRead *
-      \ if getline(1) =~# '^From \x\{40\} Mon Sep 17 00:00:00 2001$' |
+      \ if getline(1) =~# '^From \x\{40,\} Mon Sep 17 00:00:00 2001$' |
       \   set filetype=gitsendemail |
       \ endif
 let s:cpo_save = &cpo
@@ -186,6 +186,7 @@ au BufNewFile,BufRead Cheffile			call s:setf('ruby')
 au BufNewFile,BufRead Berksfile			call s:setf('ruby')
 au BufNewFile,BufRead Podfile,*.podspec		call s:setf('ruby')
 au BufNewFile,BufRead Guardfile,.Guardfile	call s:setf('ruby')
+au BufNewFile,BufRead *.jb			call s:setf('ruby')
 au BufNewFile,BufRead *.jbuilder		call s:setf('ruby')
 au BufNewFile,BufRead KitchenSink		call s:setf('ruby')
 au BufNewFile,BufRead *.opal			call s:setf('ruby')

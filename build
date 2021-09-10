@@ -63,7 +63,7 @@ lang_packs=(
     'textile:timcharper/textile.vim'
     'tmux:tmux-plugins/vim-tmux'
     'tomdoc:duwanis/tomdoc.vim'
-    'toml:cespare/vim-toml'
+    'toml:cespare/vim-toml#main'
     'twig:beyondwords/vim-twig'
     'typescript:leafgarland/typescript-vim'
     'vala:tkztmk/vim-vala'
@@ -100,6 +100,7 @@ function download {
         [[ -d "$dir" ]] && rm -rf "${dir:?}"
 
         while [[ ! -d "$dir" ]]; do
+            echo $path
             git clone -b "$branch" -q --recursive "$gitsource/${path}.git" "$dir" && printf '%s' '.'
         done
     done
