@@ -100,7 +100,6 @@ function download {
         [[ -d "$dir" ]] && rm -rf "${dir:?}"
 
         while [[ ! -d "$dir" ]]; do
-            echo $path
             git clone -b "$branch" -q --recursive "$gitsource/${path}.git" "$dir" && printf '%s' '.'
         done
     done
