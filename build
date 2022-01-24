@@ -43,6 +43,7 @@ lang_packs=(
     'octave:vim-scripts/octave.vim--'
     'opencl:petRUShka/vim-opencl'
     'openhab:cyberkov/openhab-vim'
+    'openscad:sirtaj/vim-openscad'
     'perl:vim-perl/vim-perl'
     'php:StanAngeloff/php.vim'
     'protobuf:uarun/vim-protobuf'

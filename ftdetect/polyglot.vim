@@ -45,23 +45,33 @@ function! s:Setf(filetype) abort
     let &filetype = a:filetype
   endif
 endfunction
-autocmd BufNewFile,BufRead *.git/{,modules/**/,worktrees/*/}{COMMIT_EDIT,TAG_EDIT,MERGE_,}MSG call s:Setf('gitcommit')
-autocmd BufNewFile,BufRead *.git/config,.gitconfig,gitconfig,.gitmodules call s:Setf('gitconfig')
-autocmd BufNewFile,BufRead */.config/git/config                          call s:Setf('gitconfig')
-autocmd BufNewFile,BufRead *.git/modules/**/config                       call s:Setf('gitconfig')
-autocmd BufNewFile,BufRead git-rebase-todo                               call s:Setf('gitrebase')
-autocmd BufNewFile,BufRead .gitsendemail.*                               call s:Setf('gitsendemail')
-autocmd BufNewFile,BufRead *.git/**
-      \ if  empty(&filetype) && getline(1) =~# '^\x\{40,\}\>\|^ref: ' |
+function! s:StarSetf(ft) abort
+  if expand("<amatch>") !~# get(g:, 'ft_ignore_pat', '0\&1')
+    call s:Setf(a:filetype)
+  endif
+endfunction
+au BufNewFile,BufRead COMMIT_EDITMSG,TAG_EDITMSG,MERGE_MSG	call s:Setf('gitcommit')
+au BufNewFile,BufRead NOTES_EDITMSG,EDIT_DESCRIPTION		call s:Setf('gitcommit')
+au BufNewFile,BufRead *.git/config,.gitconfig,/etc/gitconfig	call s:Setf('gitconfig')
+au BufNewFile,BufRead */.config/git/config			call s:Setf('gitconfig')
+au BufNewFile,BufRead .gitmodules,*.git/modules/**/config	call s:Setf('gitconfig')
+if !empty($XDG_CONFIG_HOME)
+  au BufNewFile,BufRead $XDG_CONFIG_HOME/git/config		call s:Setf('gitconfig')
+endif
+au BufNewFile,BufRead git-rebase-todo		call s:Setf('gitrebase')
+au BufNewFile,BufRead .gitsendemail.msg.??????	call s:Setf('gitsendemail')
+au BufNewFile,BufRead *.git/*
+      \ if empty(&filetype) && getline(1) =~# '^\x\{40,\}\>\|^ref: ' |
       \   set ft=git |
       \ endif
-autocmd BufNewFile,BufRead,StdinReadPost *
+au BufNewFile,BufRead */.gitconfig.d/*,/etc/gitconfig.d/*	call s:StarSetf('gitconfig')
+au BufNewFile,BufRead *.patch
+      \ if getline(1) =~# '^From [0-9a-f]\{40,\} Mon Sep 17 00:00:00 2001$' |
+      \   call s:Setf('gitsendemail') |
+      \ endif
+au BufNewFile,BufRead,StdinReadPost *
       \ if empty(&filetype) && getline(1) =~# '^\(commit\|tree\|object\) \x\{40,\}\>\|^tag \S\+$' |
       \   set ft=git |
-      \ endif
-autocmd BufNewFile,BufRead *
-      \ if getline(1) =~# '^From \x\{40,\} Mon Sep 17 00:00:00 2001$' |
-      \   call s:Setf('gitsendemail') |
       \ endif
 let s:cpo_save = &cpo
 set cpo&vim
@@ -143,6 +153,8 @@ au BufRead,BufNewFile *.rules set filetype=openhab-rules syntax=openhab
 au BufRead,BufNewFile *.persist set filetype=openhab-persist syntax=openhab
 au BufRead,BufNewFile *.sitemap set filetype=openhab-sitemap syntax=openhab
 au BufRead,BufNewFile *.things set filetype=openhab-things syntax=openhab
+au BufRead,BufNewFile *.scad    setfiletype openscad
+an 50.80.265 &Syntax.NO.OpenSCAD :cal SetSyn("openscad")<CR>
 function! s:DetectPerl6()
   let line_no = 1
   let eof     = line('$')

@@ -27,7 +27,7 @@ syn match   gitcommitBlank	"^.\+" contained contains=@Spell
 syn match   gitcommitFirstLine	"\%^.*" nextgroup=gitcommitBlank,gitcommitComment skipnl
 
 let s:scissors = 0
-let s:l = search('^[#;@!$%^&|:] -\{24,\} >8 -\{24,\}$', 'n', '', 100)
+let s:l = search('^[#;@!$%^&|:] -\{24,\} >8 -\{24,\}$', 'cnW', '', 100)
 if s:l == 0
   let s:l = line('$')
 elseif getline(s:l)[0] !=# getline(s:l - 1)[0]
@@ -52,8 +52,9 @@ syn match   gitcommitOnBranch	"\%(^. \)\@<=On branch" contained containedin=gitc
 syn match   gitcommitOnBranch	"\%(^. \)\@<=Your branch .\{-\} '" contained containedin=gitcommitComment nextgroup=gitcommitBranch skipwhite
 syn match   gitcommitBranch	"[^ ']\+" contained
 syn match   gitcommitNoBranch	"\%(^. \)\@<=Not currently on any branch." contained containedin=gitcommitComment
-syn match   gitcommitHeader	"\%(^. \)\@<=\S.*[:：]$" contained containedin=gitcommitComment
+syn match   gitcommitHeader	"\%(^. \)\@<=\S.*[:：]\%(\n^$\)\@!$" contained containedin=gitcommitComment
 syn region  gitcommitAuthor	matchgroup=gitCommitHeader start=/\%(^. \)\@<=\%(Author\|Committer\|Date\):/ end=/$/ keepend oneline contained containedin=gitcommitComment transparent
+syn match   gitcommitHeader	"\%(^. \)\@<=commit\%( \x\{40,\}$\)\@=" contained containedin=gitcommitComment nextgroup=gitcommitHash skipwhite
 syn match   gitcommitNoChanges	"\%(^. \)\@<=No changes$" contained containedin=gitcommitComment
 
 syn match   gitcommitType		"\%(^.\t\)\@<=[^[:punct:][:space:]][^/:：]*[^[:punct:][:space:]][:：]\ze "he=e-1 contained containedin=gitcommitComment nextgroup=gitcommitFile skipwhite
