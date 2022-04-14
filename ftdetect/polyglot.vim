@@ -16,9 +16,7 @@ endfunction
 autocmd BufNewFile,BufRead * call s:DetectCoffee()
 autocmd BufNewFile,BufReadPost *.feature,*.story set filetype=cucumber
 au BufNewFile,BufRead Dockerfile* set filetype=dockerfile
-au BufRead,BufNewFile *.ex,*.exs set filetype=elixir
-au BufRead,BufNewFile *.eex,*.heex,*.leex,*.sface,*.lexs set filetype=eelixir
-au BufRead,BufNewFile mix.lock set filetype=elixir
+au BufRead,BufNewFile *.lexs set filetype=elixir "File extension used by https://github.com/mhanberg/temple
 au BufRead,BufNewFile * call s:DetectElixir()
 function! s:DetectElixir()
   if (!did_filetype() || &filetype !=# 'elixir') && getline(1) =~# '^#!.*\<elixir\>'
@@ -79,6 +77,8 @@ au BufRead,BufNewFile *.go setfiletype go
 au BufRead,BufNewFile *.s setfiletype asm
 au BufRead,BufNewFile *.tmpl set filetype=gohtmltmpl
 au BufRead,BufNewFile go.sum set filetype=gosum
+au BufRead,BufNewFile go.work.sum set filetype=gosum
+au BufRead,BufNewFile go.work set filetype=gowork
 au! BufRead,BufNewFile *.mod,*.MOD
 au BufRead,BufNewFile go.mod call s:gomod()
 fun! s:gomod()
