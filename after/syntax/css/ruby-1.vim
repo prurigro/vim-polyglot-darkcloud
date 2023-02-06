@@ -1,4 +1,2 @@
-syn match cssFontProp contained "\<ruby-\(position\|merge\|align\|overhang\)"
-syn keyword cssFontAttr contained merge
-syn match cssFontAttr contained "\<ruby-\(base\|text\)-container\>"
-syn match cssFontAttr contained "\<inter-character\>"
+syn keyword cssFontProp contained ruby-position ruby-merge ruby-align ruby-overhang
+syn keyword cssFontAttr contained ruby ruby-base ruby-text ruby-base-container ruby-text-container inter-character merge
