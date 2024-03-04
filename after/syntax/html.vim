@@ -18,7 +18,6 @@ if exists('s:current_syntax_save')
   let b:current_syntax = s:current_syntax_save
   unlet s:current_syntax_save
 endif
-syn include syntax/css/vim-coloresque.vim
 " Vim syntax file
 " Language:     HTML (version 5.1)
 " Last Change:  2017 Feb 15

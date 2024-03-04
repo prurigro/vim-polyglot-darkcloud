@@ -12,7 +12,6 @@ lang_packs=(
     'c/c++:vim-jp/cpp-vim'
     'clojure:guns/vim-clojure-static'
     'coffee-script:kchmck/vim-coffee-script'
-    'coloresque:prurigro/vim-coloresque'
     'css:hail2u/vim-css3-syntax#main'
     'cucumber:tpope/vim-cucumber'
     'cython:tshirtman/vim-cython'

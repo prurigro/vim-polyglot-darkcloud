@@ -31,7 +31,6 @@ Optionally download one of the [releases](https://github.com/sheerun/vim-polyglo
 - [c-extensions](https://github.com/kergoth/aftersyntaxc.vim) (syntax)
 - [clojure](https://github.com/guns/vim-clojure-static) (syntax, indent, autoload, ftplugin, ftdetect)
 - [coffee-script](https://github.com/kchmck/vim-coffee-script) (syntax, indent, compiler, autoload, ftplugin, ftdetect)
-- [coloresque](https://github.com/prurigro/vim-coloresque) (syntax)
 - [css](https://github.com/hail2u/vim-css3-syntax) (syntax)
 - [cucumber](https://github.com/tpope/vim-cucumber) (syntax, indent, compiler, ftplugin, ftdetect)
 - [cython](https://github.com/tshirtman/vim-cython) (syntax, ftplugin, plugin)
