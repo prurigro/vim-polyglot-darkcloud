@@ -264,7 +264,7 @@ au BufRead,BufNewFile * call s:DetectScala()
 au BufRead,BufNewFile *.sbt setfiletype sbt.scala
 au BufRead,BufNewFile *.scss setfiletype scss
 au BufEnter *.scss :syntax sync fromstart
-autocmd BufNewFile,BufRead *.slim setfiletype slim
+autocmd BufNewFile,BufRead *.slim setf slim
 autocmd BufNewFile,BufReadPost *.styl set filetype=stylus
 autocmd BufNewFile,BufReadPost *.stylus set filetype=stylus
 autocmd BufNewFile,BufRead *.swift set filetype=swift
