@@ -14,8 +14,47 @@ set cpo-=C
 
 " Define some defaults in case the included ftplugins don't set them.
 let s:undo_ftplugin = ''
-let s:browsefilter = "All Files (*.*)\t*.*\n"
+if has('win32')
+  let s:browsefilter = "All Files (*.*)\t*.*\n"
+else
+    let s:browsefilter = "All Files (*)\t*\n"
+endif
 let s:match_words = ''
+
+if !exists('g:epuppet_default_subtype')
+  let g:epuppet_default_subtype = 'sh'
+endif
+
+if &filetype =~# '^epuppet\.'
+    let b:epuppet_subtype = matchstr(&filetype,'^epuppet\.\zs\w\+')
+elseif !exists('b:epuppet_subtype')
+  let b:epuppet_subtype = matchstr(substitute(expand('%:t'),'\c\%(\.epp\)\+$','',''),'\.\zs\w\+\%(\ze+\w\+\)\=$')
+  " TODO instead of listing exceptions like this, can we instead recognize
+  "  extension -> type mapping?
+  if b:epuppet_subtype ==? 'rhtml'
+    let b:epuppet_subtype = 'html'
+  elseif b:epuppet_subtype ==? 'rb'
+    let b:epuppet_subtype = 'ruby'
+  elseif b:epuppet_subtype ==? 'yml'
+    let b:epuppet_subtype = 'yaml'
+  elseif b:epuppet_subtype ==? 'js'
+    let b:epuppet_subtype = 'javascript'
+  elseif b:epuppet_subtype ==? 'txt'
+    " Conventional; not a real file type
+    let b:epuppet_subtype = 'text'
+  elseif b:epuppet_subtype ==? 'py'
+    let b:epuppet_subtype = 'python'
+  elseif b:epuppet_subtype ==? 'rs'
+    let b:epuppet_subtype = 'rust'
+  elseif b:epuppet_subtype ==?''
+    let b:epuppet_subtype = g:epuppet_default_subtype
+  endif
+endif
+
+if exists('b:epuppet_subtype') && b:epuppet_subtype != '' && b:epuppet_subtype !=? 'epuppet'
+  exe 'runtime! ftplugin/'.b:epuppet_subtype.'.vim ftplugin/'.b:epuppet_subtype.'_*.vim ftplugin/'.b:epuppet_subtype.'/*.vim'
+endif
+unlet! b:did_ftplugin
 
 runtime! ftplugin/sh.vim
 unlet! b:did_ftplugin
