@@ -52,14 +52,26 @@ function! puppet#align#AlignHashrockets(...) abort
     let indent_str = printf('%' . indent(l:lnum) . 's', '')
 
     for line_num in lines_in_block
-        let data = matchlist(getline(line_num), '^\s*\(.\{-}\S\)\s*=>\s*\(.*\)$')
+        let text_line = getline(line_num)
+        " skip comment lines
+        if matchstr(text_line, '\S') ==# '#'
+            continue
+        endif
+
+        let data = matchlist(text_line, '^\s*\(.\{-}\S\)\s*=>\s*\(.*\)$')
         if !empty(data)
             let max_left_len = max([max_left_len, strlen(data[1])])
         endif
     endfor
 
     for line_num in lines_in_block
-        let data = matchlist(getline(line_num), '^\s*\(.\{-}\S\)\s*=>\s*\(.*\)$')
+        let text_line = getline(line_num)
+        " skip comment lines
+        if matchstr(text_line, '\S') ==# '#'
+            continue
+        endif
+
+        let data = matchlist(text_line, '^\s*\(.\{-}\S\)\s*=>\s*\(.*\)$')
         if !empty(data)
             let new_line = printf('%s%-' . max_left_len . 's => %s', indent_str, data[1], data[2])
             call setline(line_num, new_line)
