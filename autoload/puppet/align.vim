@@ -9,9 +9,9 @@ function! puppet#align#LinesInBlock(lnum) abort
     let marker = a:lnum - 1
     while marker >= 1
         let line_text = getline(marker)
-        let line_indent = puppet#align#IndentLevel(marker)
 
         if line_text =~? '\v\S'
+            let line_indent = puppet#align#IndentLevel(marker)
             if line_indent < indent_level
                 break
             elseif line_indent == indent_level
@@ -25,9 +25,9 @@ function! puppet#align#LinesInBlock(lnum) abort
     let marker = a:lnum
     while marker <= line('$')
         let line_text = getline(marker)
-        let line_indent = puppet#align#IndentLevel(marker)
 
         if line_text =~? '\v\S'
+            let line_indent = puppet#align#IndentLevel(marker)
             if line_indent < indent_level
                 break
             elseif line_indent == indent_level
@@ -77,4 +77,6 @@ function! puppet#align#AlignHashrockets(...) abort
             call setline(line_num, new_line)
         endif
     endfor
+
+    return lines_in_block
 endfunction

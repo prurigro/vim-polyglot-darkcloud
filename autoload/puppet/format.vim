@@ -23,12 +23,20 @@ endfunction
 " Format hashrockets expressions in every line in range start_lnum and
 " end_lnum, both ends included
 "
-" TODO way of using AlignHashrockets function is ineffective, because it
-" formats same lines again and again, find better way to do it
 function! puppet#format#Hashrocket(start_lnum, end_lnum) abort
   let l:lnum = a:start_lnum
+  let processed_lines = []
   while l:lnum <= a:end_lnum
-    call puppet#align#AlignHashrockets(l:lnum)
+    if index(processed_lines, l:lnum) ==# -1
+      let line_text = getline(l:lnum)
+      if line_text =~? '\v\S'
+        let processed_lines += puppet#align#AlignHashrockets(l:lnum)
+      else
+        " empty lines make puppet#align#AlignHashrockets reprocess blocks with
+        " indentation that were already processed so we just skip them
+        call add(processed_lines, l:lnum)
+      endif
+    endif
     let l:lnum += 1
   endwhile
 endfunction

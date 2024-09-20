@@ -14,6 +14,10 @@ endif
 let s:cpo_sav = &cpo
 set cpo&vim
 
+if !exists('g:puppet_display_errors')
+  let g:puppet_display_errors = 1
+endif
+
 syn cluster puppetNotTop contains=@puppetExtendedStringSpecial,@puppetRegexpSpecial,puppetTodo
 
 syn match puppetSpaceError display excludenl "\s\+$"
@@ -87,15 +91,15 @@ syn match puppetInvalidNumber	"\%(\%(\w\|[]})\"']\s*\)\@<!-\)\=\<0[xX]\x\+\.\x\+
 syn match puppetInvalidNumber	"\%(\%(\w\|[]})\"']\s*\)\@<!-\)\=\<0\o*[89]\d*\>" display
 
 syn match puppetVariable "$\%(::\)\=\w\+\%(::\w\+\)*" display
-" resource name
+" resource or function name
 syn match puppetName "\%(\%(::\)\=\|\<\)[a-z]\w*\%(::[a-z]\w*\)*\>" display
-" resource or type reference
+" resource reference or data type
 syn match puppetType "\%(\%(::\)\=\|\<\)[A-Z]\w*\%(::[A-Z]\w*\)*\>" display
-" ??
-syn match puppetWord "\%(\%(\%(::\)\=\|\<\)\%(_[\w-]*\w\+\)\|\%([a-z]\%(\w*-\)\+\w\+\)\)\+\>" display
+" See https://www.puppet.com/docs/puppet/8/lang_data_string#lang_data_string_bare_words
+syn match puppetBareWordString "\%(\%(\%(::\)\=\|\<\)\%(_[\w-]*\w\+\)\|\%([a-z]\%(\w*-\)\+\w\+\)\)\+\>" display
 " bad name containing combinations of segment starting with lower case and segement starting with upper case (or vice versa)
-syn match puppetNameBad "\%(\%(::\)\=\|\<\)\%(\w\+::\)*\%(\%([a-z]\w*::[A-Z]\w*\)\|\%([A-Z]\w*::[a-z]\w*\)\)\%(::\w\+\)*\>" display
-syn cluster puppetNameOrType contains=puppetVariable,puppetName,puppetType,puppetWord,puppetNameBad
+syn match puppetInvalidName "\%(\%(::\)\=\|\<\)\%(\w\+::\)*\%(\%([a-z]\w*::[A-Z]\w*\)\|\%([A-Z]\w*::[a-z]\w*\)\)\%(::\w\+\)*\>" display
+syn cluster puppetNameOrType contains=puppetVariable,puppetName,puppetType,puppetBareWordString,puppetInvalidName
 
 syn keyword puppetControl  case in
 syn keyword puppetStructure node class define plan
@@ -256,7 +260,7 @@ hi def link puppetRegexp          puppetConstant
 hi def link puppetConstant        Constant
 hi def link puppetNoInterpolation puppetString
 hi def link puppetString          String
-hi def link puppetWord            String
+hi def link puppetBareWordString  String
 hi def link puppetFloat           Float
 hi def link puppetInteger         Number
 hi def link puppetBoolean         Boolean
@@ -282,10 +286,10 @@ hi def link puppetFunction        Function
 hi def link puppetDeprecated      Ignore
 hi def link puppetDebug           Debug
 
-if g:puppet_display_errors ==# v:true
-  hi def link puppetInvalidNumber   Error
-  hi def link puppetNameBad         Error
-  hi def link puppetSpaceError      Error
+if g:puppet_display_errors
+  hi def link puppetInvalidNumber       Error
+  hi def link puppetInvalidName         Error
+  hi def link puppetSpaceError          Error
 endif
 
 let b:current_syntax = 'puppet'

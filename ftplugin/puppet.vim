@@ -22,10 +22,6 @@ setlocal commentstring=#\ %s
 
 setlocal formatexpr=puppet#format#Format()
 
-if !exists('g:puppet_display_errors')
-  let g:puppet_display_errors = v:true
-endif
-
 let b:undo_ftplugin = '
     \ setlocal tabstop< tabstop< softtabstop< shiftwidth< expandtab<
     \| setlocal keywordprg< iskeyword< comments< commentstring<
