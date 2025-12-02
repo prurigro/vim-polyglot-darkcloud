@@ -134,12 +134,13 @@ au BufNewFile,BufRead *.markdown,*.mkd,*.mkdn,*.md
 au BufNewFile,BufRead */templates/**.liquid,*/layout/**.liquid,*/snippets/**.liquid
       \ let b:liquid_subtype = 'html' |
       \ set ft=liquid |
+scriptencoding utf-8
 if !has('patch-7.4.480')
     " Before this patch, vim used modula2 for .md.
-    au! filetypedetect BufRead,BufNewFile *.md
+    autocmd! filetypedetect BufRead,BufNewFile *.md
 endif
-au BufRead,BufNewFile *.{md,mdx,mdown,mkd,mkdn,markdown,mdwn} setfiletype markdown
-au BufRead,BufNewFile *.{md,mdx,mdown,mkd,mkdn,markdown,mdwn}.{des3,des,bf,bfa,aes,idea,cast,rc2,rc4,rc5,desx} setfiletype markdown
+autocmd BufRead,BufNewFile *.{md,mdx,mdown,mkd,mkdn,markdown,mdwn} setfiletype markdown
+autocmd BufRead,BufNewFile *.{md,mdx,mdown,mkd,mkdn,markdown,mdwn}.{des3,des,bf,bfa,aes,idea,cast,rc2,rc4,rc5,desx} setfiletype markdown
 autocmd BufRead *.html
     \ if getline(1) =~ '^\(%\|<[%&].*>\)' |
     \     set filetype=mason |
