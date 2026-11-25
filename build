@@ -35,7 +35,6 @@ lang_packs=(
     'latex:LaTeX-Box-Team/LaTeX-Box'
     'less:groenewege/vim-less'
     'liquid:tpope/vim-liquid'
-    'markdown:plasticboy/vim-markdown:_basic'
     'nginx:mutewinter/nginx.vim'
     'nim:zah/nimrod.vim'
     'ocaml:jrk/vim-ocaml'
