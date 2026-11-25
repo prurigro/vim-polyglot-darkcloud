@@ -34,7 +34,6 @@ lang_packs=(
     'jsx:MaxMEllon/vim-jsx-pretty'
     'latex:LaTeX-Box-Team/LaTeX-Box'
     'less:groenewege/vim-less'
-    'liquid:tpope/vim-liquid'
     'nginx:mutewinter/nginx.vim'
     'nim:zah/nimrod.vim'
     'ocaml:jrk/vim-ocaml'

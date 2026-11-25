@@ -53,7 +53,6 @@ Optionally download one of the [releases](https://github.com/sheerun/vim-polyglo
 - [jsx](https://github.com/MaxMEllon/vim-jsx-pretty) (syntax, indent, ftplugin)
 - [latex](https://github.com/LaTeX-Box-Team/LaTeX-Box) (syntax, indent, ftplugin)
 - [less](https://github.com/groenewege/vim-less) (syntax, indent, ftplugin, ftdetect)
-- [liquid](https://github.com/tpope/vim-liquid) (syntax, indent, ftplugin, ftdetect)
 - [nginx](https://github.com/mutewinter/nginx.vim) (syntax, ftdetect)
 - [nim](https://github.com/zah/nimrod.vim) (syntax, indent, ftdetect, ftplugin)
 - [ocaml](https://github.com/jrk/vim-ocaml) (syntax, indent, ftplugin)
